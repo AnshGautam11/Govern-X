@@ -2,6 +2,18 @@
 
 ### Automated NIST CSF 2.0 Compliance & Cyber Risk Quantification Engine
 
+**Company:** AXLERO Innovating Solutions
+
+**Team:**
+- Harshal Ghatbandhe
+- Ansh Gautam
+- Mounika Dunna
+- Sujal Waghmode
+- Amrita
+- Yannam Chittikumari
+
+
+
 > **GovernX transforms technical cybersecurity telemetry into executive-level compliance insights and measurable financial risk.**
 
 GovernX is an automated **Governance, Risk, and Compliance (GRC)** platform designed around the **NIST Cybersecurity Framework (CSF) 2.0**.
