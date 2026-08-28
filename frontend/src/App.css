@@ -1,0 +1,25 @@
+.scaffold {
+  max-width: 640px;
+  margin: 10vh auto 0;
+  padding: 2rem;
+  text-align: center;
+  font-family: system-ui, sans-serif;
+}
+
+.scaffold h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.25rem;
+  color: #16213e;
+}
+
+.scaffold .subtitle {
+  font-size: 1.1rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.scaffold .status {
+  font-size: 0.95rem;
+  color: #777;
+  line-height: 1.6;
+}
