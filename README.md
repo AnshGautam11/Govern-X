@@ -948,3 +948,11 @@ The platform answers three critical questions:
 ### Built for the future of Cybersecurity Governance.
 
 ---
+## Backend Local Development Setup
+
+### Python Virtual Environment
+
+From the `backend` directory, create and activate the virtual environment:
+
+```bash
+> python -m venv venv
