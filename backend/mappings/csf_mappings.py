@@ -25,6 +25,15 @@ CSF_MAPPINGS: dict[str, CSFMapping] = {
         csf_subcategory="PR.AA-03",
         justification="MFA is the primary control for the 'users, services, and hardware are authenticated' outcome. (Note: PR.AC-07 from CSF 1.1 was withdrawn and folded into PR.AA in 2.0.)",
     ),
+    "s3_encryption_at_rest": CSFMapping(
+        check_id="s3_encryption_at_rest",
+        csf_function="Protect",
+        csf_subcategory="PR.DS-01",
+        justification=(
+            "S3 server-side encryption protects data stored in "
+            "S3 buckets by encrypting data at rest."
+        ),
+    ),
     # --- Remaining checks, mapped for when each is implemented in aws_collector.py ---
     # "s3_encryption_at_rest": PR.DS-01 (same subcategory as s3_public_access_block)
     # "iam_root_mfa": PR.AA-03

@@ -103,6 +103,29 @@ def check_iam_user_mfa() -> list[CheckResult]:
             )
     return results
 
+@register_check("s3_encryption_at_rest")
+def check_s3_encryption_at_rest() -> list[CheckResult]:
+    """PR.DS-01 — S3 buckets should have encryption at rest enabled."""
+    s3 = get_client("s3")
+    results: list[CheckResult] = []
+
+    buckets = s3.list_buckets().get("Buckets", [])
+
+    for bucket in buckets:
+        name = bucket["Name"]
+
+        results.append(
+            CheckResult(
+                check_id="s3_encryption_at_rest",
+                resource_id=name,
+                status=CheckStatus.ERROR,
+                severity=Severity.HIGH,
+                detail=f"Encryption check pending for {name}",
+            )
+        )
+
+    return results
+
 
 # --- Remaining Week 1 scope checks (stubs — implement following the pattern above) ---
 #
