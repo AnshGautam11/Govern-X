@@ -114,15 +114,67 @@ def check_s3_encryption_at_rest() -> list[CheckResult]:
     for bucket in buckets:
         name = bucket["Name"]
 
-        results.append(
-            CheckResult(
-                check_id="s3_encryption_at_rest",
-                resource_id=name,
-                status=CheckStatus.ERROR,
-                severity=Severity.HIGH,
-                detail=f"Encryption check pending for {name}",
+        try:
+            encryption = s3.get_bucket_encryption(Bucket=name)
+
+            rules = encryption.get(
+                "ServerSideEncryptionConfiguration",
+                {}
+            ).get("Rules", [])
+
+            has_encryption = len(rules) > 0
+
+            results.append(
+                CheckResult(
+                    check_id="s3_encryption_at_rest",
+                    resource_id=name,
+                    status=(
+                        CheckStatus.PASS
+                        if has_encryption
+                        else CheckStatus.FAIL
+                    ),
+                    severity=Severity.HIGH,
+                    detail=(
+                        f"Encryption at rest is "
+                        f"{'enabled' if has_encryption else 'NOT enabled'} "
+                        f"for bucket {name}"
+                    ),
+                )
             )
-        )
+
+        except ClientError as e:
+            error_code = e.response["Error"]["Code"]
+
+            if error_code in (
+                "ServerSideEncryptionConfigurationNotFoundError",
+                "NoSuchBucket",
+            ):
+                results.append(
+                    CheckResult(
+                        check_id="s3_encryption_at_rest",
+                        resource_id=name,
+                        status=CheckStatus.FAIL,
+                        severity=Severity.HIGH,
+                        detail=(
+                            f"Encryption at rest is NOT enabled "
+                            f"for bucket {name}"
+                        ),
+                    )
+                )
+            else:
+                results.append(
+                    CheckResult(
+                        check_id="s3_encryption_at_rest",
+                        resource_id=name,
+                        status=CheckStatus.ERROR,
+                        severity=Severity.HIGH,
+                        detail=(
+                            f"Could not evaluate encryption for "
+                            f"{name}: "
+                            f"{e.response['Error']['Message']}"
+                        ),
+                    )
+                )
 
     return results
 
