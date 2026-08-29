@@ -47,3 +47,100 @@
     Cantarell,
     sans-serif;
 }
+
+.pillar-detail-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.pillar-detail-shell {
+  width: min(900px, 100%);
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(20, 30, 60, 0.9) 0%, rgba(15, 25, 50, 0.95) 100%);
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(0, 255, 65, 0.08);
+}
+
+.pillar-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.pillar-detail-title {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: #ffffff;
+}
+
+.pillar-detail-score {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #00ff41;
+}
+
+.pillar-detail-description {
+  margin: 0 0 1.5rem;
+  color: #b0b0b0;
+  line-height: 1.7;
+  font-size: 1.05rem;
+}
+
+.pillar-detail-progress {
+  margin: 1.5rem 0 2rem;
+}
+
+.pillar-detail-progress-bar {
+  width: 100%;
+  height: 10px;
+  background: rgba(0, 255, 65, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 255, 65, 0.25);
+}
+
+.pillar-detail-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #00ff41 0%, #00d4ff 100%);
+}
+
+.back-to-dashboard {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid rgba(0, 255, 65, 0.35);
+  border-radius: 10px;
+  background: rgba(0, 255, 65, 0.08);
+  color: #00ff41;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.back-to-dashboard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 18px rgba(0, 255, 65, 0.15);
+}
+
+@media (max-width: 768px) {
+  .pillar-detail-page {
+    padding: 1rem;
+  }
+
+  .pillar-detail-shell {
+    padding: 1.25rem;
+  }
+
+  .pillar-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
