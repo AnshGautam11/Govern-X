@@ -30,6 +30,16 @@ CSF_MAPPINGS: dict[str, CSFMapping] = {
         ),
     ),
 
+    "ebs_encryption": CSFMapping(
+        check_id="ebs_encryption",
+        csf_function="Protect",
+        csf_subcategory="PR.DS-01",
+        justification=(
+            "EBS encryption protects data stored on EBS volumes "
+            "from unauthorized disclosure by encrypting data at rest."
+        ),
+    ),
+
     "iam_user_mfa": CSFMapping(
         check_id="iam_user_mfa",
         csf_function="Protect",
