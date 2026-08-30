@@ -956,3 +956,9 @@ From the `backend` directory, create and activate the virtual environment:
 
 ```bash
 > python -m venv venv
+
+EBS Encryption Check
+Implemented the ebs_encryption AWS check using boto3.
+Verifies whether EBS volumes have encryption enabled.
+Added NIST CSF 2.0 mapping to PR.DS-01.
+Added tests for encrypted and unencrypted EBS volumes.
