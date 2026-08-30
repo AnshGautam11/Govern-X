@@ -2,50 +2,45 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import './PillarCard.css';
 
-function PillarCard({ icon, title, description, status, compliance, accentColor, to }) {
-  return React.createElement(
-    Link,
-    {
-      to,
-      className: 'pillar-card-link',
-      'aria-label': `View ${title} details`,
-    },
-    React.createElement(
-      'article',
-      {
-        className: 'pillar-card',
-        style: { '--accent-color': accentColor },
-      },
-      React.createElement(
-        'div',
-        { className: 'pillar-top' },
-        React.createElement('div', { className: 'pillar-icon' }, icon),
-        React.createElement('span', { className: `pillar-status-badge ${status.toLowerCase()}` }, status)
-      ),
-      React.createElement('h3', { className: 'pillar-title' }, title),
-      React.createElement('p', { className: 'pillar-description' }, description),
-      React.createElement(
-        'div',
-        { className: 'compliance-section' },
-        React.createElement(
-          'div',
-          { className: 'compliance-header' },
-          React.createElement('span', { className: 'compliance-label' }, 'Score'),
-          React.createElement('span', { className: 'compliance-percent' }, `${compliance}/100`)
-        ),
-        React.createElement(
-          'div',
-          { className: 'progress-bar' },
-          React.createElement('div', { className: 'progress-fill', style: { width: `${compliance}%` } })
-        )
-      ),
-      React.createElement(
-        'div',
-        { className: 'pillar-action' },
-        React.createElement('span', { className: 'action-text' }, 'View Details'),
-        React.createElement('span', { className: 'action-arrow' }, '→')
-      )
-    )
+function PillarCard({ icon, title, name, description, status, compliance, controls, accentColor, to }) {
+  const badgeClass = status.toLowerCase().replace(/\s+/g, '-');
+
+  return (
+    <Link to={to} className="pillar-card-link" aria-label={`View ${title} details`}>
+      <article className="pillar-card" style={{ '--accent-color': accentColor }}>
+        <div className="pillar-top">
+          <div className="pillar-icon">{icon}</div>
+          <span className={`pillar-status-badge ${badgeClass}`}>{status}</span>
+        </div>
+
+        <div className="pillar-header-block">
+          <p className="pillar-kicker">{name}</p>
+          <h3 className="pillar-title">{title}</h3>
+        </div>
+
+        <p className="pillar-description">{description}</p>
+
+        <div className="compliance-section">
+          <div className="compliance-header">
+            <span className="compliance-label">Compliance Score</span>
+            <span className="compliance-percent">{compliance}%</span>
+          </div>
+          <div className="progress-bar" aria-label={`${title} compliance ${compliance}%`}>
+            <div className="progress-fill" style={{ width: `${compliance}%` }} />
+          </div>
+        </div>
+
+        <div className="pillar-meta">
+          <span>{controls} controls</span>
+          <span>Risk posture: {status}</span>
+        </div>
+
+        <div className="pillar-action">
+          <span className="action-text">View Details</span>
+          <span className="action-arrow">→</span>
+        </div>
+      </article>
+    </Link>
   );
 }
 

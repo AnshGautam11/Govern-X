@@ -1,19 +1,22 @@
-import React from 'react'
-import './App.css'
-import { Navigate, Route, Routes } from 'react-router-dom'
-import Dashboard from './components/Dashboard'
-import PillarDetail from './components/PillarDetail'
+import React from 'react';
+import './App.css';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import Dashboard from './components/Dashboard';
+import PillarDetail from './components/PillarDetail';
+import { pillarData } from './data/pillarData';
 
 function App() {
-  return React.createElement(
-    'div',
-    { className: 'app' },
-    React.createElement(Routes, null,
-      React.createElement(Route, { path: '/', element: React.createElement(Dashboard) }),
-      React.createElement(Route, { path: '/pillar/:pillarSlug', element: React.createElement(PillarDetail) }),
-      React.createElement(Route, { path: '*', element: React.createElement(Navigate, { to: '/', replace: true }) })
-    )
-  )
+  return (
+    <div className="app-shell">
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        {pillarData.map((pillar) => (
+          <Route key={pillar.slug} path={pillar.route} element={<PillarDetail />} />
+        ))}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  );
 }
 
-export default App
+export default App;
