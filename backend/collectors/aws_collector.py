@@ -228,6 +228,52 @@ def check_iam_access_key_age(max_age_days: int = 90) -> list[CheckResult]:
 # @register_check("iam_access_key_age")                -> PR.AC-01
 # @register_check("vpc_flow_logs_enabled")             -> DE.CM-01
 
+@register_check("ebs_encryption")
+def check_ebs_encryption() -> list[CheckResult]:
+    """PR.DS-01 — EBS volumes should have encryption at rest enabled."""
+    ec2 = get_client("ec2")
+    results: list[CheckResult] = []
+
+    try:
+        volumes = ec2.describe_volumes().get("Volumes", [])
+
+        for volume in volumes:
+            volume_id = volume["VolumeId"]
+            is_encrypted = volume.get("Encrypted", False)
+
+            results.append(
+                CheckResult(
+                    check_id="ebs_encryption",
+                    resource_id=volume_id,
+                    status=(
+                        CheckStatus.PASS
+                        if is_encrypted
+                        else CheckStatus.FAIL
+                    ),
+                    severity=Severity.HIGH,
+                    detail=(
+                        f"EBS encryption is "
+                        f"{'enabled' if is_encrypted else 'NOT enabled'} "
+                        f"for volume {volume_id}"
+                    ),
+                )
+            )
+
+    except ClientError as e:
+        results.append(
+            CheckResult(
+                check_id="ebs_encryption",
+                resource_id="unknown",
+                status=CheckStatus.ERROR,
+                severity=Severity.HIGH,
+                detail=(
+                    f"Could not evaluate EBS encryption: "
+                    f"{e.response['Error']['Message']}"
+                ),
+            )
+        )
+
+    return results
 
 def run_all_checks() -> list[CheckResult]:
     """Run every registered check and return a flat list of results."""
