@@ -6,7 +6,10 @@ Run with: pytest tests/test_scaffold.py
 
 from collectors.aws_collector import CHECK_REGISTRY
 from mappings.csf_mappings import CSF_MAPPINGS
-from collectors.aws_collector import check_s3_encryption_at_rest
+from collectors.aws_collector import (
+    check_s3_encryption_at_rest,
+    check_ebs_encryption,
+)
 from unittest.mock import MagicMock, patch
 from botocore.exceptions import ClientError
 
@@ -89,4 +92,55 @@ def test_s3_encryption_at_rest_fail():
     assert len(results) == 1
     assert results[0].check_id == "s3_encryption_at_rest"
     assert results[0].resource_id == "unencrypted-bucket"
+    assert results[0].status.value == "fail"
+
+def test_ebs_encryption_pass():
+    """EBS volume with encryption enabled should pass."""
+
+    mock_ec2 = MagicMock()
+
+    mock_ec2.describe_volumes.return_value = {
+        "Volumes": [
+            {
+                "VolumeId": "vol-encrypted",
+                "Encrypted": True,
+            }
+        ]
+    }
+
+    with patch(
+        "collectors.aws_collector.get_client",
+        return_value=mock_ec2
+    ):
+        results = check_ebs_encryption()
+
+    assert len(results) == 1
+    assert results[0].check_id == "ebs_encryption"
+    assert results[0].resource_id == "vol-encrypted"
+    assert results[0].status.value == "pass"
+
+
+def test_ebs_encryption_fail():
+    """EBS volume without encryption should fail."""
+
+    mock_ec2 = MagicMock()
+
+    mock_ec2.describe_volumes.return_value = {
+        "Volumes": [
+            {
+                "VolumeId": "vol-unencrypted",
+                "Encrypted": False,
+            }
+        ]
+    }
+
+    with patch(
+        "collectors.aws_collector.get_client",
+        return_value=mock_ec2
+    ):
+        results = check_ebs_encryption()
+
+    assert len(results) == 1
+    assert results[0].check_id == "ebs_encryption"
+    assert results[0].resource_id == "vol-unencrypted"
     assert results[0].status.value == "fail"
