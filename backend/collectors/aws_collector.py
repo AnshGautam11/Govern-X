@@ -179,6 +179,42 @@ def check_s3_encryption_at_rest() -> list[CheckResult]:
     return results
 
 
+@register_check("iam_access_key_age")
+def check_iam_access_key_age(max_age_days: int = 90) -> list[CheckResult]:
+    """PR.AA-01 - IAM access keys should be rotated within 90 days."""
+    from datetime import datetime, timezone
+
+    iam = get_client("iam")
+    results: list[CheckResult] = []
+
+    paginator = iam.get_paginator("list_users")
+    for page in paginator.paginate():
+        for user in page["Users"]:
+            username = user["UserName"]
+            keys = iam.list_access_keys(UserName=username)["AccessKeyMetadata"]
+
+            if not keys:
+                continue
+
+            for key in keys:
+                key_id = key["AccessKeyId"]
+                created = key["CreateDate"]
+                age_days = (datetime.now(timezone.utc) - created).days
+                is_old = age_days > max_age_days
+
+                results.append(
+                    CheckResult(
+                        check_id="iam_access_key_age",
+                        resource_id=f"{username}/{key_id}",
+                        status=CheckStatus.FAIL if is_old else CheckStatus.PASS,
+                        severity=Severity.MEDIUM,
+                        detail=(
+                            f"Access key {key_id} for user {username} is {age_days} days old "
+                            f"({'exceeds' if is_old else 'within'} the {max_age_days}-day rotation limit)"
+                        ),
+                    )
+                )
+    return results
 # --- Remaining Week 1 scope checks (stubs — implement following the pattern above) ---
 #
 # @register_check("s3_encryption_at_rest")           -> PR.DS-01
