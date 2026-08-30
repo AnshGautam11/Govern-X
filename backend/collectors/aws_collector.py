@@ -198,27 +198,41 @@ def check_ebs_encryption() -> list[CheckResult]:
     ec2 = get_client("ec2")
     results: list[CheckResult] = []
 
-    volumes = ec2.describe_volumes().get("Volumes", [])
+    try:
+        volumes = ec2.describe_volumes().get("Volumes", [])
 
-    for volume in volumes:
-        volume_id = volume["VolumeId"]
+        for volume in volumes:
+            volume_id = volume["VolumeId"]
+            is_encrypted = volume.get("Encrypted", False)
 
-        is_encrypted = volume.get("Encrypted", False)
+            results.append(
+                CheckResult(
+                    check_id="ebs_encryption",
+                    resource_id=volume_id,
+                    status=(
+                        CheckStatus.PASS
+                        if is_encrypted
+                        else CheckStatus.FAIL
+                    ),
+                    severity=Severity.HIGH,
+                    detail=(
+                        f"EBS encryption is "
+                        f"{'enabled' if is_encrypted else 'NOT enabled'} "
+                        f"for volume {volume_id}"
+                    ),
+                )
+            )
 
+    except ClientError as e:
         results.append(
             CheckResult(
                 check_id="ebs_encryption",
-                resource_id=volume_id,
-                status=(
-                    CheckStatus.PASS
-                    if is_encrypted
-                    else CheckStatus.FAIL
-                ),
+                resource_id="unknown",
+                status=CheckStatus.ERROR,
                 severity=Severity.HIGH,
                 detail=(
-                    f"EBS encryption is "
-                    f"{'enabled' if is_encrypted else 'NOT enabled'} "
-                    f"for volume {volume_id}"
+                    f"Could not evaluate EBS encryption: "
+                    f"{e.response['Error']['Message']}"
                 ),
             )
         )
