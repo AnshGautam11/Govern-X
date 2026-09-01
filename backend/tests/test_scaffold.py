@@ -250,3 +250,49 @@ def test_security_group_open_ingress_fail():
 
     assert len(results) == 1
     assert results[0].status == CheckStatus.FAIL
+def test_rds_public_accessibility_pass():
+    """RDS instance that is not publicly accessible should pass."""
+    from collectors.aws_collector import check_rds_public_accessibility
+
+    mock_rds = MagicMock()
+
+    mock_rds.get_paginator.return_value.paginate.return_value = [
+        {
+            "DBInstances": [
+                {
+                    "DBInstanceIdentifier": "private-db",
+                    "PubliclyAccessible": False,
+                }
+            ]
+        }
+    ]
+
+    with patch("collectors.aws_collector.get_client", return_value=mock_rds):
+        results = check_rds_public_accessibility()
+
+    assert len(results) == 1
+    assert results[0].status == CheckStatus.PASS
+
+
+def test_rds_public_accessibility_fail():
+    """RDS instance that is publicly accessible should fail."""
+    from collectors.aws_collector import check_rds_public_accessibility
+
+    mock_rds = MagicMock()
+
+    mock_rds.get_paginator.return_value.paginate.return_value = [
+        {
+            "DBInstances": [
+                {
+                    "DBInstanceIdentifier": "public-db",
+                    "PubliclyAccessible": True,
+                }
+            ]
+        }
+    ]
+
+    with patch("collectors.aws_collector.get_client", return_value=mock_rds):
+        results = check_rds_public_accessibility()
+
+    assert len(results) == 1
+    assert results[0].status == CheckStatus.FAIL
