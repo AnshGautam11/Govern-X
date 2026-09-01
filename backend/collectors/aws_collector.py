@@ -611,30 +611,46 @@ def check_vpc_flow_logs_enabled() -> list[CheckResult]:
     ec2 = get_client("ec2")
 
     try:
-        response = ec2.describe_flow_logs()
-        flow_logs = response.get("FlowLogs", [])
+        vpc_response = ec2.describe_vpcs()
+        vpcs = vpc_response.get("Vpcs", [])
 
-        active_vpc_flow_logs = [
-            flow_log
+        flow_log_response = ec2.describe_flow_logs()
+        flow_logs = flow_log_response.get("FlowLogs", [])
+
+        active_vpc_ids = {
+            flow_log["ResourceId"]
             for flow_log in flow_logs
-            if flow_log.get("ResourceId")
-            and flow_log.get("ResourceId", "").startswith("vpc-")
+            if flow_log.get("ResourceId", "").startswith("vpc-")
             and flow_log.get("FlowLogStatus") == "ACTIVE"
-        ]
+        }
 
-        if active_vpc_flow_logs:
+        for vpc in vpcs:
+            vpc_id = vpc.get("VpcId")
+
+            if vpc_id in active_vpc_ids:
+                return [
+                    CheckResult(
+                        check_id="vpc_flow_logs_enabled",
+                        resource_id=vpc_id,
+                        status=CheckStatus.PASS,
+                        severity=Severity.HIGH,
+                        detail=(
+                            f"VPC Flow Logs are enabled and active for {vpc_id}"
+                        ),
+                    )
+                ]
+
+        if vpcs:
+            vpc_id = vpcs[0].get("VpcId", "unknown")
+
             return [
                 CheckResult(
                     check_id="vpc_flow_logs_enabled",
-                    resource_id=flow_log.get("FlowLogId", flow_log["ResourceId"]),
-                    status=CheckStatus.PASS,
+                    resource_id=vpc_id,
+                    status=CheckStatus.FAIL,
                     severity=Severity.HIGH,
-                    detail=(
-                        f"VPC Flow Logs are enabled and active for "
-                        f"{flow_log['ResourceId']}"
-                    ),
+                    detail=f"No active VPC Flow Logs are configured for {vpc_id}",
                 )
-                for flow_log in active_vpc_flow_logs
             ]
 
         return [
@@ -643,7 +659,7 @@ def check_vpc_flow_logs_enabled() -> list[CheckResult]:
                 resource_id="vpc-flow-logs",
                 status=CheckStatus.FAIL,
                 severity=Severity.HIGH,
-                detail="No active VPC Flow Logs are configured",
+                detail="No VPCs are configured",
             )
         ]
 
