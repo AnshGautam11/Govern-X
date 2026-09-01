@@ -88,6 +88,15 @@ CSF_MAPPINGS: dict[str, CSFMapping] = {
             "networks and environments from unauthorized logical access."
         ),
     ),
+"rds_public_accessibility": CSFMapping(
+    check_id="rds_public_accessibility",
+    csf_function="Protect",
+    csf_subcategory="PR.AC-04",
+    justification=(
+        "Restricting public accessibility of RDS databases "
+        "helps prevent unauthorized access to data resources."
+    ),
+),
 }
 
 

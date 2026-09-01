@@ -493,3 +493,49 @@ def run_all_checks() -> list[CheckResult]:
                 )
             )
     return all_results
+@register_check("rds_public_accessibility")
+def check_rds_public_accessibility() -> list[CheckResult]:
+    """PR.IR-01 — RDS database instances should not be publicly accessible."""
+    rds = get_client("rds")
+    results: list[CheckResult] = []
+
+    try:
+        paginator = rds.get_paginator("describe_db_instances")
+
+        for page in paginator.paginate():
+            for instance in page.get("DBInstances", []):
+                db_identifier = instance["DBInstanceIdentifier"]
+                is_public = instance.get("PubliclyAccessible", False)
+
+                results.append(
+                    CheckResult(
+                        check_id="rds_public_accessibility",
+                        resource_id=db_identifier,
+                        status=(
+                            CheckStatus.FAIL
+                            if is_public
+                            else CheckStatus.PASS
+                        ),
+                        severity=Severity.CRITICAL,
+                        detail=(
+                            f"RDS instance {db_identifier} "
+                            f"is {'publicly accessible' if is_public else 'not publicly accessible'}"
+                        ),
+                    )
+                )
+
+    except ClientError as e:
+        results.append(
+            CheckResult(
+                check_id="rds_public_accessibility",
+                resource_id="unknown",
+                status=CheckStatus.ERROR,
+                severity=Severity.CRITICAL,
+                detail=(
+                    f"Could not evaluate RDS instances: "
+                    f"{e.response['Error']['Message']}"
+                ),
+            )
+        )
+
+    return results
