@@ -539,71 +539,7 @@ def check_rds_public_accessibility() -> list[CheckResult]:
         )
 
     return results
-@register_check("cloudtrail_enabled")
-def check_cloudtrail_enabled() -> list[CheckResult]:
-    """DE.CM-03 — CloudTrail should have at least one active logging trail."""
-    cloudtrail = get_client("cloudtrail")
 
-    try:
-        trails = cloudtrail.describe_trails().get("trailList", [])
-
-        if not trails:
-            return [
-                CheckResult(
-                    check_id="cloudtrail_enabled",
-                    resource_id="cloudtrail",
-                    status=CheckStatus.FAIL,
-                    severity=Severity.HIGH,
-                    detail="No CloudTrail trail is configured",
-                )
-            ]
-
-        for trail in trails:
-            trail_arn = trail.get("TrailARN", trail.get("Name", "unknown"))
-
-            status = cloudtrail.get_trail_status(
-                Name=trail["Name"]
-            )
-
-            is_logging = status.get("IsLogging", False)
-
-            if is_logging:
-                return [
-                    CheckResult(
-                        check_id="cloudtrail_enabled",
-                        resource_id=trail_arn,
-                        status=CheckStatus.PASS,
-                        severity=Severity.HIGH,
-                        detail=(
-                            f"CloudTrail trail {trail['Name']} "
-                            "is configured and actively logging"
-                        ),
-                    )
-                ]
-
-        return [
-            CheckResult(
-                check_id="cloudtrail_enabled",
-                resource_id="cloudtrail",
-                status=CheckStatus.FAIL,
-                severity=Severity.HIGH,
-                detail="CloudTrail trails are configured but none are actively logging",
-            )
-        ]
-
-    except ClientError as e:
-        return [
-            CheckResult(
-                check_id="cloudtrail_enabled",
-                resource_id="cloudtrail",
-                status=CheckStatus.ERROR,
-                severity=Severity.HIGH,
-                detail=(
-                    f"Could not evaluate CloudTrail: "
-                    f"{e.response['Error']['Message']}"
-                ),
-            )
-        ]
 @register_check("cloudtrail_enabled")
 def check_cloudtrail_enabled() -> list[CheckResult]:
     """DE.CM-03 — CloudTrail should have at least one active logging trail."""
