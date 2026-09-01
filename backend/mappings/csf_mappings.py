@@ -52,6 +52,12 @@ CSF_MAPPINGS: dict[str, CSFMapping] = {
         csf_subcategory="PR.AA-01",
         justification="Regular access key rotation reduces the risk window if a key is compromised, supporting identity and credential management.",
     ),
+       "iam_policy_wildcard_admin": CSFMapping(
+        check_id="iam_policy_wildcard_admin",
+        csf_function="Protect",
+        csf_subcategory="PR.AA-05",
+        justification="Wildcard admin policies violate least privilege by granting unrestricted access to all actions and resources.",
+    ),
 
     # --- Remaining checks, mapped for when each is implemented in aws_collector.py ---
     # "s3_encryption_at_rest": PR.DS-01 (same subcategory as s3_public_access_block)

@@ -215,6 +215,58 @@ def check_iam_access_key_age(max_age_days: int = 90) -> list[CheckResult]:
                     )
                 )
     return results
+
+@register_check("iam_policy_wildcard_admin")
+def check_iam_policy_wildcard_admin() -> list[CheckResult]:
+    """PR.AA-05 - IAM policies should not grant wildcard (*:*) admin access."""
+    iam = get_client("iam")
+    results: list[CheckResult] = []
+
+    paginator = iam.get_paginator("list_policies")
+    for page in paginator.paginate(Scope="Local"):
+        for policy in page["Policies"]:
+            policy_name = policy["PolicyName"]
+            policy_arn = policy["Arn"]
+            version_id = policy["DefaultVersionId"]
+
+            policy_version = iam.get_policy_version(
+                PolicyArn=policy_arn, VersionId=version_id
+            )
+            document = policy_version["PolicyVersion"]["Document"]
+
+            statements = document.get("Statement", [])
+            if isinstance(statements, dict):
+                statements = [statements]
+
+            has_wildcard_admin = False
+            for statement in statements:
+                if statement.get("Effect") != "Allow":
+                    continue
+                actions = statement.get("Action", [])
+                resources = statement.get("Resource", [])
+                if isinstance(actions, str):
+                    actions = [actions]
+                if isinstance(resources, str):
+                    resources = [resources]
+
+                if "*" in actions and "*" in resources:
+                    has_wildcard_admin = True
+                    break
+
+            results.append(
+                CheckResult(
+                    check_id="iam_policy_wildcard_admin",
+                    resource_id=policy_name,
+                    status=CheckStatus.FAIL if has_wildcard_admin else CheckStatus.PASS,
+                    severity=Severity.CRITICAL,
+                    detail=(
+                        f"Policy {policy_name} "
+                        f"{'grants' if has_wildcard_admin else 'does not grant'} "
+                        f"wildcard (*:*) admin access"
+                    ),
+                )
+            )
+    return results
 # --- Remaining Week 1 scope checks (stubs — implement following the pattern above) ---
 #
 # @register_check("s3_encryption_at_rest")           -> PR.DS-01
