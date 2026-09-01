@@ -79,6 +79,15 @@ CSF_MAPPINGS: dict[str, CSFMapping] = {
     # "rds_public_accessibility": PR.IR-01
     # "cloudtrail_enabled": DE.CM-03 - "Personnel activity and technology usage are monitored" (API activity monitoring, not network traffic)
     # "vpc_flow_logs_enabled": DE.CM-01 - "Networks and network services are monitored"
+    "security_group_open_ingress": CSFMapping(
+        check_id="security_group_open_ingress",
+        csf_function="Protect",
+        csf_subcategory="PR.IR-01",
+        justification=(
+            "Restricting open security-group ingress helps protect "
+            "networks and environments from unauthorized logical access."
+        ),
+    ),
 }
 
 

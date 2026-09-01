@@ -267,7 +267,63 @@ def check_iam_policy_wildcard_admin() -> list[CheckResult]:
                 )
             )
     return results
- 
+@register_check("security_group_open_ingress")
+def check_security_group_open_ingress() -> list[CheckResult]:
+    """PR.IR-01 — security groups should not allow unrestricted internet ingress."""
+    ec2 = get_client("ec2")
+    results: list[CheckResult] = []
+
+    try:
+        response = ec2.describe_security_groups()
+
+        for security_group in response.get("SecurityGroups", []):
+            group_id = security_group["GroupId"]
+            group_name = security_group.get("GroupName", group_id)
+
+            open_ingress = False
+
+            for permission in security_group.get("IpPermissions", []):
+                for ip_range in permission.get("IpRanges", []):
+                    if ip_range.get("CidrIp") == "0.0.0.0/0":
+                        open_ingress = True
+
+                for ip_range in permission.get("Ipv6Ranges", []):
+                    if ip_range.get("CidrIpv6") == "::/0":
+                        open_ingress = True
+
+            results.append(
+                CheckResult(
+                    check_id="security_group_open_ingress",
+                    resource_id=group_id,
+                    status=(
+                        CheckStatus.FAIL
+                        if open_ingress
+                        else CheckStatus.PASS
+                    ),
+                    severity=Severity.HIGH,
+                    detail=(
+                        f"Security group {group_name} "
+                        f"{'allows' if open_ingress else 'does not allow'} "
+                        f"unrestricted internet ingress"
+                    ),
+                )
+            )
+
+    except ClientError as e:
+        results.append(
+            CheckResult(
+                check_id="security_group_open_ingress",
+                resource_id="unknown",
+                status=CheckStatus.ERROR,
+                severity=Severity.HIGH,
+                detail=(
+                    f"Could not evaluate security groups: "
+                    f"{e.response['Error']['Message']}"
+                ),
+            )
+        )
+
+    return results 
 # --- Remaining Week 1 scope checks (stubs — implement following the pattern above) ---
 #
 # @register_check("s3_encryption_at_rest")           -> PR.DS-01
