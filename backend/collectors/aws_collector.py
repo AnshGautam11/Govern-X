@@ -476,6 +476,117 @@ def check_iam_password_policy(min_length: int = 14) -> list[CheckResult]:
         ]
 
 
+@register_check("cloudtrail_enabled")
+def check_cloudtrail_enabled() -> list[CheckResult]:
+    """DE.CM-03 - at least one CloudTrail trail should be actively logging."""
+    cloudtrail = get_client("cloudtrail")
+
+    try:
+        trails = cloudtrail.list_trails().get("Trails", [])
+        for trail in trails:
+            trail_arn = trail.get("TrailARN") or trail.get("Name")
+            trail_name = trail.get("Name") or trail_arn
+            if not trail_name:
+                continue
+
+            status = cloudtrail.get_trail_status(Name=trail_name)
+            if status.get("IsLogging", False):
+                return [
+                    CheckResult(
+                        check_id="cloudtrail_enabled",
+                        resource_id=trail_arn or "cloudtrail",
+                        status=CheckStatus.PASS,
+                        severity=Severity.HIGH,
+                        detail="CloudTrail is enabled",
+                    )
+                ]
+
+        return [
+            CheckResult(
+                check_id="cloudtrail_enabled",
+                resource_id="cloudtrail",
+                status=CheckStatus.FAIL,
+                severity=Severity.HIGH,
+                detail="CloudTrail is not enabled",
+            )
+        ]
+    except ClientError as e:
+        return [
+            CheckResult(
+                check_id="cloudtrail_enabled",
+                resource_id="cloudtrail",
+                status=CheckStatus.ERROR,
+                severity=Severity.HIGH,
+                detail=f"Could not evaluate CloudTrail: {e.response['Error']['Message']}",
+            )
+        ]
+
+
+@register_check("vpc_flow_logs_enabled")
+def check_vpc_flow_logs_enabled() -> list[CheckResult]:
+    """DE.CM-01 - every VPC should have an active VPC flow log."""
+    ec2 = get_client("ec2")
+
+    try:
+        vpcs = ec2.describe_vpcs().get("Vpcs", [])
+        if not vpcs:
+            return [
+                CheckResult(
+                    check_id="vpc_flow_logs_enabled",
+                    resource_id="vpc-environment",
+                    status=CheckStatus.FAIL,
+                    severity=Severity.HIGH,
+                    detail="VPC Flow Logs are not enabled",
+                )
+            ]
+
+        missing_vpcs: list[str] = []
+        for vpc in vpcs:
+            vpc_id = vpc.get("VpcId")
+            if not vpc_id:
+                continue
+
+            flow_logs = ec2.describe_flow_logs(
+                Filters=[{"Name": "resource-id", "Values": [vpc_id]}]
+            ).get("FlowLogs", [])
+            has_active_flow_log = any(
+                flow_log.get("FlowLogStatus") == "ACTIVE"
+                and flow_log.get("ResourceId") == vpc_id
+                for flow_log in flow_logs
+            )
+            if not has_active_flow_log:
+                missing_vpcs.append(vpc_id)
+
+        if missing_vpcs:
+            detail = "VPC Flow Logs are not enabled"
+            resource_id = ",".join(missing_vpcs)
+            status = CheckStatus.FAIL
+        else:
+            detail = "VPC Flow Logs are enabled"
+            resource_id = "vpc-environment"
+            status = CheckStatus.PASS
+
+        return [
+            CheckResult(
+                check_id="vpc_flow_logs_enabled",
+                resource_id=resource_id,
+                status=status,
+                severity=Severity.HIGH,
+                detail=detail,
+            )
+        ]
+    except ClientError as e:
+        return [
+            CheckResult(
+                check_id="vpc_flow_logs_enabled",
+                resource_id="vpc-environment",
+                status=CheckStatus.ERROR,
+                severity=Severity.HIGH,
+                detail=f"Could not evaluate VPC Flow Logs: {e.response['Error']['Message']}",
+            )
+        ]
+
+
 def run_all_checks() -> list[CheckResult]:
     """Run every registered check and return a flat list of results."""
     all_results: list[CheckResult] = []
