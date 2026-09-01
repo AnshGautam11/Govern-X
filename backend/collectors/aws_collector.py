@@ -605,3 +605,58 @@ def check_cloudtrail_enabled() -> list[CheckResult]:
                 ),
             )
         ]
+@register_check("vpc_flow_logs_enabled")
+def check_vpc_flow_logs_enabled() -> list[CheckResult]:
+    """DE.CM-01 — VPC Flow Logs should have at least one active VPC flow log."""
+    ec2 = get_client("ec2")
+
+    try:
+        response = ec2.describe_flow_logs()
+        flow_logs = response.get("FlowLogs", [])
+
+        active_vpc_flow_logs = [
+            flow_log
+            for flow_log in flow_logs
+            if flow_log.get("ResourceId")
+            and flow_log.get("ResourceId", "").startswith("vpc-")
+            and flow_log.get("FlowLogStatus") == "ACTIVE"
+        ]
+
+        if active_vpc_flow_logs:
+            return [
+                CheckResult(
+                    check_id="vpc_flow_logs_enabled",
+                    resource_id=flow_log.get("FlowLogId", flow_log["ResourceId"]),
+                    status=CheckStatus.PASS,
+                    severity=Severity.HIGH,
+                    detail=(
+                        f"VPC Flow Logs are enabled and active for "
+                        f"{flow_log['ResourceId']}"
+                    ),
+                )
+                for flow_log in active_vpc_flow_logs
+            ]
+
+        return [
+            CheckResult(
+                check_id="vpc_flow_logs_enabled",
+                resource_id="vpc-flow-logs",
+                status=CheckStatus.FAIL,
+                severity=Severity.HIGH,
+                detail="No active VPC Flow Logs are configured",
+            )
+        ]
+
+    except ClientError as e:
+        return [
+            CheckResult(
+                check_id="vpc_flow_logs_enabled",
+                resource_id="vpc-flow-logs",
+                status=CheckStatus.ERROR,
+                severity=Severity.HIGH,
+                detail=(
+                    f"Could not evaluate VPC Flow Logs: "
+                    f"{e.response['Error']['Message']}"
+                ),
+            )
+        ]

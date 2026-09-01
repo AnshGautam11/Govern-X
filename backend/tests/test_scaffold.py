@@ -296,3 +296,44 @@ def test_rds_public_accessibility_fail():
 
     assert len(results) == 1
     assert results[0].status == CheckStatus.FAIL
+def test_vpc_flow_logs_enabled_pass():
+    """Active VPC Flow Logs should pass."""
+    from collectors.aws_collector import check_vpc_flow_logs_enabled
+
+    mock_ec2 = MagicMock()
+
+    mock_ec2.describe_flow_logs.return_value = {
+        "FlowLogs": [
+            {
+                "FlowLogId": "fl-123",
+                "ResourceId": "vpc-123",
+                "FlowLogStatus": "ACTIVE",
+            }
+        ]
+    }
+
+    with patch("collectors.aws_collector.get_client", return_value=mock_ec2):
+        results = check_vpc_flow_logs_enabled()
+
+    assert len(results) == 1
+    assert results[0].check_id == "vpc_flow_logs_enabled"
+    assert results[0].resource_id == "fl-123"
+    assert results[0].status == CheckStatus.PASS
+
+
+def test_vpc_flow_logs_enabled_fail():
+    """Missing active VPC Flow Logs should fail."""
+    from collectors.aws_collector import check_vpc_flow_logs_enabled
+
+    mock_ec2 = MagicMock()
+
+    mock_ec2.describe_flow_logs.return_value = {
+        "FlowLogs": []
+    }
+
+    with patch("collectors.aws_collector.get_client", return_value=mock_ec2):
+        results = check_vpc_flow_logs_enabled()
+
+    assert len(results) == 1
+    assert results[0].check_id == "vpc_flow_logs_enabled"
+    assert results[0].status == CheckStatus.FAIL
