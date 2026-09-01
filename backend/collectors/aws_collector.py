@@ -267,6 +267,7 @@ def check_iam_policy_wildcard_admin() -> list[CheckResult]:
                 )
             )
     return results
+ 
 # --- Remaining Week 1 scope checks (stubs — implement following the pattern above) ---
 #
 # @register_check("s3_encryption_at_rest")           -> PR.DS-01
@@ -279,6 +280,7 @@ def check_iam_policy_wildcard_admin() -> list[CheckResult]:
 # @register_check("iam_password_policy")               -> PR.AC-01
 # @register_check("iam_access_key_age")                -> PR.AC-01
 # @register_check("vpc_flow_logs_enabled")             -> DE.CM-01
+
 
 @register_check("ebs_encryption")
 def check_ebs_encryption() -> list[CheckResult]:
@@ -326,6 +328,97 @@ def check_ebs_encryption() -> list[CheckResult]:
         )
 
     return results
+
+
+@register_check("iam_root_mfa")
+def check_iam_root_mfa() -> list[CheckResult]:
+    """PR.AA-03 — the root account should have MFA enabled."""
+    iam = get_client("iam")
+
+    try:
+        summary = iam.get_account_summary()["SummaryMap"]
+        has_mfa = summary.get("AccountMFAEnabled", 0) == 1
+
+        return [
+            CheckResult(
+                check_id="iam_root_mfa",
+                resource_id="root-account",
+                status=CheckStatus.PASS if has_mfa else CheckStatus.FAIL,
+                severity=Severity.CRITICAL,
+                detail=(
+                    f"Root account MFA is "
+                    f"{'enabled' if has_mfa else 'NOT enabled'}"
+                ),
+            )
+        ]
+
+    except ClientError as e:
+        return [
+            CheckResult(
+                check_id="iam_root_mfa",
+                resource_id="root-account",
+                status=CheckStatus.ERROR,
+                severity=Severity.CRITICAL,
+                detail=(
+                    f"Could not evaluate root MFA status: "
+                    f"{e.response['Error']['Message']}"
+                ),
+            )
+        ]
+
+
+@register_check("iam_password_policy")
+def check_iam_password_policy(min_length: int = 14) -> list[CheckResult]:
+    """PR.AA-01 — account should enforce a strong IAM password policy."""
+    iam = get_client("iam")
+
+    try:
+        policy = iam.get_account_password_policy()["PasswordPolicy"]
+
+        length_ok = policy.get("MinimumPasswordLength", 0) >= min_length
+        requires_symbols = policy.get("RequireSymbols", False)
+        requires_numbers = policy.get("RequireNumbers", False)
+        is_strong = length_ok and requires_symbols and requires_numbers
+
+        return [
+            CheckResult(
+                check_id="iam_password_policy",
+                resource_id="account-password-policy",
+                status=CheckStatus.PASS if is_strong else CheckStatus.FAIL,
+                severity=Severity.MEDIUM,
+                detail=(
+                    f"Password policy "
+                    f"{'meets' if is_strong else 'does NOT meet'} "
+                    f"minimum requirements (min length {min_length}, "
+                    f"symbols required, numbers required)"
+                ),
+            )
+        ]
+
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "NoSuchEntity":
+            return [
+                CheckResult(
+                    check_id="iam_password_policy",
+                    resource_id="account-password-policy",
+                    status=CheckStatus.FAIL,
+                    severity=Severity.MEDIUM,
+                    detail="No account password policy is configured",
+                )
+            ]
+        return [
+            CheckResult(
+                check_id="iam_password_policy",
+                resource_id="account-password-policy",
+                status=CheckStatus.ERROR,
+                severity=Severity.MEDIUM,
+                detail=(
+                    f"Could not evaluate password policy: "
+                    f"{e.response['Error']['Message']}"
+                ),
+            )
+        ]
+
 
 def run_all_checks() -> list[CheckResult]:
     """Run every registered check and return a flat list of results."""
