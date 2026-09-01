@@ -14,7 +14,7 @@ from collectors.aws_collector import (
 )
 from unittest.mock import MagicMock, patch
 from botocore.exceptions import ClientError
-
+from models.schemas import CheckStatus
 
 def test_check_registry_populated():
     assert "s3_public_access_block" in CHECK_REGISTRY
@@ -199,3 +199,54 @@ def test_iam_password_policy_fail_no_policy():
         results = check_iam_password_policy()
 
     assert results[0].status.value == "fail"
+def test_security_group_open_ingress_pass():
+    """Security group without unrestricted ingress should pass."""
+    from collectors.aws_collector import check_security_group_open_ingress
+
+    mock_ec2 = MagicMock()
+
+    mock_ec2.describe_security_groups.return_value = {
+        "SecurityGroups": [
+            {
+                "GroupId": "sg-123",
+                "GroupName": "restricted-sg",
+                "IpPermissions": [],
+            }
+        ]
+    }
+
+    with patch("collectors.aws_collector.get_client", return_value=mock_ec2):
+        results = check_security_group_open_ingress()
+
+    assert len(results) == 1
+    assert results[0].status == CheckStatus.PASS
+
+
+def test_security_group_open_ingress_fail():
+    """Security group allowing 0.0.0.0/0 should fail."""
+    from collectors.aws_collector import check_security_group_open_ingress
+
+    mock_ec2 = MagicMock()
+
+    mock_ec2.describe_security_groups.return_value = {
+        "SecurityGroups": [
+            {
+                "GroupId": "sg-456",
+                "GroupName": "open-sg",
+                "IpPermissions": [
+                    {
+                        "IpRanges": [
+                            {"CidrIp": "0.0.0.0/0"}
+                        ],
+                        "Ipv6Ranges": [],
+                    }
+                ],
+            }
+        ]
+    }
+
+    with patch("collectors.aws_collector.get_client", return_value=mock_ec2):
+        results = check_security_group_open_ingress()
+
+    assert len(results) == 1
+    assert results[0].status == CheckStatus.FAIL
