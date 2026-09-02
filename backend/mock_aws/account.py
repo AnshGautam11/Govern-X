@@ -87,6 +87,148 @@ class MockAWSAccount:
         }
 
 
+class MockAWSEnvironment:
+    """
+    Moto-backed AWS environment used for local GovernX integration tests.
+
+    This allows boto3 checks to run against simulated AWS resources
+    without requiring real AWS credentials or making network calls.
+    """
+
+    def __init__(self, region_name: str = "us-east-1"):
+        self.region_name = region_name
+        self._mock = None
+
+    def __enter__(self):
+        import os
+        import boto3
+        from moto import mock_aws
+
+        # Fake credentials are required by boto3,
+        # but Moto prevents real AWS network calls.
+        os.environ.setdefault("AWS_ACCESS_KEY_ID", "testing")
+        os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "testing")
+        os.environ.setdefault("AWS_SESSION_TOKEN", "testing")
+        os.environ.setdefault("AWS_SECURITY_TOKEN", "testing")
+        os.environ.setdefault("AWS_DEFAULT_REGION", self.region_name)
+
+        self._mock = mock_aws()
+        self._mock.start()
+
+        self.s3 = boto3.client(
+            "s3",
+            region_name=self.region_name,
+        )
+
+        self.ec2 = boto3.client(
+            "ec2",
+            region_name=self.region_name,
+        )
+
+        self.cloudtrail = boto3.client(
+            "cloudtrail",
+            region_name=self.region_name,
+        )
+
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self._mock is not None:
+            self._mock.stop()
+
+    def create_s3_bucket(
+        self,
+        name: str,
+        encrypted: bool = False,
+    ) -> str:
+        """Create a mock S3 bucket with optional encryption."""
+
+        self.s3.create_bucket(Bucket=name)
+
+        if encrypted:
+            self.s3.put_bucket_encryption(
+                Bucket=name,
+                ServerSideEncryptionConfiguration={
+                    "Rules": [
+                        {
+                            "ApplyServerSideEncryptionByDefault": {
+                                "SSEAlgorithm": "AES256"
+                            }
+                        }
+                    ]
+                },
+            )
+
+        return name
+
+    def create_ebs_volume(
+        self,
+        encrypted: bool = False,
+    ) -> str:
+        """Create a mock EBS volume."""
+
+        response = self.ec2.create_volume(
+            AvailabilityZone=f"{self.region_name}a",
+            Size=8,
+            Encrypted=encrypted,
+            VolumeType="gp3",
+        )
+
+        return response["VolumeId"]
+
+    def create_cloudtrail_trail(
+        self,
+        name: str = "governx-audit-trail",
+    ) -> str:
+        """Create a mock CloudTrail trail."""
+
+        bucket_name = f"{name}-bucket"
+
+        self.s3.create_bucket(
+            Bucket=bucket_name
+        )
+
+        self.cloudtrail.create_trail(
+            Name=name,
+            S3BucketName=bucket_name,
+        )
+
+        self.cloudtrail.start_logging(
+            Name=name
+        )
+
+        return name
+
+    def create_vpc(
+        self,
+        cidr_block: str = "10.0.0.0/16",
+    ) -> str:
+        """Create a mock VPC."""
+
+        response = self.ec2.create_vpc(
+            CidrBlock=cidr_block
+        )
+
+        return response["Vpc"]["VpcId"]
+
+    def create_vpc_flow_logs(
+        self,
+        vpc_id: str,
+    ):
+        """Create mock VPC flow logs."""
+
+        return self.ec2.create_flow_logs(
+            ResourceIds=[vpc_id],
+            ResourceType="VPC",
+            TrafficType="ALL",
+            LogDestinationType="cloud-watch-logs",
+            LogGroupName="governx-flow-logs",
+            DeliverLogsPermissionArn=(
+                "arn:aws:iam::123456789012:"
+                "role/flow-log-role"
+            ),
+        )
+
 if __name__ == "__main__":
     account = MockAWSAccount("123456789012")
     user = account.create_iam_user("audit-readonly")
