@@ -81,10 +81,14 @@ CSF_MAPPINGS: dict[str, CSFMapping] = {
     ),
 
     "vpc_flow_logs_enabled": CSFMapping(
-        check_id="vpc_flow_logs_enabled",
-        csf_function="Detect",
-        csf_subcategory="DE.CM-01",
-        justification="VPC Flow Logs help monitor network traffic and network services for security events.",
+    check_id="vpc_flow_logs_enabled",
+    csf_function="Detect",
+    csf_subcategory="DE.CM-01",
+    justification=(
+        "VPC Flow Logs provide network traffic visibility and"
+        "support monitoring of networks and network services."
+    ),
+),
     ),
 }
 
