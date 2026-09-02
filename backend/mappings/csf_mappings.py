@@ -86,7 +86,7 @@ CSF_MAPPINGS: dict[str, CSFMapping] = {
     csf_subcategory="DE.CM-01",
     justification=(
         "VPC Flow Logs provide network traffic visibility and"
-        "support monitoring of networks and network services."
+        "support monitoring of networks and network services for security events.",
     ),
 ),
     ),
