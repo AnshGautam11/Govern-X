@@ -962,3 +962,18 @@ Implemented the ebs_encryption AWS check using boto3.
 Verifies whether EBS volumes have encryption enabled.
 Added NIST CSF 2.0 mapping to PR.DS-01.
 Added tests for encrypted and unencrypted EBS volumes.
+
+### AWS Check Verification
+
+S3 encryption-at-rest and EBS encryption checks were verified
+against a Moto-backed mock AWS environment.
+
+The verification creates both compliant and non-compliant resources
+and confirms that GovernX correctly returns PASS/FAIL findings without
+requiring real AWS credentials.
+
+Run the verification with:
+
+```bash
+cd backend
+python verify_day4.py
