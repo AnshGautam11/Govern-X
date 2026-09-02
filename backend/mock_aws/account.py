@@ -223,7 +223,7 @@ class MockAWSEnvironment:
             TrafficType="ALL",
             LogDestinationType="cloud-watch-logs",
             LogGroupName="governx-flow-logs",
-            DeliverLogsPermissionArn=(
+            DeliverLogsPermiSssionArn=(
                 "arn:aws:iam::123456789012:"
                 "role/flow-log-role"
             ),
