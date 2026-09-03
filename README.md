@@ -977,3 +977,12 @@ Run the verification with:
 ```bash
 cd backend
 python verify_day4.py
+
+### AWS Encryption Audit Checks
+
+The Week 1 cloud polling module includes finalized boto3 checks for:
+
+- `s3_encryption_at_rest` — verifies server-side encryption on S3 buckets.
+- `ebs_encryption` — verifies encryption is enabled for EBS volumes.
+
+Both checks map to NIST CSF 2.0 `PR.DS-01` and are verified against the local Moto-backed mock AWS environment. The final implementations include AWS error handling, per-resource findings, and automated PASS/FAIL validation.
