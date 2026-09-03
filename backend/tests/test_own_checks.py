@@ -3,6 +3,7 @@ from collectors.aws_collector import (
     check_ebs_encryption,
 )
 from models.schemas import CheckStatus
+from unittest.mock import MagicMock, patch
 
 
 def test_day4_s3_encryption_against_mock_aws(
@@ -85,4 +86,121 @@ def test_day4_ebs_encryption_against_mock_aws(
     assert (
         result_by_volume[unencrypted_volume].status
         == CheckStatus.FAIL
+    )
+
+
+def test_day5_s3_encryption_result_details(
+    mock_aws_environment,
+):
+    """
+    Day 5 review test.
+
+    Confirm the finalized S3 check reports the correct
+    resource ID, severity, and human-readable details.
+    """
+
+    bucket_name = mock_aws_environment.create_s3_bucket(
+        "governx-day5-encrypted",
+        encrypted=True,
+    )
+
+    results = check_s3_encryption_at_rest()
+
+    result = next(
+        item
+        for item in results
+        if item.resource_id == bucket_name
+    )
+
+    assert result.check_id == "s3_encryption_at_rest"
+    assert result.status == CheckStatus.PASS
+    assert "enabled" in result.detail
+    assert bucket_name in result.detail
+
+
+def test_day5_ebs_encryption_result_details(
+    mock_aws_environment,
+):
+    """
+    Day 5 review test.
+
+    Confirm the finalized EBS check reports the correct
+    resource ID and human-readable result.
+    """
+
+    volume_id = mock_aws_environment.create_ebs_volume(
+        encrypted=True,
+    )
+
+    results = check_ebs_encryption()
+
+    result = next(
+        item
+        for item in results
+        if item.resource_id == volume_id
+    )
+
+    assert result.check_id == "ebs_encryption"
+    assert result.status == CheckStatus.PASS
+    assert "enabled" in result.detail
+    assert volume_id in result.detail
+
+
+def test_day5_ebs_encryption_checks_all_pages():
+    """
+    Day 5 review test.
+
+    Ensure EBS encryption auditing processes all pages
+    returned by the AWS describe_volumes paginator.
+    """
+
+    mock_ec2 = MagicMock()
+    mock_paginator = MagicMock()
+
+    mock_ec2.get_paginator.return_value = mock_paginator
+
+    mock_paginator.paginate.return_value = [
+        {
+            "Volumes": [
+                {
+                    "VolumeId": "vol-page-one",
+                    "Encrypted": True,
+                }
+            ]
+        },
+        {
+            "Volumes": [
+                {
+                    "VolumeId": "vol-page-two",
+                    "Encrypted": False,
+                }
+            ]
+        },
+    ]
+
+    with patch(
+        "collectors.aws_collector.get_client",
+        return_value=mock_ec2,
+    ):
+        results = check_ebs_encryption()
+
+    result_by_volume = {
+        result.resource_id: result
+        for result in results
+    }
+
+    assert len(results) == 2
+
+    assert (
+        result_by_volume["vol-page-one"].status
+        == CheckStatus.PASS
+    )
+
+    assert (
+        result_by_volume["vol-page-two"].status
+        == CheckStatus.FAIL
+    )
+
+    mock_ec2.get_paginator.assert_called_once_with(
+        "describe_volumes"
     )

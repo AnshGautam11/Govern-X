@@ -1,5 +1,5 @@
 """
-Day 4 manual verification for Mounika's GovernX AWS checks.
+Manual verification for GovernX S3 and EBS encryption checks.
 
 Runs:
 1. s3_encryption_at_rest
@@ -73,7 +73,7 @@ def main():
         )
 
         print()
-        print("Day 4 verification completed.")
+        print("Final encryption checks verification completed.")
 
 
 if __name__ == "__main__":

@@ -372,29 +372,30 @@ def check_ebs_encryption() -> list[CheckResult]:
     results: list[CheckResult] = []
 
     try:
-        volumes = ec2.describe_volumes().get("Volumes", [])
+        paginator = ec2.get_paginator("describe_volumes")
 
-        for volume in volumes:
-            volume_id = volume["VolumeId"]
-            is_encrypted = volume.get("Encrypted", False)
+        for page in paginator.paginate():
+            for volume in page.get("Volumes", []):
+                volume_id = volume["VolumeId"]
+                is_encrypted = volume.get("Encrypted", False)
 
-            results.append(
-                CheckResult(
-                    check_id="ebs_encryption",
-                    resource_id=volume_id,
-                    status=(
-                        CheckStatus.PASS
-                        if is_encrypted
-                        else CheckStatus.FAIL
-                    ),
-                    severity=Severity.HIGH,
-                    detail=(
-                        f"EBS encryption is "
-                        f"{'enabled' if is_encrypted else 'NOT enabled'} "
-                        f"for volume {volume_id}"
-                    ),
+                results.append(
+                    CheckResult(
+                        check_id="ebs_encryption",
+                        resource_id=volume_id,
+                        status=(
+                            CheckStatus.PASS
+                            if is_encrypted
+                            else CheckStatus.FAIL
+                        ),
+                        severity=Severity.HIGH,
+                        detail=(
+                            f"EBS encryption is "
+                            f"{'enabled' if is_encrypted else 'NOT enabled'} "
+                            f"for volume {volume_id}"
+                        ),
+                    )
                 )
-            )
 
     except ClientError as e:
         results.append(
@@ -404,7 +405,7 @@ def check_ebs_encryption() -> list[CheckResult]:
                 status=CheckStatus.ERROR,
                 severity=Severity.HIGH,
                 detail=(
-                    f"Could not evaluate EBS encryption: "
+                    "Could not evaluate EBS encryption: "
                     f"{e.response['Error']['Message']}"
                 ),
             )
