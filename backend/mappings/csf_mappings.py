@@ -1,3 +1,5 @@
+
+92
 from models.schemas import CSFMapping
 
 
@@ -85,11 +87,10 @@ CSF_MAPPINGS: dict[str, CSFMapping] = {
     csf_function="Detect",
     csf_subcategory="DE.CM-01",
     justification=(
-        "VPC Flow Logs provide network traffic visibility and"
-        "support monitoring of networks and network services for security events.",
+        "VPC Flow Logs provide network traffic visibility and "
+        "support monitoring of networks and network services for security events."
     ),
 ),
-    ),
 }
 
 
