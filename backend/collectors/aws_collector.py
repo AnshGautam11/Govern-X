@@ -109,7 +109,21 @@ def check_s3_encryption_at_rest() -> list[CheckResult]:
     s3 = get_client("s3")
     results: list[CheckResult] = []
 
-    buckets = s3.list_buckets().get("Buckets", [])
+    try:
+        buckets = s3.list_buckets().get("Buckets", [])
+    except ClientError as e:
+        return [
+            CheckResult(
+                check_id="s3_encryption_at_rest",
+                resource_id="s3",
+                status=CheckStatus.ERROR,
+                severity=Severity.HIGH,
+                detail=(
+                    "Could not list S3 buckets: "
+                    f"{e.response['Error']['Message']}"
+                ),
+            )
+        ]
 
     for bucket in buckets:
         name = bucket["Name"]
@@ -119,10 +133,23 @@ def check_s3_encryption_at_rest() -> list[CheckResult]:
 
             rules = encryption.get(
                 "ServerSideEncryptionConfiguration",
-                {}
+                {},
             ).get("Rules", [])
 
-            has_encryption = len(rules) > 0
+            supported_algorithms = {
+                "AES256",
+                "aws:kms",
+                "aws:kms:dsse",
+            }
+
+            has_encryption = any(
+                rule.get(
+                    "ApplyServerSideEncryptionByDefault",
+                    {},
+                ).get("SSEAlgorithm")
+                in supported_algorithms
+                for rule in rules
+            )
 
             results.append(
                 CheckResult(
@@ -156,7 +183,7 @@ def check_s3_encryption_at_rest() -> list[CheckResult]:
                         status=CheckStatus.FAIL,
                         severity=Severity.HIGH,
                         detail=(
-                            f"Encryption at rest is NOT enabled "
+                            "Encryption at rest is NOT enabled "
                             f"for bucket {name}"
                         ),
                     )
@@ -169,7 +196,7 @@ def check_s3_encryption_at_rest() -> list[CheckResult]:
                         status=CheckStatus.ERROR,
                         severity=Severity.HIGH,
                         detail=(
-                            f"Could not evaluate encryption for "
+                            "Could not evaluate encryption for "
                             f"{name}: "
                             f"{e.response['Error']['Message']}"
                         ),
