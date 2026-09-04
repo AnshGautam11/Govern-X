@@ -115,20 +115,10 @@ class MockAWSEnvironment:
         self._mock = mock_aws()
         self._mock.start()
 
-        self.s3 = boto3.client(
-            "s3",
-            region_name=self.region_name,
-        )
-
-        self.ec2 = boto3.client(
-            "ec2",
-            region_name=self.region_name,
-        )
-
-        self.cloudtrail = boto3.client(
-            "cloudtrail",
-            region_name=self.region_name,
-        )
+        self.s3 = boto3.client("s3", region_name=self.region_name)
+        self.ec2 = boto3.client("ec2", region_name=self.region_name)
+        self.cloudtrail = boto3.client("cloudtrail", region_name=self.region_name)
+        self.iam = boto3.client("iam", region_name=self.region_name)
 
         return self
 
@@ -136,11 +126,7 @@ class MockAWSEnvironment:
         if self._mock is not None:
             self._mock.stop()
 
-    def create_s3_bucket(
-        self,
-        name: str,
-        encrypted: bool = False,
-    ) -> str:
+    def create_s3_bucket(self, name: str, encrypted: bool = False) -> str:
         """Create a mock S3 bucket with optional encryption."""
 
         self.s3.create_bucket(Bucket=name)
@@ -161,10 +147,7 @@ class MockAWSEnvironment:
 
         return name
 
-    def create_ebs_volume(
-        self,
-        encrypted: bool = False,
-    ) -> str:
+    def create_ebs_volume(self, encrypted: bool = False) -> str:
         """Create a mock EBS volume."""
 
         response = self.ec2.create_volume(
@@ -176,45 +159,25 @@ class MockAWSEnvironment:
 
         return response["VolumeId"]
 
-    def create_cloudtrail_trail(
-        self,
-        name: str = "governx-audit-trail",
-    ) -> str:
+    def create_cloudtrail_trail(self, name: str = "governx-audit-trail") -> str:
         """Create a mock CloudTrail trail."""
 
         bucket_name = f"{name}-bucket"
 
-        self.s3.create_bucket(
-            Bucket=bucket_name
-        )
-
-        self.cloudtrail.create_trail(
-            Name=name,
-            S3BucketName=bucket_name,
-        )
-
-        self.cloudtrail.start_logging(
-            Name=name
-        )
+        self.s3.create_bucket(Bucket=bucket_name)
+        self.cloudtrail.create_trail(Name=name, S3BucketName=bucket_name)
+        self.cloudtrail.start_logging(Name=name)
 
         return name
 
-    def create_vpc(
-        self,
-        cidr_block: str = "10.0.0.0/16",
-    ) -> str:
+    def create_vpc(self, cidr_block: str = "10.0.0.0/16") -> str:
         """Create a mock VPC."""
 
-        response = self.ec2.create_vpc(
-            CidrBlock=cidr_block
-        )
+        response = self.ec2.create_vpc(CidrBlock=cidr_block)
 
         return response["Vpc"]["VpcId"]
 
-    def create_vpc_flow_logs(
-        self,
-        vpc_id: str,
-    ):
+    def create_vpc_flow_logs(self, vpc_id: str):
         """Create mock VPC flow logs."""
 
         return self.ec2.create_flow_logs(
@@ -224,10 +187,23 @@ class MockAWSEnvironment:
             LogDestinationType="cloud-watch-logs",
             LogGroupName="governx-flow-logs",
             DeliverLogsPermissionArn=(
-                "arn:aws:iam::123456789012:"
-                "role/flow-log-role"
+                "arn:aws:iam::123456789012:role/flow-log-role"
             ),
         )
+
+    def set_account_password_policy(
+        self,
+        min_length: int = 14,
+        require_symbols: bool = True,
+        require_numbers: bool = True,
+    ):
+        """Set a mock account password policy (moto-backed, no real AWS call)."""
+        self.iam.update_account_password_policy(
+            MinimumPasswordLength=min_length,
+            RequireSymbols=require_symbols,
+            RequireNumbers=require_numbers,
+        )
+
 
 if __name__ == "__main__":
     account = MockAWSAccount("123456789012")
