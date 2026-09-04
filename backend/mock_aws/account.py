@@ -104,8 +104,6 @@ class MockAWSEnvironment:
         import boto3
         from moto import mock_aws
 
-        # Fake credentials are required by boto3,
-        # but Moto prevents real AWS network calls.
         os.environ.setdefault("AWS_ACCESS_KEY_ID", "testing")
         os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "testing")
         os.environ.setdefault("AWS_SESSION_TOKEN", "testing")
