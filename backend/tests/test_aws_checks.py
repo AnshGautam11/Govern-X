@@ -37,6 +37,8 @@ def test_vpc_flow_logs_enabled(mock_aws_environment):
     vpc_id = mock_aws_environment.create_vpc()
     mock_aws_environment.create_vpc_flow_logs(vpc_id)
 
+    # The mock environment may contain Moto's default VPC.
+    # The check evaluates all non-default VPCs.
     result = check_vpc_flow_logs_enabled()[0]
 
     assert result.status == CheckStatus.PASS

@@ -1,5 +1,11 @@
-"""Simple mock AWS account and IAM simulation used for local testing."""
+"""Simple mock AWS account and environment used for local testing."""
 
-from .account import MockAWSEnvironment, MockAWSAccount, MockIAMUser, SecurityAuditPolicy
+from .account import MockAWSAccount, MockIAMUser, SecurityAuditPolicy
+from .environment import MockAWSEnvironment
 
-__all__ = ["MockAWSEnvironment", "MockAWSAccount", "MockIAMUser", "SecurityAuditPolicy"]
+__all__ = [
+    "MockAWSEnvironment",
+    "MockAWSAccount",
+    "MockIAMUser",
+    "SecurityAuditPolicy",
+]

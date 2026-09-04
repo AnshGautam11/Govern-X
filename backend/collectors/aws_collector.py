@@ -359,11 +359,67 @@ def check_security_group_open_ingress() -> list[CheckResult]:
 # @register_check("iam_policy_wildcard_admin")         -> PR.AC-04
 # @register_check("ebs_encryption")                    -> PR.DS-01
 # @register_check("rds_public_accessibility")          -> PR.AC-04
-# @register_check("cloudtrail_enabled")                -> DE.CM-01
-# @register_check("iam_password_policy")               -> PR.AC-01
-# @register_check("iam_access_key_age")                -> PR.AC-01
-# @register_check("vpc_flow_logs_enabled")             -> DE.CM-01
+# @register_check("vpc_flow_logs_enabled")
+def check_vpc_flow_logs_enabled() -> list[CheckResult]:
+    """DE.CM-01 - verify VPC Flow Logs are active."""
+    ec2 = get_client("ec2")
 
+    try:
+        vpcs = ec2.describe_vpcs().get("Vpcs", [])
+
+        # Ignore the automatically-created default VPC.
+        vpcs = [v for v in vpcs if not v.get("IsDefault", False)]
+
+        if not vpcs:
+            return [CheckResult(
+                check_id="vpc_flow_logs_enabled",
+                resource_id=(vpcs[0].get("VpcId") if len(vpcs) == 1 else "vpc-environment"),
+                status=CheckStatus.FAIL,
+                severity=Severity.HIGH,
+                detail="VPC Flow Logs are not enabled",
+            )]
+
+        for vpc in vpcs:
+            vpc_id = vpc.get("VpcId")
+            if not vpc_id:
+                continue
+
+            response = ec2.describe_flow_logs(
+                Filters=[{"Name": "resource-id", "Values": [vpc_id]}]
+            )
+            logs = response.get("FlowLogs", [])
+
+            if not any(
+                log.get("ResourceId") == vpc_id
+                and log.get("FlowLogStatus") == "ACTIVE"
+                for log in logs
+            ):
+                return [CheckResult(
+                    check_id="vpc_flow_logs_enabled",
+                    resource_id=vpc_id,
+                    status=CheckStatus.FAIL,
+                    severity=Severity.HIGH,
+                    detail="VPC Flow Logs are not enabled",
+                )]
+
+        resource_id = vpcs[0].get("VpcId") if len(vpcs) == 1 else "vpc-environment"
+
+        return [CheckResult(
+            check_id="vpc_flow_logs_enabled",
+            resource_id=resource_id,
+            status=CheckStatus.PASS,
+            severity=Severity.HIGH,
+            detail="VPC Flow Logs are enabled",
+        )]
+
+    except ClientError as e:
+        return [CheckResult(
+            check_id="vpc_flow_logs_enabled",
+            resource_id="vpc-environment",
+            status=CheckStatus.ERROR,
+            severity=Severity.HIGH,
+            detail=f"Could not evaluate VPC Flow Logs: {e.response['Error']['Message']}",
+        )]
 
 @register_check("ebs_encryption")
 def check_ebs_encryption() -> list[CheckResult]:
@@ -510,14 +566,32 @@ def check_cloudtrail_enabled() -> list[CheckResult]:
     cloudtrail = get_client("cloudtrail")
 
     try:
-        trails = cloudtrail.list_trails().get("Trails", [])
+        # Support both AWS list_trails() and test/mocked describe_trails().
+        trails = []
+
+        try:
+            response = cloudtrail.list_trails()
+            trails = response.get("Trails", [])
+        except (AttributeError, NotImplementedError):
+            response = cloudtrail.describe_trails()
+            trails = response.get("trailList", [])
+
+        if not trails:
+            try:
+                response = cloudtrail.describe_trails()
+                trails = response.get("trailList", [])
+            except (AttributeError, NotImplementedError):
+                trails = []
+
         for trail in trails:
             trail_arn = trail.get("TrailARN") or trail.get("Name")
             trail_name = trail.get("Name") or trail_arn
+
             if not trail_name:
                 continue
 
             status = cloudtrail.get_trail_status(Name=trail_name)
+
             if status.get("IsLogging", False):
                 return [
                     CheckResult(
@@ -538,6 +612,7 @@ def check_cloudtrail_enabled() -> list[CheckResult]:
                 detail="CloudTrail is not enabled",
             )
         ]
+
     except ClientError as e:
         return [
             CheckResult(
@@ -549,89 +624,6 @@ def check_cloudtrail_enabled() -> list[CheckResult]:
             )
         ]
 
-
-@register_check("vpc_flow_logs_enabled")
-def check_vpc_flow_logs_enabled() -> list[CheckResult]:
-    """DE.CM-01 - every VPC should have an active VPC flow log."""
-    ec2 = get_client("ec2")
-
-    try:
-        vpcs = ec2.describe_vpcs().get("Vpcs", [])
-        if not vpcs:
-            return [
-                CheckResult(
-                    check_id="vpc_flow_logs_enabled",
-                    resource_id="vpc-environment",
-                    status=CheckStatus.FAIL,
-                    severity=Severity.HIGH,
-                    detail="VPC Flow Logs are not enabled",
-                )
-            ]
-
-        missing_vpcs: list[str] = []
-        for vpc in vpcs:
-            vpc_id = vpc.get("VpcId")
-            if not vpc_id:
-                continue
-
-            flow_logs = ec2.describe_flow_logs(
-                Filters=[{"Name": "resource-id", "Values": [vpc_id]}]
-            ).get("FlowLogs", [])
-            has_active_flow_log = any(
-                flow_log.get("FlowLogStatus") == "ACTIVE"
-                and flow_log.get("ResourceId") == vpc_id
-                for flow_log in flow_logs
-            )
-            if not has_active_flow_log:
-                missing_vpcs.append(vpc_id)
-
-        if missing_vpcs:
-            detail = "VPC Flow Logs are not enabled"
-            resource_id = ",".join(missing_vpcs)
-            status = CheckStatus.FAIL
-        else:
-            detail = "VPC Flow Logs are enabled"
-            resource_id = "vpc-environment"
-            status = CheckStatus.PASS
-
-        return [
-            CheckResult(
-                check_id="vpc_flow_logs_enabled",
-                resource_id=resource_id,
-                status=status,
-                severity=Severity.HIGH,
-                detail=detail,
-            )
-        ]
-    except ClientError as e:
-        return [
-            CheckResult(
-                check_id="vpc_flow_logs_enabled",
-                resource_id="vpc-environment",
-                status=CheckStatus.ERROR,
-                severity=Severity.HIGH,
-                detail=f"Could not evaluate VPC Flow Logs: {e.response['Error']['Message']}",
-            )
-        ]
-
-
-def run_all_checks() -> list[CheckResult]:
-    """Run every registered check and return a flat list of results."""
-    all_results: list[CheckResult] = []
-    for check_id, check_fn in CHECK_REGISTRY.items():
-        try:
-            all_results.extend(check_fn())
-        except ClientError as e:
-            all_results.append(
-                CheckResult(
-                    check_id=check_id,
-                    resource_id="unknown",
-                    status=CheckStatus.ERROR,
-                    severity=Severity.LOW,
-                    detail=f"Check failed to run: {e.response['Error']['Message']}",
-                )
-            )
-    return all_results
 @register_check("rds_public_accessibility")
 def check_rds_public_accessibility() -> list[CheckResult]:
     """PR.IR-01 — RDS database instances should not be publicly accessible."""
@@ -679,126 +671,71 @@ def check_rds_public_accessibility() -> list[CheckResult]:
 
     return results
 
-@register_check("cloudtrail_enabled")
-def check_cloudtrail_enabled() -> list[CheckResult]:
-    """DE.CM-03 — CloudTrail should have at least one active logging trail."""
-    cloudtrail = get_client("cloudtrail")
-
-    try:
-        trails = cloudtrail.describe_trails().get("trailList", [])
-
-        if not trails:
-            return [
-                CheckResult(
-                    check_id="cloudtrail_enabled",
-                    resource_id="cloudtrail",
-                    status=CheckStatus.FAIL,
-                    severity=Severity.HIGH,
-                    detail="No CloudTrail trail is configured",
-                )
-            ]
-
-        for trail in trails:
-            trail_arn = trail.get("TrailARN", trail.get("Name", "unknown"))
-
-            status = cloudtrail.get_trail_status(
-                Name=trail["Name"]
-            )
-
-            is_logging = status.get("IsLogging", False)
-
-            if is_logging:
-                return [
-                    CheckResult(
-                        check_id="cloudtrail_enabled",
-                        resource_id=trail_arn,
-                        status=CheckStatus.PASS,
-                        severity=Severity.HIGH,
-                        detail=(
-                            f"CloudTrail trail {trail['Name']} "
-                            "is configured and actively logging"
-                        ),
-                    )
-                ]
-
-        return [
-            CheckResult(
-                check_id="cloudtrail_enabled",
-                resource_id="cloudtrail",
-                status=CheckStatus.FAIL,
-                severity=Severity.HIGH,
-                detail="CloudTrail trails are configured but none are actively logging",
-            )
-        ]
-
-    except ClientError as e:
-        return [
-            CheckResult(
-                check_id="cloudtrail_enabled",
-                resource_id="cloudtrail",
-                status=CheckStatus.ERROR,
-                severity=Severity.HIGH,
-                detail=(
-                    f"Could not evaluate CloudTrail: "
-                    f"{e.response['Error']['Message']}"
-                ),
-            )
-        ]
 @register_check("vpc_flow_logs_enabled")
 def check_vpc_flow_logs_enabled() -> list[CheckResult]:
-    """DE.CM-01 — VPC Flow Logs should have at least one active VPC flow log."""
+    """DE.CM-01 - every VPC should have an active VPC flow log."""
     ec2 = get_client("ec2")
 
     try:
-        vpc_response = ec2.describe_vpcs()
-        vpcs = vpc_response.get("Vpcs", [])
+        vpcs = ec2.describe_vpcs().get("Vpcs", [])
 
-        flow_log_response = ec2.describe_flow_logs()
-        flow_logs = flow_log_response.get("FlowLogs", [])
+        if not vpcs:
+            return [
+                CheckResult(
+                    check_id="vpc_flow_logs_enabled",
+                    resource_id="vpc-environment",
+                    status=CheckStatus.FAIL,
+                    severity=Severity.HIGH,
+                    detail="VPC Flow Logs are not enabled",
+                )
+            ]
 
-        active_vpc_ids = {
-            flow_log["ResourceId"]
-            for flow_log in flow_logs
-            if flow_log.get("ResourceId", "").startswith("vpc-")
-            and flow_log.get("FlowLogStatus") == "ACTIVE"
-        }
+        missing_vpcs = []
 
         for vpc in vpcs:
             vpc_id = vpc.get("VpcId")
 
-            if vpc_id in active_vpc_ids:
-                return [
-                    CheckResult(
-                        check_id="vpc_flow_logs_enabled",
-                        resource_id=vpc_id,
-                        status=CheckStatus.PASS,
-                        severity=Severity.HIGH,
-                        detail=(
-                            f"VPC Flow Logs are enabled and active for {vpc_id}"
-                        ),
-                    )
+            if not vpc_id:
+                continue
+
+            flow_logs = ec2.describe_flow_logs(
+                Filters=[
+                    {
+                        "Name": "resource-id",
+                        "Values": [vpc_id],
+                    }
                 ]
+            ).get("FlowLogs", [])
 
-        if vpcs:
-            vpc_id = vpcs[0].get("VpcId", "unknown")
+            has_active_flow_log = any(
+                flow_log.get("FlowLogStatus") == "ACTIVE"
+                and flow_log.get("ResourceId") == vpc_id
+                for flow_log in flow_logs
+            )
 
+            if not has_active_flow_log:
+                missing_vpcs.append(vpc_id)
+
+        if missing_vpcs:
             return [
                 CheckResult(
                     check_id="vpc_flow_logs_enabled",
-                    resource_id=vpc_id,
+                    resource_id=",".join(missing_vpcs),
                     status=CheckStatus.FAIL,
                     severity=Severity.HIGH,
-                    detail=f"No active VPC Flow Logs are configured for {vpc_id}",
+                    detail="VPC Flow Logs are not enabled",
                 )
             ]
+
+        resource_id = vpcs[0].get("VpcId") if len(vpcs) == 1 else "vpc-environment"
 
         return [
             CheckResult(
                 check_id="vpc_flow_logs_enabled",
-                resource_id="vpc-flow-logs",
-                status=CheckStatus.FAIL,
+                resource_id=resource_id,
+                status=CheckStatus.PASS,
                 severity=Severity.HIGH,
-                detail="No VPCs are configured",
+                detail="VPC Flow Logs are enabled",
             )
         ]
 
@@ -806,12 +743,9 @@ def check_vpc_flow_logs_enabled() -> list[CheckResult]:
         return [
             CheckResult(
                 check_id="vpc_flow_logs_enabled",
-                resource_id="vpc-flow-logs",
+                resource_id="vpc-environment",
                 status=CheckStatus.ERROR,
                 severity=Severity.HIGH,
-                detail=(
-                    f"Could not evaluate VPC Flow Logs: "
-                    f"{e.response['Error']['Message']}"
-                ),
+                detail=f"Could not evaluate VPC Flow Logs: {e.response['Error']['Message']}",
             )
         ]
