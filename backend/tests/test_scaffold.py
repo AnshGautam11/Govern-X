@@ -100,15 +100,18 @@ def test_ebs_encryption_pass():
     """EBS volume with encryption enabled should pass."""
 
     mock_ec2 = MagicMock()
-
-    mock_ec2.describe_volumes.return_value = {
-        "Volumes": [
-            {
-                "VolumeId": "vol-encrypted",
-                "Encrypted": True,
-            }
-        ]
-    }
+    mock_paginator = MagicMock()
+    mock_paginator.paginate.return_value = [
+        {
+            "Volumes": [
+                {
+                    "VolumeId": "vol-encrypted",
+                    "Encrypted": True,
+                }
+            ]
+        }
+    ]
+    mock_ec2.get_paginator.return_value = mock_paginator
 
     with patch(
         "collectors.aws_collector.get_client",
@@ -127,14 +130,18 @@ def test_ebs_encryption_fail():
 
     mock_ec2 = MagicMock()
 
-    mock_ec2.describe_volumes.return_value = {
-        "Volumes": [
-            {
-                "VolumeId": "vol-unencrypted",
-                "Encrypted": False,
-            }
-        ]
-    }
+    mock_paginator = MagicMock()
+    mock_paginator.paginate.return_value = [
+        {
+            "Volumes": [
+                {
+                    "VolumeId": "vol-unencrypted",
+                    "Encrypted": False,
+                }
+            ]
+        }
+    ]
+    mock_ec2.get_paginator.return_value = mock_paginator
 
     with patch(
         "collectors.aws_collector.get_client",
