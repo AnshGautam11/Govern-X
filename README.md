@@ -986,3 +986,26 @@ The Week 1 cloud polling module includes finalized boto3 checks for:
 - `ebs_encryption` — verifies encryption is enabled for EBS volumes.
 
 Both checks map to NIST CSF 2.0 `PR.DS-01` and are verified against the local Moto-backed mock AWS environment. The final implementations include AWS error handling, per-resource findings, and automated PASS/FAIL validation.
+
+---
+
+## Week 1 Cloud Polling — Final Verification
+
+The Week 1 AWS cloud-polling implementation has been finalized and verified against the project's mock AWS environment.
+
+The backend uses `boto3`-compatible AWS clients and registered compliance checks to audit cloud configuration and map technical findings to NIST CSF 2.0 outcomes.
+
+### Encryption checks finalized
+
+- `s3_encryption_at_rest`
+  - Audits S3 server-side encryption configuration.
+  - Reports compliant and non-compliant buckets.
+  - Mapped to NIST CSF 2.0 `PR.DS-01`.
+
+- `ebs_encryption`
+  - Audits EBS volumes for encryption at rest.
+  - Supports paginated `describe_volumes` results.
+  - Reports encrypted and unencrypted volumes.
+  - Mapped to NIST CSF 2.0 `PR.DS-01`.
+
+Final verification confirms that both checks remain registered in the shared AWS check registry and have valid CSF mapping entries.
