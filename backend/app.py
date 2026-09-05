@@ -40,10 +40,11 @@ def run_aws_scan():
     Trigger the AWS collector, run all registered checks, map results to
     NIST CSF 2.0 subcategories, and return the findings.
 
-    This is a stub for Week 1 — wire in the real collector/mapper once
-    collectors/aws_collector.py and mappings/csf_mappings.py are implemented.
+    Week 2: results are also persisted to the scan_results table
+    (see database/persistence.py) so /scan/history can list past scans.
     """
     from collectors.aws_collector import run_all_checks
+    from database.persistence import save_scan_results
 
     try:
         results = run_all_checks()
@@ -52,8 +53,10 @@ def run_aws_scan():
             status_code=503,
             detail="AWS scan is currently unavailable. Check backend AWS permissions and configuration.",
         ) from exc
-    return ScanResponse(results=results)
 
+    save_scan_results(results)
+
+    return ScanResponse(results=results)
 
 if __name__ == "__main__":
     import uvicorn
