@@ -204,3 +204,36 @@ def test_day5_ebs_encryption_checks_all_pages():
     mock_ec2.get_paginator.assert_called_once_with(
         "describe_volumes"
     )
+
+def test_day6_own_checks_are_registered():
+    """
+    Day 6 final verification.
+
+    Confirm both Week 1 encryption checks remain registered
+    in the shared AWS check registry.
+    """
+    from collectors.aws_collector import CHECK_REGISTRY
+
+    assert "s3_encryption_at_rest" in CHECK_REGISTRY
+    assert "ebs_encryption" in CHECK_REGISTRY
+
+
+def test_day6_own_checks_have_csf_mappings():
+    """
+    Day 6 final verification.
+
+    Confirm both encryption checks have their required
+    NIST CSF 2.0 PR.DS-01 mappings.
+    """
+    from mappings.csf_mappings import CSF_MAPPINGS
+
+    s3_mapping = CSF_MAPPINGS["s3_encryption_at_rest"]
+    ebs_mapping = CSF_MAPPINGS["ebs_encryption"]
+
+    assert s3_mapping.check_id == "s3_encryption_at_rest"
+    assert s3_mapping.csf_function == "Protect"
+    assert s3_mapping.csf_subcategory == "PR.DS-01"
+
+    assert ebs_mapping.check_id == "ebs_encryption"
+    assert ebs_mapping.csf_function == "Protect"
+    assert ebs_mapping.csf_subcategory == "PR.DS-01"
