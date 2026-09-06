@@ -45,10 +45,16 @@ class CSFMapping(BaseModel):
 
 class MappedFinding(BaseModel):
     """A CheckResult joined with its CSF mapping — what the dashboard consumes."""
-
     result: CheckResult
     mapping: CSFMapping
 
 
+class FunctionScore(BaseModel):
+    score: float | None
+    tier: str
+
+
 class ScanResponse(BaseModel):
     results: list[CheckResult]
+    scores: dict[str, FunctionScore] = {}
+    overall: FunctionScore | None = None

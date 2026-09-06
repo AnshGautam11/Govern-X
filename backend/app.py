@@ -33,18 +33,21 @@ def health_check():
     """Basic liveness check."""
     return {"status": "ok", "service": "GovernX", "env": settings.environment}
 
-
 @app.post("/scan/aws", response_model=ScanResponse)
 def run_aws_scan():
     """
     Trigger the AWS collector, run all registered checks, map results to
-    NIST CSF 2.0 subcategories, and return the findings.
+    NIST CSF 2.0 subcategories, score maturity per function, and return
+    the findings.
 
-    Week 2: results are also persisted to the scan_results table
-    (see database/persistence.py) so /scan/history can list past scans.
+    Week 2: results are persisted (database/persistence.py) and scored
+    (compliance/scorer.py) alongside the raw check results.
     """
     from collectors.aws_collector import run_all_checks
     from database.persistence import save_scan_results
+    from mappings.csf_mappings import get_mapping
+    from compliance.scorer import score_all_functions, score_overall
+    from models.schemas import MappedFinding, FunctionScore
 
     try:
         results = run_all_checks()
@@ -56,9 +59,20 @@ def run_aws_scan():
 
     save_scan_results(results)
 
-    return ScanResponse(results=results)
+    # Build MappedFinding objects for scoring — skip any check missing a
+    # CSF mapping row rather than crashing the whole scan.
+    findings = []
+    for result in results:
+        mapping = get_mapping(result.check_id)
+        if mapping is not None:
+            findings.append(MappedFinding(result=result, mapping=mapping))
 
-if __name__ == "__main__":
-    import uvicorn
+    raw_scores = score_all_functions(findings)
+    scores = {
+        fn: FunctionScore(score=v["score"], tier=v["tier"])
+        for fn, v in raw_scores.items()
+    }
+    raw_overall = score_overall(findings)
+    overall = FunctionScore(score=raw_overall["score"], tier=raw_overall["tier"])
 
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    return ScanResponse(results=results, scores=scores, overall=overall)
