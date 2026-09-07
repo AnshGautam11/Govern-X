@@ -75,3 +75,20 @@ def test_score_overall_no_findings():
     result = score_overall([])
     assert result["score"] is None
     assert result["tier"] == "No Data"
+
+def test_score_function_zero_percent():
+    findings = [
+        _finding("a", "Protect", CheckStatus.FAIL),
+        _finding("b", "Protect", CheckStatus.FAIL),
+    ]
+    assert score_function(findings, "Protect") == 0.0
+    assert get_tier(0.0) == "Tier 1"
+
+
+def test_score_function_hundred_percent():
+    findings = [
+        _finding("a", "Protect", CheckStatus.PASS),
+        _finding("b", "Protect", CheckStatus.PASS),
+    ]
+    assert score_function(findings, "Protect") == 100.0
+    assert get_tier(100.0) == "Tier 4"
