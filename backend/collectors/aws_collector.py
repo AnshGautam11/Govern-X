@@ -735,3 +735,13 @@ def check_vpc_flow_logs_enabled() -> list[CheckResult]:
                 detail=f"Could not evaluate VPC Flow Logs: {e.response['Error']['Message']}",
             )
         ]
+
+
+def run_all_checks() -> list[CheckResult]:
+    """Run every registered AWS check and return a flat list of results."""
+    results: list[CheckResult] = []
+
+    for check in CHECK_REGISTRY.values():
+        results.extend(check())
+
+    return results
