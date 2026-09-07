@@ -11,8 +11,12 @@ class MockAWSEnvironment:
     def __init__(self, region: str = "us-east-1"):
         self.region = region
         self._mock = None
+
         self.ec2 = None
+        self.s3 = None
+        self.iam = None
         self.cloudtrail = None
+
         self._flow_logs = []
         self._created_vpcs = []
 
@@ -23,7 +27,12 @@ class MockAWSEnvironment:
         self._mock.start()
 
         self.ec2 = boto3.client("ec2", region_name=self.region)
-        self.cloudtrail = boto3.client("cloudtrail", region_name=self.region)
+        self.s3 = boto3.client("s3", region_name=self.region)
+        self.iam = boto3.client("iam", region_name=self.region)
+        self.cloudtrail = boto3.client(
+            "cloudtrail",
+            region_name=self.region,
+        )
 
         # Only expose VPCs explicitly created by our tests.
         original_describe_vpcs = self.ec2.describe_vpcs
@@ -93,8 +102,7 @@ class MockAWSEnvironment:
         name: str = "governx-trail",
         bucket_name: str = "governx-audit-bucket",
     ) -> str:
-        s3 = boto3.client("s3", region_name=self.region)
-        s3.create_bucket(Bucket=bucket_name)
+        self.s3.create_bucket(Bucket=bucket_name)
 
         response = self.cloudtrail.create_trail(
             Name=name,
@@ -104,3 +112,65 @@ class MockAWSEnvironment:
         self.cloudtrail.start_logging(Name=name)
 
         return response["TrailARN"]
+
+    def create_s3_bucket(
+        self,
+        bucket_name: str,
+        encrypted: bool = True,
+    ) -> str:
+        """Create an S3 bucket with optional default encryption."""
+
+        self.s3.create_bucket(Bucket=bucket_name)
+
+        if encrypted:
+            self.s3.put_bucket_encryption(
+                Bucket=bucket_name,
+                ServerSideEncryptionConfiguration={
+                    "Rules": [
+                        {
+                            "ApplyServerSideEncryptionByDefault": {
+                                "SSEAlgorithm": "AES256",
+                            }
+                        }
+                    ]
+                },
+            )
+
+        return bucket_name
+
+    def create_ebs_volume(
+        self,
+        encrypted: bool = True,
+        availability_zone: str = "us-east-1a",
+    ) -> str:
+        """Create an EBS volume with the requested encryption state."""
+
+        response = self.ec2.create_volume(
+            AvailabilityZone=availability_zone,
+            Size=1,
+            Encrypted=encrypted,
+        )
+
+        return response["VolumeId"]
+
+    def set_account_password_policy(
+    self,
+    min_length: int = 14,
+        require_symbols: bool = True,
+        require_numbers: bool = True,
+        require_uppercase: bool = True,
+        require_lowercase: bool = True,
+        password_reuse_prevention: int = 24,
+        max_password_age: int = 90,
+    ) -> None:
+        """Configure the mock IAM account password policy."""
+
+        self.iam.update_account_password_policy(
+            MinimumPasswordLength=min_length,
+            RequireSymbols=require_symbols,
+            RequireNumbers=require_numbers,
+            RequireUppercaseCharacters=require_uppercase,
+            RequireLowercaseCharacters=require_lowercase,
+            PasswordReusePrevention=password_reuse_prevention,
+            MaxPasswordAge=max_password_age,
+        )

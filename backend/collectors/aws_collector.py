@@ -566,22 +566,8 @@ def check_cloudtrail_enabled() -> list[CheckResult]:
     cloudtrail = get_client("cloudtrail")
 
     try:
-        # Support both AWS list_trails() and test/mocked describe_trails().
-        trails = []
-
-        try:
-            response = cloudtrail.list_trails()
-            trails = response.get("Trails", [])
-        except (AttributeError, NotImplementedError):
-            response = cloudtrail.describe_trails()
-            trails = response.get("trailList", [])
-
-        if not trails:
-            try:
-                response = cloudtrail.describe_trails()
-                trails = response.get("trailList", [])
-            except (AttributeError, NotImplementedError):
-                trails = []
+        response = cloudtrail.describe_trails()
+        trails = response.get("trailList", [])
 
         for trail in trails:
             trail_arn = trail.get("TrailARN") or trail.get("Name")

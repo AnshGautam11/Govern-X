@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 from collectors.aws_collector import check_cloudtrail_enabled
+from models.schemas import CheckStatus
 
 
 def test_cloudtrail_enabled_when_logging():
@@ -30,4 +31,4 @@ def test_cloudtrail_enabled_when_logging():
 
     assert len(results) == 1
     assert results[0].check_id == "cloudtrail_enabled"
-    assert results[0].status.value == "PASS" 
+    assert results[0].status == CheckStatus.PASS

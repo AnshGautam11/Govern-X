@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+from models.schemas import CheckStatus
 from collectors.aws_collector import check_vpc_flow_logs_enabled
 
 
@@ -32,4 +33,4 @@ def test_vpc_flow_logs_enabled_when_enabled():
 
     assert len(results) == 1
     assert results[0].check_id == "vpc_flow_logs_enabled"
-    assert results[0].status.value == "PASS"
+    assert results[0].status == CheckStatus.PASS
