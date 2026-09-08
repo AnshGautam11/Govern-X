@@ -360,66 +360,7 @@ def check_security_group_open_ingress() -> list[CheckResult]:
 # @register_check("ebs_encryption")                    -> PR.DS-01
 # @register_check("rds_public_accessibility")          -> PR.AC-04
 # @register_check("vpc_flow_logs_enabled")
-def check_vpc_flow_logs_enabled() -> list[CheckResult]:
-    """DE.CM-01 - verify VPC Flow Logs are active."""
-    ec2 = get_client("ec2")
 
-    try:
-        vpcs = ec2.describe_vpcs().get("Vpcs", [])
-
-        # Ignore the automatically-created default VPC.
-        vpcs = [v for v in vpcs if not v.get("IsDefault", False)]
-
-        if not vpcs:
-            return [CheckResult(
-                check_id="vpc_flow_logs_enabled",
-                resource_id=(vpcs[0].get("VpcId") if len(vpcs) == 1 else "vpc-environment"),
-                status=CheckStatus.FAIL,
-                severity=Severity.HIGH,
-                detail="VPC Flow Logs are not enabled",
-            )]
-
-        for vpc in vpcs:
-            vpc_id = vpc.get("VpcId")
-            if not vpc_id:
-                continue
-
-            response = ec2.describe_flow_logs(
-                Filters=[{"Name": "resource-id", "Values": [vpc_id]}]
-            )
-            logs = response.get("FlowLogs", [])
-
-            if not any(
-                log.get("ResourceId") == vpc_id
-                and log.get("FlowLogStatus") == "ACTIVE"
-                for log in logs
-            ):
-                return [CheckResult(
-                    check_id="vpc_flow_logs_enabled",
-                    resource_id=vpc_id,
-                    status=CheckStatus.FAIL,
-                    severity=Severity.HIGH,
-                    detail="VPC Flow Logs are not enabled",
-                )]
-
-        resource_id = vpcs[0].get("VpcId") if len(vpcs) == 1 else "vpc-environment"
-
-        return [CheckResult(
-            check_id="vpc_flow_logs_enabled",
-            resource_id=resource_id,
-            status=CheckStatus.PASS,
-            severity=Severity.HIGH,
-            detail="VPC Flow Logs are enabled",
-        )]
-
-    except ClientError as e:
-        return [CheckResult(
-            check_id="vpc_flow_logs_enabled",
-            resource_id="vpc-environment",
-            status=CheckStatus.ERROR,
-            severity=Severity.HIGH,
-            detail=f"Could not evaluate VPC Flow Logs: {e.response['Error']['Message']}",
-        )]
 
 @register_check("ebs_encryption")
 def check_ebs_encryption() -> list[CheckResult]:
