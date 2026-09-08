@@ -92,3 +92,25 @@ def test_score_function_hundred_percent():
     ]
     assert score_function(findings, "Protect") == 100.0
     assert get_tier(100.0) == "Tier 4"
+
+def test_score_all_functions_multi_function_realistic():
+    """
+    Day 3 review: a realistic multi-function scan should score each
+    function independently without cross-contamination.
+    """
+    findings = [
+        _finding("a", "Protect", CheckStatus.PASS),
+        _finding("b", "Protect", CheckStatus.PASS),
+        _finding("c", "Protect", CheckStatus.FAIL),
+        _finding("d", "Detect", CheckStatus.PASS),
+        _finding("e", "Identify", CheckStatus.FAIL),
+        _finding("f", "Identify", CheckStatus.FAIL),
+    ]
+    result = score_all_functions(findings)
+
+    assert result["Protect"]["score"] == 66.7
+    assert result["Detect"]["score"] == 100.0
+    assert result["Identify"]["score"] == 0.0
+    assert "Govern" not in result
+    assert "Respond" not in result
+    assert "Recover" not in result
