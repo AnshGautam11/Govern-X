@@ -29,6 +29,7 @@ def test_cloudtrail_enabled_when_logging():
     ):
         results = check_cloudtrail_enabled()
 
-    assert len(results) == 1
+        assert len(results) == 1
     assert results[0].check_id == "cloudtrail_enabled"
-    assert results[0].status == CheckStatus.PASS
+    assert results[0].status.value == "pass"
+
