@@ -53,8 +53,22 @@ class FunctionScore(BaseModel):
     score: float | None
     tier: str
 
-
 class ScanResponse(BaseModel):
     results: list[CheckResult]
     scores: dict[str, FunctionScore] = {}
     overall: FunctionScore | None = None
+
+
+class ScanHistoryEntry(BaseModel):
+    """One persisted scan result row, as returned by GET /scan/history."""
+
+    id: int
+    check_id: str
+    resource_id: str
+    status: CheckStatus
+    detail: str
+    scanned_at: datetime
+
+
+class ScanHistoryResponse(BaseModel):
+    entries: list[ScanHistoryEntry]
