@@ -9,8 +9,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from config.settings import get_settings
-from models.schemas import ScanResponse
-
+from models.schemas import ScanHistoryEntry, ScanHistoryResponse, ScanResponse
 settings = get_settings()
 
 app = FastAPI(
@@ -76,3 +75,30 @@ def run_aws_scan():
     overall = FunctionScore(score=raw_overall["score"], tier=raw_overall["tier"])
 
     return ScanResponse(results=results, scores=scores, overall=overall)
+
+
+@app.get("/scan/history", response_model=ScanHistoryResponse)
+def scan_history(limit: int = 50):
+    """
+    Return the most recently persisted scan results, newest first.
+
+    W2-Day2 (Sujal) — reads from the scan_results table written by
+    /scan/aws (see database/persistence.py).
+    """
+    from database.persistence import get_scan_history
+
+    rows = get_scan_history(limit=limit)
+
+    entries = [
+        ScanHistoryEntry(
+            id=row.id,
+            check_id=row.check_id,
+            resource_id=row.resource_id,
+            status=row.status,
+            detail=row.detail,
+            scanned_at=row.scanned_at,
+        )
+        for row in rows
+    ]
+
+    return ScanHistoryResponse(entries=entries)
