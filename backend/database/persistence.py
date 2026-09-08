@@ -34,3 +34,20 @@ def save_scan_results(results: list[CheckResult], db: Session | None = None) -> 
     finally:
         if owns_session:
             db.close()
+
+def get_scan_history(limit: int = 50, db: Session | None = None) -> list[ScanResultDB]:
+    """Return the most recent scan_results rows, newest first."""
+    owns_session = db is None
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        return (
+            db.query(ScanResultDB)
+            .order_by(ScanResultDB.scanned_at.desc())
+            .limit(limit)
+            .all()
+        )
+    finally:
+        if owns_session:
+            db.close()
