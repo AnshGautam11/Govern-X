@@ -20,3 +20,16 @@ class ScanResultDB(Base):
     status = Column(String, nullable=False)
     detail = Column(Text)
     scanned_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+class MockScenarioDB(Base):
+    """Database-backed mock security scenario used for scoring demos/tests."""
+
+    __tablename__ = "mock_scenarios"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    scenario_name = Column(String, nullable=False, index=True)
+    check_id = Column(String, nullable=False)
+    resource_id = Column(String, nullable=False)
+    status = Column(String, nullable=False)
+    severity = Column(String, nullable=False)
+    detail = Column(Text, nullable=False)
