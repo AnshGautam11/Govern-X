@@ -74,7 +74,13 @@ def run_aws_scan():
     raw_overall = score_overall(findings)
     overall = FunctionScore(score=raw_overall["score"], tier=raw_overall["tier"])
 
-    return ScanResponse(results=results, scores=scores, overall=overall)
+    from compliance.scorer import gap_analysis
+    gaps = {
+        fn: gap_analysis(findings, fn)
+        for fn in scores.keys()
+    }
+
+    return ScanResponse(results=results, scores=scores, overall=overall, gaps=gaps)
 
 
 @app.get("/scan/history", response_model=ScanHistoryResponse)
