@@ -55,3 +55,32 @@ def test_scan_aws_skips_checks_without_mapping():
     data = response.json()
     assert data["overall"]["score"] is None
     assert data["overall"]["tier"] == "No Data"
+
+
+def test_scan_aws_includes_gaps():
+    mock_results = [
+        CheckResult(
+            check_id="s3_public_access_block", resource_id="bucket-1",
+            status=CheckStatus.PASS, severity=Severity.HIGH, detail="test"
+        ),
+        CheckResult(
+            check_id="iam_user_mfa", resource_id="user-1",
+            status=CheckStatus.FAIL, severity=Severity.CRITICAL, detail="MFA not enabled"
+        ),
+    ]
+
+    client = TestClient(app)
+
+    with patch("collectors.aws_collector.run_all_checks", return_value=mock_results), \
+         patch("database.persistence.save_scan_results", return_value=None):
+        response = client.post("/scan/aws")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert "gaps" in data
+    assert "Protect" in data["gaps"]
+    protect_gaps = data["gaps"]["Protect"]
+    assert len(protect_gaps) == 1
+    assert protect_gaps[0]["check_id"] == "iam_user_mfa"
+    assert protect_gaps[0]["failing_resource_count"] == 1
