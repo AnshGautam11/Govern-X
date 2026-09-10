@@ -87,3 +87,41 @@ def score_overall(findings: list[MappedFinding]) -> dict:
         return {"score": None, "tier": "No Data"}
     overall = round(sum(scored) / len(scored), 1)
     return {"score": overall, "tier": get_tier(overall)}
+
+
+def gap_analysis(findings: list[MappedFinding], function_name: str) -> list[dict]:
+    """
+    List the specific checks dragging down a CSF function's tier.
+
+    Returns failing checks for the given function, sorted so the most
+    "expensive" gaps (repeated resource failures) surface first. Each
+    entry is {"check_id": ..., "resource_id": ..., "detail": ...} —
+    enough for a dashboard to explain *why* a tier is where it is,
+    not just that it's low.
+    """
+    failing = [
+        f for f in findings
+        if f.mapping.csf_function == function_name
+        and f.result.status == CheckStatus.FAIL
+    ]
+
+    # Group by check_id so the dashboard can show "this control failed
+    # on N resources" rather than N separate near-duplicate rows.
+    grouped: dict[str, list] = {}
+    for f in failing:
+        grouped.setdefault(f.result.check_id, []).append(f)
+
+    gaps = []
+    for check_id, group in grouped.items():
+        gaps.append({
+            "check_id": check_id,
+            "csf_subcategory": group[0].mapping.csf_subcategory,
+            "failing_resource_count": len(group),
+            "resource_ids": [g.result.resource_id for g in group],
+            "detail": group[0].result.detail,
+        })
+
+    # Most-failing checks first — these are the biggest lever to pull
+    # to improve the function's tier.
+    gaps.sort(key=lambda g: g["failing_resource_count"], reverse=True)
+    return gaps
