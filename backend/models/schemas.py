@@ -57,6 +57,7 @@ class ScanResponse(BaseModel):
     results: list[CheckResult]
     scores: dict[str, FunctionScore] = {}
     overall: FunctionScore | None = None
+    gaps: dict[str, list[dict]] = {}
 
 
 class ScanHistoryEntry(BaseModel):
