@@ -1,8 +1,7 @@
 """
 Tests for compliance/scorer.py — Week 2 maturity scoring.
 """
-
-from compliance.scorer import score_function, get_tier, score_all_functions, score_overall
+from compliance.scorer import score_function, get_tier, score_all_functions, score_overall, gap_analysis
 from models.schemas import MappedFinding, CheckResult, CSFMapping, CheckStatus, Severity
 
 
@@ -114,3 +113,51 @@ def test_score_all_functions_multi_function_realistic():
     assert "Govern" not in result
     assert "Respond" not in result
     assert "Recover" not in result
+
+
+def test_gap_analysis_returns_only_failing_checks_for_function():
+    findings = [
+        _finding("a", "Protect", CheckStatus.PASS),
+        _finding("b", "Protect", CheckStatus.FAIL),
+        _finding("c", "Detect", CheckStatus.FAIL),
+    ]
+    gaps = gap_analysis(findings, "Protect")
+    assert len(gaps) == 1
+    assert gaps[0]["check_id"] == "b"
+
+
+def test_gap_analysis_groups_by_check_id():
+    findings = [
+        _finding("wildcard_admin", "Protect", CheckStatus.FAIL),
+    ]
+    findings[0].result.resource_id = "policy-1"
+    second = _finding("wildcard_admin", "Protect", CheckStatus.FAIL)
+    second.result.resource_id = "policy-2"
+    findings.append(second)
+
+    gaps = gap_analysis(findings, "Protect")
+    assert len(gaps) == 1
+    assert gaps[0]["check_id"] == "wildcard_admin"
+    assert gaps[0]["failing_resource_count"] == 2
+    assert set(gaps[0]["resource_ids"]) == {"policy-1", "policy-2"}
+
+
+def test_gap_analysis_sorted_worst_first():
+    findings = [
+        _finding("check_a", "Protect", CheckStatus.FAIL),
+        _finding("check_b", "Protect", CheckStatus.FAIL),
+    ]
+    findings[1] = _finding("check_b", "Protect", CheckStatus.FAIL)
+    extra = _finding("check_b", "Protect", CheckStatus.FAIL)
+    findings.append(extra)
+
+    gaps = gap_analysis(findings, "Protect")
+    assert gaps[0]["check_id"] == "check_b"
+    assert gaps[0]["failing_resource_count"] == 2
+
+
+def test_gap_analysis_empty_when_no_failures():
+    findings = [
+        _finding("a", "Protect", CheckStatus.PASS),
+    ]
+    assert gap_analysis(findings, "Protect") == []
