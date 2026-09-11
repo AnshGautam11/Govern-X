@@ -5,12 +5,119 @@ Run locally:
     uvicorn app:app --reload --port 8000
 """
 
+from collections import defaultdict
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from config.settings import get_settings
-from models.schemas import ScanHistoryEntry, ScanHistoryResponse, ScanResponse
+from compliance.scorer import get_tier, score_all_functions, score_overall
+from models.schemas import (
+    CheckResult,
+    CheckStatus,
+    DashboardMaturityResponse,
+    MaturityOverview,
+    PillarMaturity,
+    ScanHistoryEntry,
+    ScanHistoryResponse,
+    ScanResponse,
+    Severity,
+)
+
 settings = get_settings()
+
+FUNCTION_ORDER = ["Govern", "Identify", "Protect", "Detect", "Respond", "Recover"]
+TIER_NAME_MAP = {
+    "Tier 1": "Partial",
+    "Tier 2": "Risk Informed",
+    "Tier 3": "Repeatable",
+    "Tier 4": "Adaptive",
+    "No Data": "No Data",
+}
+STATUS_BY_TIER = {
+    1: "Needs attention",
+    2: "Risk informed",
+    3: "Repeatable",
+    4: "Adaptive",
+    None: "No Data",
+}
+
+
+def _numeric_tier_for_score(score: float | None) -> int | None:
+    if score is None:
+        return None
+    if score <= 25:
+        return 1
+    if score <= 50:
+        return 2
+    if score <= 75:
+        return 3
+    return 4
+
+
+def _tier_name_for_score(score: float | None) -> str:
+    return TIER_NAME_MAP.get(get_tier(score), "No Data")
+
+
+def _build_findings_from_rows(rows):
+    findings = []
+    for row in rows:
+        result = CheckResult(
+            check_id=row.check_id,
+            resource_id=row.resource_id,
+            status=CheckStatus(row.status),
+            severity=Severity.LOW,
+            detail=row.detail,
+            timestamp=row.scanned_at,
+        )
+        from mappings.csf_mappings import get_mapping
+
+        mapping = get_mapping(result.check_id)
+        if mapping is not None:
+            findings.append(type("MappedFinding", (), {"result": result, "mapping": mapping})())
+    return findings
+
+
+def _build_maturity_payload(findings, previous_findings=None):
+    scores = score_all_functions(findings)
+    previous_scores = score_all_functions(previous_findings) if previous_findings else {}
+
+    pillars = []
+    for function_name in FUNCTION_ORDER:
+        score_data = scores.get(function_name, {"score": None, "tier": "No Data"})
+        percentage = score_data["score"]
+        current_tier = _numeric_tier_for_score(percentage)
+        tier_name = _tier_name_for_score(percentage)
+        previous_score = previous_scores.get(function_name, {}).get("score")
+        trend = 0 if previous_score is None else round(float(percentage or 0) - float(previous_score), 1)
+        pillars.append(
+            PillarMaturity(
+                function=function_name,
+                percentage=percentage,
+                tier=current_tier,
+                tier_name=tier_name,
+                trend=trend,
+                status=STATUS_BY_TIER.get(current_tier, "No Data"),
+            )
+        )
+
+    overall_data = score_overall(findings)
+    overall_percentage = overall_data["score"] if overall_data.get("score") is not None else 0
+    overall_tier = _numeric_tier_for_score(overall_percentage)
+    previous_overall = score_overall(previous_findings) if previous_findings else {"score": 0, "tier": "Tier 1"}
+    overall_trend = round(float(overall_percentage) - float(previous_overall.get("score") or 0), 1)
+
+    return DashboardMaturityResponse(
+        overall=MaturityOverview(
+            percentage=overall_percentage,
+            tier=overall_tier,
+            tier_name=_tier_name_for_score(overall_percentage),
+            trend=overall_trend,
+            status=STATUS_BY_TIER.get(overall_tier, "No Data"),
+        ),
+        pillars=pillars,
+    )
+
 
 app = FastAPI(
     title="GovernX API",
@@ -108,3 +215,57 @@ def scan_history(limit: int = 50):
     ]
 
     return ScanHistoryResponse(entries=entries)
+
+
+@app.get("/dashboard/maturity", response_model=DashboardMaturityResponse)
+def dashboard_maturity():
+    """Return a front-end-friendly maturity summary across the six NIST CSF functions."""
+    from database.persistence import get_scan_history, save_scan_results
+
+    try:
+        from collectors.aws_collector import run_all_checks
+
+        results = run_all_checks()
+        save_scan_results(results)
+        findings = []
+        for result in results:
+            from mappings.csf_mappings import get_mapping
+
+            mapping = get_mapping(result.check_id)
+            if mapping is not None:
+                findings.append(type("MappedFinding", (), {"result": result, "mapping": mapping})())
+
+        history = get_scan_history(limit=100)
+        if history:
+            grouped = defaultdict(list)
+            for row in history:
+                grouped[row.scanned_at].append(row)
+            ordered_times = sorted(grouped.keys(), reverse=True)
+            previous_rows = []
+            if len(ordered_times) > 1:
+                previous_rows = [
+                    row for timestamp in [ordered_times[1]] for row in grouped[timestamp]
+                ]
+            current_payload = _build_maturity_payload(findings, _build_findings_from_rows(previous_rows))
+            return current_payload
+        return _build_maturity_payload(findings)
+    except Exception as exc:
+        history = get_scan_history(limit=100)
+        if not history:
+            raise HTTPException(
+                status_code=503,
+                detail="Unable to retrieve live maturity data. Check that the GovernX API is running.",
+            ) from exc
+
+        grouped = defaultdict(list)
+        for row in history:
+            grouped[row.scanned_at].append(row)
+        ordered_times = sorted(grouped.keys(), reverse=True)
+        latest_rows = [row for timestamp in [ordered_times[0]] for row in grouped[timestamp]]
+        previous_rows = []
+        if len(ordered_times) > 1:
+            previous_rows = [
+                row for timestamp in [ordered_times[1]] for row in grouped[timestamp]
+            ]
+
+        return _build_maturity_payload(_build_findings_from_rows(latest_rows), _build_findings_from_rows(previous_rows))
