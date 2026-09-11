@@ -161,3 +161,15 @@ def test_gap_analysis_empty_when_no_failures():
         _finding("a", "Protect", CheckStatus.PASS),
     ]
     assert gap_analysis(findings, "Protect") == []
+def test_gap_analysis_ignores_pass_and_error_results():
+    findings = [
+        _finding("passed_check", "Protect", CheckStatus.PASS),
+        _finding("failed_check", "Protect", CheckStatus.FAIL),
+        _finding("error_check", "Protect", CheckStatus.ERROR),
+    ]
+
+    gaps = gap_analysis(findings, "Protect")
+
+    assert len(gaps) == 1
+    assert gaps[0]["check_id"] == "failed_check"
+
