@@ -73,3 +73,25 @@ class ScanHistoryEntry(BaseModel):
 
 class ScanHistoryResponse(BaseModel):
     entries: list[ScanHistoryEntry]
+
+
+class PillarMaturity(BaseModel):
+    function: str
+    percentage: float | None = 0
+    tier: int | None = None
+    tier_name: str = "No Data"
+    trend: float = 0
+    status: str = "No Data"
+
+
+class MaturityOverview(BaseModel):
+    percentage: float | None = 0
+    tier: int | None = None
+    tier_name: str = "No Data"
+    trend: float = 0
+    status: str = "No Data"
+
+
+class DashboardMaturityResponse(BaseModel):
+    overall: MaturityOverview
+    pillars: list[PillarMaturity] = []
