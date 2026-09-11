@@ -1,4 +1,4 @@
-
+from compliance.scorer import score_all_functions, score_overall, gap_analysis
 from compliance.scorer import score_all_functions, score_overall
 from mappings.csf_mappings import get_mapping
 from models.schemas import CheckResult, MappedFinding
@@ -113,3 +113,43 @@ def test_all_fail_mock_scenario_scores_low():
 
     assert overall_score["score"] == 0.0
     assert overall_score["tier"] == "Tier 1"
+def test_partial_compliance_mock_data_supports_gap_analysis():
+    """Test realistic partial compliance data and identify the failing gaps."""
+    findings = [
+        CheckResult(
+            check_id="cloudtrail_enabled",
+            resource_id="mock-trail",
+            status="pass",
+            severity="high",
+            detail="CloudTrail logging is enabled.",
+        ),
+        CheckResult(
+            check_id="vpc_flow_logs_enabled",
+            resource_id="mock-vpc-1",
+            status="fail",
+            severity="high",
+            detail="VPC flow logs are disabled.",
+        ),
+        CheckResult(
+            check_id="vpc_flow_logs_enabled",
+            resource_id="mock-vpc-2",
+            status="fail",
+            severity="high",
+            detail="VPC flow logs are disabled.",
+        ),
+    ]
+
+    mapped_findings = build_mapped_findings(findings)
+
+    function_scores = score_all_functions(mapped_findings)
+    overall_score = score_overall(mapped_findings)
+    gaps = gap_analysis(mapped_findings, "Detect")
+
+    assert mapped_findings
+    assert function_scores
+    assert overall_score["score"] == 33.3
+    assert gaps
+
+    assert gaps[0]["check_id"] == "vpc_flow_logs_enabled"
+    assert gaps[0]["failing_resource_count"] == 2
+    assert set(gaps[0]["resource_ids"]) == {"mock-vpc-1", "mock-vpc-2"}
