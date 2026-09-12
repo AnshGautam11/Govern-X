@@ -1,4 +1,12 @@
 
+## Known open items going into Week 3
+
+1. Real AWS account verification still pending (unchanged from Week 1) — the dashboard now correctly and honestly displays "No Data" / "Needs attention" for this, rather than hiding it.
+2. Scoring and gap analysis are built and tested against mocked data; broader validation against a fuller real-world dataset (once live AWS is connected) is still outstanding.
+
+## Conclusion
+
+Week 2 delivered a working scoring and gap-analysis layer, fully wired from backend to frontend, verified end-to-end rather than just unit-tested in isolation. That end-to-end check caught a real bug (masked placeholder data) that unit tests alone would not have surfaced — reinforcing that live verification remains a necessary step, not an optional formality, even when component tests are green.
 ## Bug found and fixed during Day 6 end-to-end verification
 
 The dashboard was silently showing hardcoded demo numbers (82%, 76%, 88%, etc.) instead of real backend data. Root cause: `.env.example` pointed to `http://localhost:8000`, which had an unrelated service running on it, causing a CORS-blocked request that silently fell back to placeholder values. Fixed by correcting the default port to `8080` (where the backend actually runs) in `.env.example`. After the fix, the dashboard correctly shows the honest current state: 0% / Tier 1 / "Needs attention" — accurately reflecting that live AWS scanning isn't yet connected (see Week 1 scope doc's known open items), rather than masking it with fake data.
