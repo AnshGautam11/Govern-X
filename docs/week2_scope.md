@@ -1,4 +1,7 @@
 
+## Bug found and fixed during Day 6 end-to-end verification
+
+The dashboard was silently showing hardcoded demo numbers (82%, 76%, 88%, etc.) instead of real backend data. Root cause: `.env.example` pointed to `http://localhost:8000`, which had an unrelated service running on it, causing a CORS-blocked request that silently fell back to placeholder values. Fixed by correcting the default port to `8080` (where the backend actually runs) in `.env.example`. After the fix, the dashboard correctly shows the honest current state: 0% / Tier 1 / "Needs attention" — accurately reflecting that live AWS scanning isn't yet connected (see Week 1 scope doc's known open items), rather than masking it with fake data.
 ## What was built
 
 - **Scoring engine** (`compliance/scorer.py`): `score_function()`, `get_tier()`, `score_all_functions()`, `score_overall()`, `gap_analysis()` — all with explicit handling for the "no data yet" case (never silently shown as Tier 1)
