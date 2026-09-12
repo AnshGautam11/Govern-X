@@ -32,3 +32,7 @@ The dashboard was silently showing hardcoded demo numbers (82%, 76%, 88%, etc.) 
 ## Summary
 
 Week 2 moved the Week 1 check-to-CSF mapping into a real database and added a maturity scoring layer — turning raw pass/fail results into Tier 1–4 ratings per CSF function, plus gap analysis identifying which specific checks are limiting a tier.
+
+## Bug found during frontend testing: UniverseHUD shows stale demo data
+
+`UniverseHUD.jsx` (the top navigation bar and 3D universe view, Ansh's component) imports `pillarData` directly from the static `src/data/pillarData.js` file, rather than receiving live scores as props from `Dashboard.jsx`. This means the top bar shows hardcoded demo percentages (Govern 82%, Protect 88%, etc.) while the Executive Summary section on the same page correctly shows real live data (0%, Tier 1, "No Data"/"Needs attention"). The two sections visibly disagree on the same page. Not fixing this myself since it's Ansh's component and the right fix (passing live scores as props vs. refactoring the import) is a design decision for him to make. Flagging here for visibility.
