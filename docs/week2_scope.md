@@ -1,6 +1,7 @@
 
 ## Additional finding: /scan/history not yet used by frontend
 
+**Update:** Closed this gap same day. Built `fetchScanHistory()` API function, `ScanHistoryPanel` component with loading/error/empty states, styling, and wired it into the Dashboard. Live-verified in browser — correctly displays real persisted scan results with color-coded pass/fail status. Found and fixed one bug during verification (status column was missing from the table, silently only showing 3 of 4 columns).
 Verified `GET /scan/history` directly — it works correctly and returns real persisted scan data (10 entries from actual test runs, Sep 9-10). However, the frontend does not call this endpoint anywhere yet (confirmed via `src/lib/api.js`). The backend piece of this feature is complete and tested; the UI to display scan history/trends is still unbuilt. Flagging for the team rather than building it myself, since scan history UI wasn't part of my assigned scope this week.
 ## Final verification (Day 6 close-out)
 
