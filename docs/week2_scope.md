@@ -1,4 +1,7 @@
 
+## Additional finding: /scan/history not yet used by frontend
+
+Verified `GET /scan/history` directly — it works correctly and returns real persisted scan data (10 entries from actual test runs, Sep 9-10). However, the frontend does not call this endpoint anywhere yet (confirmed via `src/lib/api.js`). The backend piece of this feature is complete and tested; the UI to display scan history/trends is still unbuilt. Flagging for the team rather than building it myself, since scan history UI wasn't part of my assigned scope this week.
 ## Final verification (Day 6 close-out)
 
 Full test suite: 76/76 passing. Dashboard confirmed connected to live backend data end-to-end (not placeholder values) after the CORS/port fix above.
