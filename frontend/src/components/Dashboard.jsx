@@ -9,7 +9,7 @@ import TerminalMessages from './TerminalMessages';
 import { UNIVERSE_ZONES } from '../data/universeData';
 import { fetchMaturityData, triggerAssessmentScan } from '../lib/api';
 import './Dashboard.css';
-
+import ScanHistoryPanel from './ScanHistoryPanel';
 const FUNCTIONS = [
   { key: 'Govern', title: 'Govern', name: 'GOVERN', icon: '🛡️', route: '/govern', accentColor: '#34d399' },
   { key: 'Identify', title: 'Identify', name: 'IDENTIFY', icon: '🔎', route: '/identify', accentColor: '#38bdf8' },
@@ -345,8 +345,9 @@ export function Dashboard() {
                   percentage={pillar.percentage}
                 />
               );
-            })}
+                        })}
           </section>
+          <ScanHistoryPanel limit={20} />
         </div>
       </section>
     </div>
