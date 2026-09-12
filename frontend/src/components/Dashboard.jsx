@@ -28,20 +28,20 @@ const toTierStatus = (tier) => {
 };
 
 const DEFAULT_OVERALL = {
-  percentage: 78,
-  tier: 3,
-  tier_name: 'Repeatable',
-  trend: 5,
-  status: 'Good',
+  percentage: 0,
+  tier: null,
+  tier_name: 'No Data',
+  trend: 0,
+  status: 'No Data',
 };
 
 const DEFAULT_PILLAR_VALUES = {
-  Govern: { percentage: 82, tier: 3, tier_name: 'Repeatable', trend: 4, status: 'Good' },
-  Identify: { percentage: 76, tier: 3, tier_name: 'Repeatable', trend: 2, status: 'Risk informed' },
-  Protect: { percentage: 88, tier: 4, tier_name: 'Adaptive', trend: 7, status: 'Adaptive' },
-  Detect: { percentage: 71, tier: 3, tier_name: 'Repeatable', trend: 1, status: 'Repeatable' },
-  Respond: { percentage: 68, tier: 2, tier_name: 'Risk Informed', trend: -2, status: 'Risk informed' },
-  Recover: { percentage: 79, tier: 3, tier_name: 'Repeatable', trend: 3, status: 'Good' },
+  Govern: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Identify: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Protect: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Detect: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Respond: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Recover: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
 };
 
 export function Dashboard() {
@@ -114,10 +114,13 @@ export function Dashboard() {
   };
 
   const overall = maturityData?.overall || DEFAULT_OVERALL;
-  const pillars = maturityData?.pillars?.length ? maturityData.pillars : Object.entries(DEFAULT_PILLAR_VALUES).map(([functionName, value]) => ({
-    function: functionName,
-    ...value,
-  }));
+  const pillars = maturityData?.pillars?.length
+    ? maturityData.pillars
+    : Object.entries(DEFAULT_PILLAR_VALUES).map(([functionName, value]) => ({
+        function: functionName,
+        ...value,
+      }));
+
   const overallStatus = overall.status || toTierStatus(overall.tier);
   const attentionPillars = pillars
     .filter((pillar) => (pillar.percentage ?? 0) < 80)
@@ -181,7 +184,9 @@ export function Dashboard() {
               </div>
             </div>
             <div className="command-actions">
-              <span className="assessment-time"><Clock3 size={14} /> {loading ? 'Loading maturity data...' : 'Updated live'}</span>
+              <span className="assessment-time">
+                <Clock3 size={14} /> {loading ? 'Loading maturity data...' : 'Updated live'}
+              </span>
               <button type="button" className="assessment-button" onClick={handleAssessment}>
                 <RefreshCw size={15} className={assessmentState === 'queued' ? 'is-spinning' : ''} />
                 {assessmentState === 'queued' ? 'Assessment queued' : 'Run assessment'}
@@ -193,7 +198,9 @@ export function Dashboard() {
             <div className="dashboard-error" role="alert">
               <h3>BACKEND CONNECTION ERROR</h3>
               <p>{error}</p>
-              <button type="button" className="retry-button" onClick={loadMaturityData}>Retry</button>
+              <button type="button" className="retry-button" onClick={loadMaturityData}>
+                Retry
+              </button>
             </div>
           )}
 
@@ -207,7 +214,9 @@ export function Dashboard() {
           <section className="overview-panel">
             <div className="overview-topline">
               <span className="overview-label">Executive Summary</span>
-              <span className={`overview-status ${overallStatus.toLowerCase().replace(/\s+/g, '-')}`}>{overallStatus}</span>
+              <span className={`overview-status ${overallStatus.toLowerCase().replace(/\s+/g, '-')}`}>
+                {overallStatus}
+              </span>
             </div>
 
             <div className="overview-grid">
@@ -235,7 +244,10 @@ export function Dashboard() {
                 </div>
                 <div className="overview-metric">
                   <span className="metric-label">Trend</span>
-                  <strong>{overall.trend >= 0 ? '+' : ''}{overall.trend ?? 0}%</strong>
+                  <strong>
+                    {overall.trend >= 0 ? '+' : ''}
+                    {overall.trend ?? 0}%
+                  </strong>
                 </div>
                 <div className="overview-metric">
                   <span className="metric-label">Status</span>
@@ -256,12 +268,25 @@ export function Dashboard() {
                   <span className="overview-label">Posture trajectory</span>
                   <h2>Compliance trend</h2>
                 </div>
-                <span className="trend-chip"><Activity size={14} /> {overall.trend >= 0 ? '+' : ''}{overall.trend ?? 0}% vs prior scan</span>
+                <span className="trend-chip">
+                  <Activity size={14} /> {overall.trend >= 0 ? '+' : ''}
+                  {overall.trend ?? 0}% vs prior scan
+                </span>
               </div>
-              <div className="trend-chart" role="img" aria-label="Current maturity score and trend compared to the last scan">
-                <div className="chart-gridline gridline-top"><span>100</span></div>
-                <div className="chart-gridline gridline-mid"><span>50</span></div>
-                <div className="chart-gridline gridline-bottom"><span>0</span></div>
+              <div
+                className="trend-chart"
+                role="img"
+                aria-label="Current maturity score and trend compared to the last scan"
+              >
+                <div className="chart-gridline gridline-top">
+                  <span>100</span>
+                </div>
+                <div className="chart-gridline gridline-mid">
+                  <span>50</span>
+                </div>
+                <div className="chart-gridline gridline-bottom">
+                  <span>0</span>
+                </div>
                 <svg viewBox="0 0 620 180" preserveAspectRatio="none" aria-hidden="true">
                   <defs>
                     <linearGradient id="trend-fill" x1="0" x2="0" y1="0" y2="1">
@@ -269,11 +294,21 @@ export function Dashboard() {
                       <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  <path className="trend-area" d="M0 142 C75 136 98 118 158 126 S248 112 306 96 S397 101 458 67 S540 75 620 42 L620 180 L0 180 Z" />
-                  <path className="trend-line" d="M0 142 C75 136 98 118 158 126 S248 112 306 96 S397 101 458 67 S540 75 620 42" />
+                  <path
+                    className="trend-area"
+                    d="M0 142 C75 136 98 118 158 126 S248 112 306 96 S397 101 458 67 S540 75 620 42 L620 180 L0 180 Z"
+                  />
+                  <path
+                    className="trend-line"
+                    d="M0 142 C75 136 98 118 158 126 S248 112 306 96 S397 101 458 67 S540 75 620 42"
+                  />
                   <circle cx="620" cy="42" r="5" className="trend-point" />
                 </svg>
-                <div className="chart-labels"><span>Prior</span><span>Current</span><span>Target</span></div>
+                <div className="chart-labels">
+                  <span>Prior</span>
+                  <span>Current</span>
+                  <span>Target</span>
+                </div>
               </div>
             </article>
 
@@ -286,19 +321,37 @@ export function Dashboard() {
                 <span className="attention-count">{attentionPillars.length} pillars</span>
               </div>
               <div className="attention-list">
-                {attentionPillars.length > 0 ? attentionPillars.map((pillar) => (
-                  <button key={pillar.function} type="button" className="attention-item" onClick={() => handleSelectZone(pillar.function.toLowerCase())}>
-                    <span className="attention-icon"><AlertTriangle size={15} /></span>
-                    <span className="attention-copy"><strong>{pillar.function} maturity</strong><small>{pillar.tier_name} / {pillar.percentage ?? 0}%</small></span>
-                    <span className="attention-score">{pillar.percentage ?? 0}% <ArrowUpRight size={15} /></span>
-                  </button>
-                )) : (
+                {attentionPillars.length > 0 ? (
+                  attentionPillars.map((pillar) => (
+                    <button
+                      key={pillar.function}
+                      type="button"
+                      className="attention-item"
+                      onClick={() => handleSelectZone(pillar.function.toLowerCase())}
+                    >
+                      <span className="attention-icon">
+                        <AlertTriangle size={15} />
+                      </span>
+                      <span className="attention-copy">
+                        <strong>{pillar.function} maturity</strong>
+                        <small>
+                          {pillar.tier_name} / {pillar.percentage ?? 0}%
+                        </small>
+                      </span>
+                      <span className="attention-score">
+                        {pillar.percentage ?? 0}% <ArrowUpRight size={15} />
+                      </span>
+                    </button>
+                  ))
+                ) : (
                   <div className="attention-empty">
                     <CheckCircle2 size={16} /> All pillars are tracking within acceptable maturity thresholds.
                   </div>
                 )}
               </div>
-              <button type="button" className="queue-link" onClick={() => handleSelectZone('respond')}><CheckCircle2 size={15} /> Review all findings</button>
+              <button type="button" className="queue-link" onClick={() => handleSelectZone('respond')}>
+                <CheckCircle2 size={15} /> Review all findings
+              </button>
             </article>
           </section>
 
@@ -333,7 +386,11 @@ export function Dashboard() {
                   icon={pillarConfig.icon}
                   title={pillarConfig.title}
                   name={pillarConfig.name}
-                  description={pillarConfig.title === 'Govern' ? 'Establish and monitor cybersecurity strategy, policies, roles, responsibilities, and risk oversight across the enterprise.' : `${pillarConfig.title} maturity is calculated from the live backend scoring engine.`}
+                  description={
+                    pillarConfig.title === 'Govern'
+                      ? 'Establish and monitor cybersecurity strategy, policies, roles, responsibilities, and risk oversight across the enterprise.'
+                      : `${pillarConfig.title} maturity is calculated from the live backend scoring engine.`
+                  }
                   status={pillar.status || toTierStatus(pillar.tier)}
                   compliance={Math.round(pillar.percentage ?? 0)}
                   controls={pillar.tier ? `Tier ${pillar.tier}` : 'Live'}
