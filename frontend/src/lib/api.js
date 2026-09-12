@@ -57,3 +57,8 @@ export async function fetchScanResults() {
 }
 
 export { API_BASE_URL };
+
+export async function fetchScanHistory(limit = 50) {
+  const payload = await apiRequest(`/scan/history?limit=${limit}`);
+  return payload?.entries ?? [];
+}
