@@ -18,6 +18,7 @@ from models.schemas import (
     DashboardMaturityResponse,
     MaturityOverview,
     PillarMaturity,
+    ScanCompareResponse,
     ScanHistoryEntry,
     ScanHistoryResponse,
     ScanResponse,
@@ -215,6 +216,70 @@ def scan_history(limit: int = 50):
     ]
 
     return ScanHistoryResponse(entries=entries)
+
+
+@app.get("/scan/compare", response_model=ScanCompareResponse)
+def scan_compare():
+    """
+    Compare the two most recent scans and report what changed.
+
+    W2-Day5 (Sujal) — newly passing/failing checks between the current
+    and previous scan, plus checks that appeared or disappeared entirely
+    (e.g. a new S3 bucket, or a resource that was deleted).
+    """
+    from database.persistence import get_latest_two_scan_timestamps, get_scan_by_timestamp
+
+    timestamps = get_latest_two_scan_timestamps()
+
+    if len(timestamps) < 2:
+        current_ts = timestamps[0] if timestamps else None
+        current_rows = get_scan_by_timestamp(current_ts) if current_ts else []
+        return ScanCompareResponse(
+            current_scanned_at=current_ts,
+            previous_scanned_at=None,
+            newly_passing=[],
+            newly_failing=[],
+            unchanged=[row.check_id for row in current_rows],
+            new_checks=[row.check_id for row in current_rows],
+            removed_checks=[],
+        )
+
+    current_ts, previous_ts = timestamps[0], timestamps[1]
+    current_rows = get_scan_by_timestamp(current_ts)
+    previous_rows = get_scan_by_timestamp(previous_ts)
+
+    current_status = {row.check_id: row.status for row in current_rows}
+    previous_status = {row.check_id: row.status for row in previous_rows}
+
+    current_ids = set(current_status)
+    previous_ids = set(previous_status)
+
+    newly_passing = []
+    newly_failing = []
+    unchanged = []
+
+    for check_id in current_ids & previous_ids:
+        was = previous_status[check_id]
+        now = current_status[check_id]
+        if was != "pass" and now == "pass":
+            newly_passing.append(check_id)
+        elif was == "pass" and now != "pass":
+            newly_failing.append(check_id)
+        else:
+            unchanged.append(check_id)
+
+    new_checks = sorted(current_ids - previous_ids)
+    removed_checks = sorted(previous_ids - current_ids)
+
+    return ScanCompareResponse(
+        current_scanned_at=current_ts,
+        previous_scanned_at=previous_ts,
+        newly_passing=sorted(newly_passing),
+        newly_failing=sorted(newly_failing),
+        unchanged=sorted(unchanged),
+        new_checks=new_checks,
+        removed_checks=removed_checks,
+    )
 
 
 @app.get("/dashboard/maturity", response_model=DashboardMaturityResponse)
