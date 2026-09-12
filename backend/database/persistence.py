@@ -3,6 +3,8 @@ Persist scan results (from collectors/aws_collector.py) into the database
 so that /scan/history (W2-Day2) can query past scans.
 """
 
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 
 from database.db import Base, SessionLocal, engine
@@ -13,11 +15,23 @@ from models.schemas import CheckResult
 Base.metadata.create_all(bind=engine)
 
 
-def save_scan_results(results: list[CheckResult], db: Session | None = None) -> None:
-    """Write a batch of CheckResult objects to the scan_results table."""
+def save_scan_results(
+    results: list[CheckResult],
+    db: Session | None = None,
+    scanned_at: datetime | None = None,
+) -> None:
+    """Write a batch of CheckResult objects to the scan_results table.
+
+    All rows in one call share a single scanned_at timestamp (rather than
+    each CheckResult's own microsecond-precision timestamp) so that one
+    /scan/aws run is groupable as one "scan" — this is what W2-Day5's
+    /scan/compare endpoint relies on to tell scans apart.
+    """
     owns_session = db is None
     if owns_session:
         db = SessionLocal()
+
+    batch_time = scanned_at or datetime.utcnow()
 
     try:
         for result in results:
@@ -27,7 +41,7 @@ def save_scan_results(results: list[CheckResult], db: Session | None = None) -> 
                     resource_id=result.resource_id,
                     status=result.status.value,
                     detail=result.detail,
-                    scanned_at=result.timestamp,
+                    scanned_at=batch_time,
                 )
             )
         db.commit()
@@ -107,6 +121,44 @@ def get_mock_scenario(
             )
             for row in rows
         ]
+    finally:
+        if owns_session:
+            db.close()
+
+def get_latest_two_scan_timestamps(db: Session | None = None) -> list[datetime]:
+    """Return up to the 2 most recent distinct scan timestamps, newest first."""
+    owns_session = db is None
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        rows = (
+            db.query(ScanResultDB.scanned_at)
+            .distinct()
+            .order_by(ScanResultDB.scanned_at.desc())
+            .limit(2)
+            .all()
+        )
+        return [row[0] for row in rows]
+    finally:
+        if owns_session:
+            db.close()
+
+
+def get_scan_by_timestamp(
+    scanned_at: datetime, db: Session | None = None
+) -> list[ScanResultDB]:
+    """Return all scan_results rows belonging to one scan timestamp."""
+    owns_session = db is None
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        return (
+            db.query(ScanResultDB)
+            .filter(ScanResultDB.scanned_at == scanned_at)
+            .all()
+        )
     finally:
         if owns_session:
             db.close()
