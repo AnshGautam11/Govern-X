@@ -75,6 +75,18 @@ class ScanHistoryResponse(BaseModel):
     entries: list[ScanHistoryEntry]
 
 
+class ScanCompareResponse(BaseModel):
+    """W2-Day5 — diff between the two most recent scans."""
+
+    current_scanned_at: datetime | None
+    previous_scanned_at: datetime | None
+    newly_passing: list[str]
+    newly_failing: list[str]
+    unchanged: list[str]
+    new_checks: list[str]
+    removed_checks: list[str]
+
+
 class PillarMaturity(BaseModel):
     function: str
     percentage: float | None = 0
