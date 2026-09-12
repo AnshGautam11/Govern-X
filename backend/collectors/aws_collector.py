@@ -307,16 +307,34 @@ def check_security_group_open_ingress() -> list[CheckResult]:
             group_id = security_group["GroupId"]
             group_name = security_group.get("GroupName", group_id)
 
-            open_ingress = False
+            exposed_ports = set()
 
             for permission in security_group.get("IpPermissions", []):
                 for ip_range in permission.get("IpRanges", []):
                     if ip_range.get("CidrIp") == "0.0.0.0/0":
-                        open_ingress = True
+                        from_port = permission.get("FromPort")
+                        to_port = permission.get("ToPort", from_port)
+                        if from_port is None:
+                            exposed_ports.add("all")
+                        else:
+                            exposed_ports.update(range(from_port, (to_port or from_port) + 1))
 
                 for ip_range in permission.get("Ipv6Ranges", []):
                     if ip_range.get("CidrIpv6") == "::/0":
-                        open_ingress = True
+                        from_port = permission.get("FromPort")
+                        to_port = permission.get("ToPort", from_port)
+                        if from_port is None:
+                            exposed_ports.add("all")
+                        else:
+                            exposed_ports.update(range(from_port, (to_port or from_port) + 1))
+
+            dangerous_ports = {22, 3389, 3306, 5432, 1433, 27017}
+            has_dangerous_port = bool(exposed_ports.intersection(dangerous_ports)) or "all" in exposed_ports
+            open_ingress = bool(exposed_ports)
+            severity = Severity.CRITICAL if has_dangerous_port else Severity.HIGH
+            exposed_label = "all ports" if "all" in exposed_ports else ", ".join(
+                str(port) for port in sorted(exposed_ports)
+            )
 
             results.append(
                 CheckResult(
@@ -327,11 +345,12 @@ def check_security_group_open_ingress() -> list[CheckResult]:
                         if open_ingress
                         else CheckStatus.PASS
                     ),
-                    severity=Severity.HIGH,
+                    severity=severity,
                     detail=(
                         f"Security group {group_name} "
                         f"{'allows' if open_ingress else 'does not allow'} "
                         f"unrestricted internet ingress"
+                        f"{f' on {exposed_label}' if open_ingress else ''}"
                     ),
                 )
             )
@@ -350,7 +369,7 @@ def check_security_group_open_ingress() -> list[CheckResult]:
             )
         )
 
-    return results 
+    return results
 # --- Remaining Week 1 scope checks (stubs — implement following the pattern above) ---
 #
 # @register_check("s3_encryption_at_rest")           -> PR.DS-01
@@ -593,6 +612,44 @@ def check_rds_public_accessibility() -> list[CheckResult]:
                     f"Could not evaluate RDS instances: "
                     f"{e.response['Error']['Message']}"
                 ),
+            )
+        )
+
+    return results
+
+
+@register_check("rds_encryption_at_rest")
+def check_rds_encryption_at_rest() -> list[CheckResult]:
+    """PR.DS-01 - RDS database instances should encrypt storage at rest."""
+    rds = get_client("rds")
+    results: list[CheckResult] = []
+
+    try:
+        paginator = rds.get_paginator("describe_db_instances")
+        for page in paginator.paginate():
+            for instance in page.get("DBInstances", []):
+                identifier = instance["DBInstanceIdentifier"]
+                encrypted = instance.get("StorageEncrypted", False)
+                results.append(
+                    CheckResult(
+                        check_id="rds_encryption_at_rest",
+                        resource_id=identifier,
+                        status=CheckStatus.PASS if encrypted else CheckStatus.FAIL,
+                        severity=Severity.HIGH,
+                        detail=(
+                            f"RDS storage encryption is "
+                            f"{'enabled' if encrypted else 'NOT enabled'} for {identifier}"
+                        ),
+                    )
+                )
+    except ClientError as e:
+        results.append(
+            CheckResult(
+                check_id="rds_encryption_at_rest",
+                resource_id="rds-environment",
+                status=CheckStatus.ERROR,
+                severity=Severity.HIGH,
+                detail=f"Could not evaluate RDS encryption: {e.response['Error']['Message']}",
             )
         )
 
