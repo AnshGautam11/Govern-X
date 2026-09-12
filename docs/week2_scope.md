@@ -1,4 +1,7 @@
 
+## Final verification (Day 6 close-out)
+
+Full test suite: 76/76 passing. Dashboard confirmed connected to live backend data end-to-end (not placeholder values) after the CORS/port fix above.
 ## Known open items going into Week 3
 
 1. Real AWS account verification still pending (unchanged from Week 1) — the dashboard now correctly and honestly displays "No Data" / "Needs attention" for this, rather than hiding it.
