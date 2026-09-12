@@ -62,8 +62,9 @@ export default function ScanHistoryPanel({ limit = 20 }) {
         <tbody>
           {entries.map((entry) => (
             <tr key={entry.id} className={`scan-history-row status-${entry.status}`}>
-              <td>{entry.check_id}</td>
+                            <td>{entry.check_id}</td>
               <td>{entry.resource_id}</td>
+              <td>{entry.status.toUpperCase()}</td>
               <td>{new Date(entry.scanned_at).toLocaleString()}</td>
             </tr>
           ))}
