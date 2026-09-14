@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-export function SceneEnvironment({ activeZone }) {
+export function SceneEnvironment({ activeZone, scanStatus = 'idle', scanSummary }) {
   const starsRef = useRef();
   const dustRef = useRef();
 
@@ -57,6 +57,10 @@ export function SceneEnvironment({ activeZone }) {
     }
   });
 
+  const postureColor = scanStatus === 'scanning'
+    ? '#fbbf24'
+    : (scanSummary?.failed > 0 || scanSummary?.errors > 0 ? '#f87171' : '#34d399');
+
   return (
     <group>
       {/* Ambient and directional cybersecurity lighting */}
@@ -65,9 +69,9 @@ export function SceneEnvironment({ activeZone }) {
       <directionalLight position={[-100, -50, -80]} intensity={0.6} color="#06b6d4" />
       <pointLight
         position={activeZone?.cameraTarget || [0, 0, 0]}
-        intensity={2.5}
+        intensity={scanStatus === 'scanning' ? 4 : 2.5}
         distance={120}
-        color={activeZone?.color || '#38bdf8'}
+        color={scanStatus === 'idle' ? (activeZone?.color || '#38bdf8') : postureColor}
       />
 
       {/* Deep Space Stars */}
