@@ -21,6 +21,8 @@ export function UniverseCanvas({
   onWarpComplete,
   onSelectNode,
   onSelectZone,
+  scanStatus,
+  scanSummary,
 }) {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -31,7 +33,7 @@ export function UniverseCanvas({
       >
         <Suspense fallback={null}>
           <AdaptiveDpr pixelated={false} />
-          <SceneEnvironment activeZone={activeZone} />
+          <SceneEnvironment activeZone={activeZone} scanStatus={scanStatus} scanSummary={scanSummary} />
           <CameraController
             activeZone={activeZone}
             selectedNode={selectedNode}
