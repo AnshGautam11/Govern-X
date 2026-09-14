@@ -7,9 +7,10 @@ import PillarCard from './PillarCard';
 import TypingEffect from './TypingEffect';
 import TerminalMessages from './TerminalMessages';
 import { UNIVERSE_ZONES } from '../data/universeData';
-import { fetchMaturityData, triggerAssessmentScan } from '../lib/api';
+import { fetchHealthStatus, fetchMaturityData, normalizeMaturityResponse, normalizeScanResponse, triggerAssessmentScan } from '../lib/api';
 import './Dashboard.css';
 import ScanHistoryPanel from './ScanHistoryPanel';
+import FindingsExplorer from './FindingsExplorer';
 const FUNCTIONS = [
   { key: 'Govern', title: 'Govern', name: 'GOVERN', icon: '🛡️', route: '/govern', accentColor: '#34d399' },
   { key: 'Identify', title: 'Identify', name: 'IDENTIFY', icon: '🔎', route: '/identify', accentColor: '#38bdf8' },
@@ -25,6 +26,12 @@ const toTierStatus = (tier) => {
   if (tier === 3) return 'Repeatable';
   if (tier === 4) return 'Adaptive';
   return 'No Data';
+};
+
+const toNumericTier = (tier) => {
+  if (typeof tier === 'number') return tier;
+  const match = String(tier || '').match(/(\d+)/);
+  return match ? Number(match[1]) : null;
 };
 
 const DEFAULT_OVERALL = {
@@ -51,11 +58,12 @@ export function Dashboard() {
   const [isWarping, setIsWarping] = useState(false);
   const [isTouring, setIsTouring] = useState(false);
   const [viewMode, setViewMode] = useState('3d');
-  const [assessmentState, setAssessmentState] = useState('ready');
-  const [maturityData, setMaturityData] = useState(null);
+  const [assessmentState, setAssessmentState] = useState('idle');
+  const [scanState, setScanState] = useState({ status: 'idle', data: null, error: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isLive, setIsLive] = useState(false);
+  const [environment, setEnvironment] = useState('UNKNOWN');
 
   const activeZone = useMemo(
     () => UNIVERSE_ZONES.find((z) => z.id === activeZoneId) || UNIVERSE_ZONES[0],
@@ -67,12 +75,12 @@ export function Dashboard() {
     setError('');
     try {
       const payload = await fetchMaturityData();
-      setMaturityData(payload);
+      setScanState({ status: 'success', data: normalizeMaturityResponse(payload), error: null });
       setIsLive(true);
     } catch (fetchError) {
       setError(fetchError.message || 'Unable to retrieve live maturity data.');
       setIsLive(false);
-      setMaturityData(null);
+      setScanState({ status: 'error', data: null, error: fetchError.message });
     } finally {
       setLoading(false);
     }
@@ -80,6 +88,12 @@ export function Dashboard() {
 
   useEffect(() => {
     loadMaturityData();
+    fetchHealthStatus()
+      .then((payload) => {
+        setIsLive(payload?.status === 'ok');
+        setEnvironment(payload?.env ? String(payload.env).toUpperCase() : 'MOCK AWS / AWS LIVE');
+      })
+      .catch(() => setIsLive(false));
   }, []);
 
   const handleSelectZone = (zoneId) => {
@@ -101,25 +115,39 @@ export function Dashboard() {
   };
 
   const handleAssessment = async () => {
-    setAssessmentState('queued');
+    setAssessmentState('scanning');
+    setError('');
+    setScanState((current) => ({ ...current, status: 'scanning', error: null }));
     try {
-      await triggerAssessmentScan();
-      await loadMaturityData();
+      const payload = await triggerAssessmentScan();
+      setScanState({ status: 'success', data: normalizeScanResponse(payload), error: null });
+      setIsLive(true);
     } catch (scanError) {
       setError(scanError.message || 'Backend scan failed.');
       setIsLive(false);
+      setScanState({ status: 'error', data: null, error: scanError.message });
     } finally {
-      window.setTimeout(() => setAssessmentState('ready'), 1200);
+      setAssessmentState('idle');
     }
   };
 
-  const overall = maturityData?.overall || DEFAULT_OVERALL;
-  const pillars = maturityData?.pillars?.length
-    ? maturityData.pillars
+  const normalized = scanState.data;
+  const overall = {
+    ...DEFAULT_OVERALL,
+    percentage: normalized?.summary?.complianceScore ?? 0,
+    tier: normalized?.summary?.tier,
+    tier_name: normalized?.summary?.tierName,
+    ...(normalized?.raw?.overall?.percentage !== undefined ? normalized.raw.overall : {}),
+  };
+  const pillars = normalized?.raw?.pillars?.length
+    ? normalized.raw.pillars
     : Object.entries(DEFAULT_PILLAR_VALUES).map(([functionName, value]) => ({
         function: functionName,
         ...value,
+        percentage: normalized?.scores?.[functionName]?.score ?? value.percentage,
+        tier: toNumericTier(normalized?.scores?.[functionName]?.tier) ?? value.tier,
       }));
+  const findings = normalized?.findings || [];
 
   const overallStatus = overall.status || toTierStatus(overall.tier);
   const attentionPillars = pillars
@@ -137,6 +165,8 @@ export function Dashboard() {
           onWarpComplete={handleWarpComplete}
           onSelectNode={setSelectedNode}
           onSelectZone={handleSelectZone}
+          scanStatus={scanState.status}
+          scanSummary={normalized?.summary}
         />
 
         <UniverseHUD
@@ -167,7 +197,8 @@ export function Dashboard() {
                   {isLive ? <Wifi size={12} /> : <WifiOff size={12} />} {isLive ? 'Live API' : 'API Offline'}
                 </span>
                 <span className="status-separator">|</span>
-                <span className="status-item">● Control Engine: {isLive ? 'Online' : 'Unavailable'}</span>
+                <span className="status-item">● Govern-X Core: {isLive ? 'Online' : 'Offline'}</span>
+                <span className="status-item">● Environment: {environment}</span>
                 <span className="status-separator">|</span>
                 <span className="status-item">● Last Assessment: {loading ? 'Loading...' : 'Updated live'}</span>
               </div>
@@ -187,9 +218,9 @@ export function Dashboard() {
               <span className="assessment-time">
                 <Clock3 size={14} /> {loading ? 'Loading maturity data...' : 'Updated live'}
               </span>
-              <button type="button" className="assessment-button" onClick={handleAssessment}>
-                <RefreshCw size={15} className={assessmentState === 'queued' ? 'is-spinning' : ''} />
-                {assessmentState === 'queued' ? 'Assessment queued' : 'Run assessment'}
+              <button type="button" className="assessment-button" onClick={handleAssessment} disabled={assessmentState === 'scanning'}>
+                <RefreshCw size={15} className={assessmentState === 'scanning' ? 'is-spinning' : ''} />
+                {assessmentState === 'scanning' ? 'Scanning AWS environment' : 'Start security scan'}
               </button>
             </div>
           </div>
@@ -260,6 +291,32 @@ export function Dashboard() {
               </div>
             </div>
           </section>
+
+          {scanState.status === 'scanning' && (
+            <div className="dashboard-loading" aria-live="polite">
+              SCANNING AWS ENVIRONMENT... Connecting, checking controls, mapping NIST CSF, and calculating maturity.
+            </div>
+          )}
+
+          {scanState.status === 'success' && normalized?.summary?.totalChecks !== null && (
+            <section className="overview-panel scan-summary-panel" aria-label="Security scan summary">
+              <div className="overview-topline">
+                <span className="overview-label">Security assessment complete</span>
+                <span className="overview-status good">{normalized.summary.totalChecks} checks</span>
+              </div>
+              <div className="overview-metrics scan-metrics">
+                <div className="overview-metric"><span className="metric-label">Passed</span><strong>{normalized.summary.passed}</strong></div>
+                <div className="overview-metric"><span className="metric-label">Failed</span><strong>{normalized.summary.failed}</strong></div>
+                <div className="overview-metric"><span className="metric-label">Errors</span><strong>{normalized.summary.errors}</strong></div>
+                <div className="overview-metric"><span className="metric-label">Environment</span><strong>{environment}</strong></div>
+              </div>
+            </section>
+          )}
+
+          {findings.length > 0 && <FindingsExplorer findings={findings} />}
+          {scanState.status === 'success' && findings.length === 0 && normalized?.summary?.totalChecks !== null && (
+            <div className="dashboard-loading" role="status">NO SECURITY FINDINGS DETECTED</div>
+          )}
 
           <section className="dashboard-insights" aria-label="Assessment insights">
             <article className="trend-panel">
