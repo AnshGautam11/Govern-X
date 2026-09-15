@@ -27,3 +27,12 @@ CREATE TABLE IF NOT EXISTS scan_results (
 
 CREATE INDEX IF NOT EXISTS idx_scan_results_check_id ON scan_results(check_id);
 CREATE INDEX IF NOT EXISTS idx_scan_results_scanned_at ON scan_results(scanned_at);
+
+CREATE INDEX IF NOT EXISTS idx_scan_results_check_id
+ON scan_results(check_id);
+
+CREATE INDEX IF NOT EXISTS idx_scan_results_scanned_at
+ON scan_results(scanned_at);
+
+CREATE INDEX IF NOT EXISTS idx_scan_results_scanned_at_check_id
+ON scan_results(scanned_at, check_id);

@@ -44,3 +44,6 @@ CREATE TABLE IF NOT EXISTS mock_scenarios (
 
 CREATE INDEX IF NOT EXISTS idx_mock_scenarios_name
 ON mock_scenarios(scenario_name);
+
+CREATE INDEX IF NOT EXISTS idx_scan_results_scanned_at_check_id
+ON scan_results(scanned_at, check_id);
