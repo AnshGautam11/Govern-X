@@ -129,9 +129,13 @@ def get_mock_scenario(
         if owns_session:
             db.close()
 
-def get_latest_two_scan_timestamps(db: Session | None = None) -> list[datetime]:
-    """Return up to the 2 most recent distinct scan timestamps, newest first."""
+def get_latest_two_scan_timestamps(
+    db: Session | None = None,
+) -> list[datetime]:
+    """Return up to the 2 most recent distinct scan timestamps."""
+
     owns_session = db is None
+
     if owns_session:
         db = SessionLocal()
 
@@ -143,26 +147,34 @@ def get_latest_two_scan_timestamps(db: Session | None = None) -> list[datetime]:
             .limit(2)
             .all()
         )
+
         return [row[0] for row in rows]
+
     finally:
         if owns_session:
             db.close()
 
 
 def get_scan_by_timestamp(
-    scanned_at: datetime, db: Session | None = None
+    scanned_at: datetime,
+    db: Session | None = None,
 ) -> list[ScanResultDB]:
-    """Return all scan_results rows belonging to one scan timestamp."""
+    """Return all scan results belonging to one scan."""
+
     owns_session = db is None
+
     if owns_session:
         db = SessionLocal()
 
     try:
         return (
             db.query(ScanResultDB)
-            .filter(ScanResultDB.scanned_at == scanned_at)
+            .filter(
+                ScanResultDB.scanned_at == scanned_at
+            )
             .all()
         )
+
     finally:
         if owns_session:
             db.close()
