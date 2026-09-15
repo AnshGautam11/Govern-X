@@ -4,7 +4,7 @@ SQLAlchemy ORM models — mirrors database/schema.sql's scan_results table.
 
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 
 from database.db import Base
 
@@ -20,6 +20,30 @@ class ScanResultDB(Base):
     status = Column(String, nullable=False)
     detail = Column(Text)
     scanned_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+class CheckDB(Base):
+    """ORM model for a GovernX security check."""
+
+    __tablename__ = "checks"
+
+    id = Column(String, primary_key=True)
+    description = Column(Text, nullable=False)
+    severity = Column(String, nullable=False)
+
+class CSFMappingDB(Base):
+    """ORM model linking a security check to a NIST CSF 2.0 subcategory."""
+
+    __tablename__ = "csf_mappings"
+
+    check_id = Column(
+        String,
+        ForeignKey("checks.id"),
+        primary_key=True,
+    )
+
+    csf_function = Column(String, nullable=False)
+    csf_subcategory = Column(String, nullable=False)
+    justification = Column(Text, nullable=False)
 
 class MockScenarioDB(Base):
     """Database-backed mock security scenario used for scoring demos/tests."""
