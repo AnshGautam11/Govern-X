@@ -34,6 +34,10 @@ def save_scan_results(
     batch_time = scanned_at or datetime.utcnow()
 
     try:
+
+        if not results:
+          return
+    
         for result in results:
             db.add(
                 ScanResultDB(
