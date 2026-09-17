@@ -75,6 +75,13 @@ CSF_MAPPINGS: dict[str, CSFMapping] = {
         justification="Restricting public accessibility of RDS databases helps prevent unauthorized access to data resources.",
     ),
 
+    "rds_encryption_at_rest": CSFMapping(
+        check_id="rds_encryption_at_rest",
+        csf_function="Protect",
+        csf_subcategory="PR.DS-01",
+        justification="RDS storage encryption protects database data at rest from unauthorized disclosure.",
+    ),
+
     "cloudtrail_enabled": CSFMapping(
         check_id="cloudtrail_enabled",
         csf_function="Detect",

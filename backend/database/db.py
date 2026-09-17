@@ -34,3 +34,12 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def check_database_connection() -> bool:
+    """Verify that the configured database is reachable."""
+    try:
+        with engine.connect() as connection:
+            connection.exec_driver_sql("SELECT 1")
+        return True
+    except Exception:
+        return False

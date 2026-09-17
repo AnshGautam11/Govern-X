@@ -58,6 +58,14 @@ class ScanResponse(BaseModel):
     scores: dict[str, FunctionScore] = {}
     overall: FunctionScore | None = None
     gaps: dict[str, list[dict]] = {}
+    scan_id: str | None = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    findings: list[MappedFinding] = []
+    nist_mapping: list[CSFMapping] = []
+    pillar_scores: dict[str, FunctionScore] = {}
+    overall_score: float | None = None
+    overall_tier: int | None = None
+    tier_name: str = "No Data"
 
 
 class ScanHistoryEntry(BaseModel):
@@ -73,6 +81,18 @@ class ScanHistoryEntry(BaseModel):
 
 class ScanHistoryResponse(BaseModel):
     entries: list[ScanHistoryEntry]
+
+
+class ScanCompareResponse(BaseModel):
+    """W2-Day5 — diff between the two most recent scans."""
+
+    current_scanned_at: datetime | None
+    previous_scanned_at: datetime | None
+    newly_passing: list[str]
+    newly_failing: list[str]
+    unchanged: list[str]
+    new_checks: list[str]
+    removed_checks: list[str]
 
 
 class PillarMaturity(BaseModel):

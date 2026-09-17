@@ -1625,3 +1625,24 @@ The platform demonstrates practical implementation of:
 ### Built for the future of Cybersecurity Governance.
 
 **Technical Data → Security Intelligence → Business Decisions**
+
+## Week 2 – NIST CSF 2.0 & Maturity Scoring
+
+Week 2 focused on building the database and compliance foundation for GovernX.
+
+### Key Work Completed
+
+* Converted NIST CSF mappings into SQLAlchemy database models.
+* Added database migration and persistence support.
+* Added indexes for efficient scan-history queries.
+* Fixed database persistence and scan-history issues.
+* Added database queries for comparing current and previous scans.
+* Verified database functionality and backend tests.
+
+### Week 2 Outcome
+
+GovernX can persist scan results, maintain NIST CSF 2.0 mappings, retrieve scan history, and support comparison of compliance results across scans.
+
+**NIST CSF 2.0 Functions:** Govern · Identify · Protect · Detect · Respond · Recover
+
+**Project:** GovernX – Automated NIST CSF 2.0 Compliance Engine

@@ -7,9 +7,10 @@ import PillarCard from './PillarCard';
 import TypingEffect from './TypingEffect';
 import TerminalMessages from './TerminalMessages';
 import { UNIVERSE_ZONES } from '../data/universeData';
-import { fetchMaturityData, triggerAssessmentScan } from '../lib/api';
+import { fetchHealthStatus, fetchMaturityData, normalizeMaturityResponse, normalizeScanResponse, triggerAssessmentScan } from '../lib/api';
 import './Dashboard.css';
 import ScanHistoryPanel from './ScanHistoryPanel';
+import FindingsExplorer from './FindingsExplorer';
 const FUNCTIONS = [
   { key: 'Govern', title: 'Govern', name: 'GOVERN', icon: '🛡️', route: '/govern', accentColor: '#34d399' },
   { key: 'Identify', title: 'Identify', name: 'IDENTIFY', icon: '🔎', route: '/identify', accentColor: '#38bdf8' },
@@ -27,21 +28,27 @@ const toTierStatus = (tier) => {
   return 'No Data';
 };
 
+const toNumericTier = (tier) => {
+  if (typeof tier === 'number') return tier;
+  const match = String(tier || '').match(/(\d+)/);
+  return match ? Number(match[1]) : null;
+};
+
 const DEFAULT_OVERALL = {
-  percentage: 78,
-  tier: 3,
-  tier_name: 'Repeatable',
-  trend: 5,
-  status: 'Good',
+  percentage: 0,
+  tier: null,
+  tier_name: 'No Data',
+  trend: 0,
+  status: 'No Data',
 };
 
 const DEFAULT_PILLAR_VALUES = {
-  Govern: { percentage: 82, tier: 3, tier_name: 'Repeatable', trend: 4, status: 'Good' },
-  Identify: { percentage: 76, tier: 3, tier_name: 'Repeatable', trend: 2, status: 'Risk informed' },
-  Protect: { percentage: 88, tier: 4, tier_name: 'Adaptive', trend: 7, status: 'Adaptive' },
-  Detect: { percentage: 71, tier: 3, tier_name: 'Repeatable', trend: 1, status: 'Repeatable' },
-  Respond: { percentage: 68, tier: 2, tier_name: 'Risk Informed', trend: -2, status: 'Risk informed' },
-  Recover: { percentage: 79, tier: 3, tier_name: 'Repeatable', trend: 3, status: 'Good' },
+  Govern: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Identify: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Protect: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Detect: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Respond: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Recover: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
 };
 
 export function Dashboard() {
@@ -51,11 +58,12 @@ export function Dashboard() {
   const [isWarping, setIsWarping] = useState(false);
   const [isTouring, setIsTouring] = useState(false);
   const [viewMode, setViewMode] = useState('3d');
-  const [assessmentState, setAssessmentState] = useState('ready');
-  const [maturityData, setMaturityData] = useState(null);
+  const [assessmentState, setAssessmentState] = useState('idle');
+  const [scanState, setScanState] = useState({ status: 'idle', data: null, error: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isLive, setIsLive] = useState(false);
+  const [environment, setEnvironment] = useState('UNKNOWN');
 
   const activeZone = useMemo(
     () => UNIVERSE_ZONES.find((z) => z.id === activeZoneId) || UNIVERSE_ZONES[0],
@@ -67,12 +75,12 @@ export function Dashboard() {
     setError('');
     try {
       const payload = await fetchMaturityData();
-      setMaturityData(payload);
+      setScanState({ status: 'success', data: normalizeMaturityResponse(payload), error: null });
       setIsLive(true);
     } catch (fetchError) {
       setError(fetchError.message || 'Unable to retrieve live maturity data.');
       setIsLive(false);
-      setMaturityData(null);
+      setScanState({ status: 'error', data: null, error: fetchError.message });
     } finally {
       setLoading(false);
     }
@@ -80,6 +88,12 @@ export function Dashboard() {
 
   useEffect(() => {
     loadMaturityData();
+    fetchHealthStatus()
+      .then((payload) => {
+        setIsLive(payload?.status === 'ok');
+        setEnvironment(payload?.env ? String(payload.env).toUpperCase() : 'MOCK AWS / AWS LIVE');
+      })
+      .catch(() => setIsLive(false));
   }, []);
 
   const handleSelectZone = (zoneId) => {
@@ -101,23 +115,40 @@ export function Dashboard() {
   };
 
   const handleAssessment = async () => {
-    setAssessmentState('queued');
+    setAssessmentState('scanning');
+    setError('');
+    setScanState((current) => ({ ...current, status: 'scanning', error: null }));
     try {
-      await triggerAssessmentScan();
-      await loadMaturityData();
+      const payload = await triggerAssessmentScan();
+      setScanState({ status: 'success', data: normalizeScanResponse(payload), error: null });
+      setIsLive(true);
     } catch (scanError) {
       setError(scanError.message || 'Backend scan failed.');
       setIsLive(false);
+      setScanState({ status: 'error', data: null, error: scanError.message });
     } finally {
-      window.setTimeout(() => setAssessmentState('ready'), 1200);
+      setAssessmentState('idle');
     }
   };
 
-  const overall = maturityData?.overall || DEFAULT_OVERALL;
-  const pillars = maturityData?.pillars?.length ? maturityData.pillars : Object.entries(DEFAULT_PILLAR_VALUES).map(([functionName, value]) => ({
-    function: functionName,
-    ...value,
-  }));
+  const normalized = scanState.data;
+  const overall = {
+    ...DEFAULT_OVERALL,
+    percentage: normalized?.summary?.complianceScore ?? 0,
+    tier: normalized?.summary?.tier,
+    tier_name: normalized?.summary?.tierName,
+    ...(normalized?.raw?.overall?.percentage !== undefined ? normalized.raw.overall : {}),
+  };
+  const pillars = normalized?.raw?.pillars?.length
+    ? normalized.raw.pillars
+    : Object.entries(DEFAULT_PILLAR_VALUES).map(([functionName, value]) => ({
+        function: functionName,
+        ...value,
+        percentage: normalized?.scores?.[functionName]?.score ?? value.percentage,
+        tier: toNumericTier(normalized?.scores?.[functionName]?.tier) ?? value.tier,
+      }));
+  const findings = normalized?.findings || [];
+
   const overallStatus = overall.status || toTierStatus(overall.tier);
   const attentionPillars = pillars
     .filter((pillar) => (pillar.percentage ?? 0) < 80)
@@ -134,6 +165,8 @@ export function Dashboard() {
           onWarpComplete={handleWarpComplete}
           onSelectNode={setSelectedNode}
           onSelectZone={handleSelectZone}
+          scanStatus={scanState.status}
+          scanSummary={normalized?.summary}
         />
 
         <UniverseHUD
@@ -164,7 +197,8 @@ export function Dashboard() {
                   {isLive ? <Wifi size={12} /> : <WifiOff size={12} />} {isLive ? 'Live API' : 'API Offline'}
                 </span>
                 <span className="status-separator">|</span>
-                <span className="status-item">● Control Engine: {isLive ? 'Online' : 'Unavailable'}</span>
+                <span className="status-item">● Govern-X Core: {isLive ? 'Online' : 'Offline'}</span>
+                <span className="status-item">● Environment: {environment}</span>
                 <span className="status-separator">|</span>
                 <span className="status-item">● Last Assessment: {loading ? 'Loading...' : 'Updated live'}</span>
               </div>
@@ -181,10 +215,12 @@ export function Dashboard() {
               </div>
             </div>
             <div className="command-actions">
-              <span className="assessment-time"><Clock3 size={14} /> {loading ? 'Loading maturity data...' : 'Updated live'}</span>
-              <button type="button" className="assessment-button" onClick={handleAssessment}>
-                <RefreshCw size={15} className={assessmentState === 'queued' ? 'is-spinning' : ''} />
-                {assessmentState === 'queued' ? 'Assessment queued' : 'Run assessment'}
+              <span className="assessment-time">
+                <Clock3 size={14} /> {loading ? 'Loading maturity data...' : 'Updated live'}
+              </span>
+              <button type="button" className="assessment-button" onClick={handleAssessment} disabled={assessmentState === 'scanning'}>
+                <RefreshCw size={15} className={assessmentState === 'scanning' ? 'is-spinning' : ''} />
+                {assessmentState === 'scanning' ? 'Scanning AWS environment' : 'Start security scan'}
               </button>
             </div>
           </div>
@@ -193,7 +229,9 @@ export function Dashboard() {
             <div className="dashboard-error" role="alert">
               <h3>BACKEND CONNECTION ERROR</h3>
               <p>{error}</p>
-              <button type="button" className="retry-button" onClick={loadMaturityData}>Retry</button>
+              <button type="button" className="retry-button" onClick={loadMaturityData}>
+                Retry
+              </button>
             </div>
           )}
 
@@ -207,7 +245,9 @@ export function Dashboard() {
           <section className="overview-panel">
             <div className="overview-topline">
               <span className="overview-label">Executive Summary</span>
-              <span className={`overview-status ${overallStatus.toLowerCase().replace(/\s+/g, '-')}`}>{overallStatus}</span>
+              <span className={`overview-status ${overallStatus.toLowerCase().replace(/\s+/g, '-')}`}>
+                {overallStatus}
+              </span>
             </div>
 
             <div className="overview-grid">
@@ -235,7 +275,10 @@ export function Dashboard() {
                 </div>
                 <div className="overview-metric">
                   <span className="metric-label">Trend</span>
-                  <strong>{overall.trend >= 0 ? '+' : ''}{overall.trend ?? 0}%</strong>
+                  <strong>
+                    {overall.trend >= 0 ? '+' : ''}
+                    {overall.trend ?? 0}%
+                  </strong>
                 </div>
                 <div className="overview-metric">
                   <span className="metric-label">Status</span>
@@ -249,6 +292,32 @@ export function Dashboard() {
             </div>
           </section>
 
+          {scanState.status === 'scanning' && (
+            <div className="dashboard-loading" aria-live="polite">
+              SCANNING AWS ENVIRONMENT... Connecting, checking controls, mapping NIST CSF, and calculating maturity.
+            </div>
+          )}
+
+          {scanState.status === 'success' && normalized?.summary?.totalChecks !== null && (
+            <section className="overview-panel scan-summary-panel" aria-label="Security scan summary">
+              <div className="overview-topline">
+                <span className="overview-label">Security assessment complete</span>
+                <span className="overview-status good">{normalized.summary.totalChecks} checks</span>
+              </div>
+              <div className="overview-metrics scan-metrics">
+                <div className="overview-metric"><span className="metric-label">Passed</span><strong>{normalized.summary.passed}</strong></div>
+                <div className="overview-metric"><span className="metric-label">Failed</span><strong>{normalized.summary.failed}</strong></div>
+                <div className="overview-metric"><span className="metric-label">Errors</span><strong>{normalized.summary.errors}</strong></div>
+                <div className="overview-metric"><span className="metric-label">Environment</span><strong>{environment}</strong></div>
+              </div>
+            </section>
+          )}
+
+          {findings.length > 0 && <FindingsExplorer findings={findings} />}
+          {scanState.status === 'success' && findings.length === 0 && normalized?.summary?.totalChecks !== null && (
+            <div className="dashboard-loading" role="status">NO SECURITY FINDINGS DETECTED</div>
+          )}
+
           <section className="dashboard-insights" aria-label="Assessment insights">
             <article className="trend-panel">
               <div className="insight-heading">
@@ -256,12 +325,25 @@ export function Dashboard() {
                   <span className="overview-label">Posture trajectory</span>
                   <h2>Compliance trend</h2>
                 </div>
-                <span className="trend-chip"><Activity size={14} /> {overall.trend >= 0 ? '+' : ''}{overall.trend ?? 0}% vs prior scan</span>
+                <span className="trend-chip">
+                  <Activity size={14} /> {overall.trend >= 0 ? '+' : ''}
+                  {overall.trend ?? 0}% vs prior scan
+                </span>
               </div>
-              <div className="trend-chart" role="img" aria-label="Current maturity score and trend compared to the last scan">
-                <div className="chart-gridline gridline-top"><span>100</span></div>
-                <div className="chart-gridline gridline-mid"><span>50</span></div>
-                <div className="chart-gridline gridline-bottom"><span>0</span></div>
+              <div
+                className="trend-chart"
+                role="img"
+                aria-label="Current maturity score and trend compared to the last scan"
+              >
+                <div className="chart-gridline gridline-top">
+                  <span>100</span>
+                </div>
+                <div className="chart-gridline gridline-mid">
+                  <span>50</span>
+                </div>
+                <div className="chart-gridline gridline-bottom">
+                  <span>0</span>
+                </div>
                 <svg viewBox="0 0 620 180" preserveAspectRatio="none" aria-hidden="true">
                   <defs>
                     <linearGradient id="trend-fill" x1="0" x2="0" y1="0" y2="1">
@@ -269,11 +351,21 @@ export function Dashboard() {
                       <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
                     </linearGradient>
                   </defs>
-                  <path className="trend-area" d="M0 142 C75 136 98 118 158 126 S248 112 306 96 S397 101 458 67 S540 75 620 42 L620 180 L0 180 Z" />
-                  <path className="trend-line" d="M0 142 C75 136 98 118 158 126 S248 112 306 96 S397 101 458 67 S540 75 620 42" />
+                  <path
+                    className="trend-area"
+                    d="M0 142 C75 136 98 118 158 126 S248 112 306 96 S397 101 458 67 S540 75 620 42 L620 180 L0 180 Z"
+                  />
+                  <path
+                    className="trend-line"
+                    d="M0 142 C75 136 98 118 158 126 S248 112 306 96 S397 101 458 67 S540 75 620 42"
+                  />
                   <circle cx="620" cy="42" r="5" className="trend-point" />
                 </svg>
-                <div className="chart-labels"><span>Prior</span><span>Current</span><span>Target</span></div>
+                <div className="chart-labels">
+                  <span>Prior</span>
+                  <span>Current</span>
+                  <span>Target</span>
+                </div>
               </div>
             </article>
 
@@ -286,19 +378,37 @@ export function Dashboard() {
                 <span className="attention-count">{attentionPillars.length} pillars</span>
               </div>
               <div className="attention-list">
-                {attentionPillars.length > 0 ? attentionPillars.map((pillar) => (
-                  <button key={pillar.function} type="button" className="attention-item" onClick={() => handleSelectZone(pillar.function.toLowerCase())}>
-                    <span className="attention-icon"><AlertTriangle size={15} /></span>
-                    <span className="attention-copy"><strong>{pillar.function} maturity</strong><small>{pillar.tier_name} / {pillar.percentage ?? 0}%</small></span>
-                    <span className="attention-score">{pillar.percentage ?? 0}% <ArrowUpRight size={15} /></span>
-                  </button>
-                )) : (
+                {attentionPillars.length > 0 ? (
+                  attentionPillars.map((pillar) => (
+                    <button
+                      key={pillar.function}
+                      type="button"
+                      className="attention-item"
+                      onClick={() => handleSelectZone(pillar.function.toLowerCase())}
+                    >
+                      <span className="attention-icon">
+                        <AlertTriangle size={15} />
+                      </span>
+                      <span className="attention-copy">
+                        <strong>{pillar.function} maturity</strong>
+                        <small>
+                          {pillar.tier_name} / {pillar.percentage ?? 0}%
+                        </small>
+                      </span>
+                      <span className="attention-score">
+                        {pillar.percentage ?? 0}% <ArrowUpRight size={15} />
+                      </span>
+                    </button>
+                  ))
+                ) : (
                   <div className="attention-empty">
                     <CheckCircle2 size={16} /> All pillars are tracking within acceptable maturity thresholds.
                   </div>
                 )}
               </div>
-              <button type="button" className="queue-link" onClick={() => handleSelectZone('respond')}><CheckCircle2 size={15} /> Review all findings</button>
+              <button type="button" className="queue-link" onClick={() => handleSelectZone('respond')}>
+                <CheckCircle2 size={15} /> Review all findings
+              </button>
             </article>
           </section>
 
@@ -333,7 +443,11 @@ export function Dashboard() {
                   icon={pillarConfig.icon}
                   title={pillarConfig.title}
                   name={pillarConfig.name}
-                  description={pillarConfig.title === 'Govern' ? 'Establish and monitor cybersecurity strategy, policies, roles, responsibilities, and risk oversight across the enterprise.' : `${pillarConfig.title} maturity is calculated from the live backend scoring engine.`}
+                  description={
+                    pillarConfig.title === 'Govern'
+                      ? 'Establish and monitor cybersecurity strategy, policies, roles, responsibilities, and risk oversight across the enterprise.'
+                      : `${pillarConfig.title} maturity is calculated from the live backend scoring engine.`
+                  }
                   status={pillar.status || toTierStatus(pillar.tier)}
                   compliance={Math.round(pillar.percentage ?? 0)}
                   controls={pillar.tier ? `Tier ${pillar.tier}` : 'Live'}
