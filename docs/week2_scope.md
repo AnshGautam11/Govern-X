@@ -36,3 +36,11 @@ Week 2 moved the Week 1 check-to-CSF mapping into a real database and added a ma
 ## Bug found during frontend testing: UniverseHUD shows stale demo data
 
 `UniverseHUD.jsx` (the top navigation bar and 3D universe view, Ansh's component) imports `pillarData` directly from the static `src/data/pillarData.js` file, rather than receiving live scores as props from `Dashboard.jsx`. This means the top bar shows hardcoded demo percentages (Govern 82%, Protect 88%, etc.) while the Executive Summary section on the same page correctly shows real live data (0%, Tier 1, "No Data"/"Needs attention"). The two sections visibly disagree on the same page. Not fixing this myself since it's Ansh's component and the right fix (passing live scores as props vs. refactoring the import) is a design decision for him to make. Flagging here for visibility.
+
+## UI Verification finding (Mid-Project Review): mock data breaks the scoring pipeline
+
+While verifying the dashboard reflects current-vs-target gaps accurately, found that `/scan/aws` now returns results with check_ids like `check_s3_encryption_at_rest` (note the `check_` prefix) and detail text like "(Mock Data)" — confirmed this comes from new fallback logic added directly in `app.py` today. This ID does not match our real check_id (`s3_encryption_at_rest`), so `get_mapping()` returns None for it, silently breaking scoring: `scores: {}` and `gaps: {}` come back empty despite having 2 actual results in the response.
+
+Separately, the frontend's new `FindingsExplorer` component displays generic findings ("Asset inventory missing automated tagging...") that do not match any of our real checks either — traced this text to `frontend/src/data/pillarData.js`, the same static file responsible for the earlier UniverseHUD bug.
+
+**Net effect:** two independent, disconnected fake-data paths now exist (one backend, one frontend), and neither is wired to our real 12-check scan pipeline. This needs discussion with whoever added the mock data layer today before fixing — flagging here rather than resolving solo, since removing it might break something else they're building for Week 3.
