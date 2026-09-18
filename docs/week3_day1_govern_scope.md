@@ -1,4 +1,4 @@
-
+1. New endpoint `POST /risk/assess` — accepts a sector key (e.g. "financial"), pulls parameters from `MOCK_ASSET_DATA[sector]`, runs `run_monte_carlo()`, returns `summarize()` output (p10/expected/p90 loss).
 ## Risk engine wiring plan
 
 Existing scaffold (`risk_engine/monte_carlo.py`, Week 1): `run_monte_carlo()` and `summarize()`.
