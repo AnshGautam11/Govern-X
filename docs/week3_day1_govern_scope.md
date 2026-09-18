@@ -1,4 +1,9 @@
 
+## Risk engine wiring plan
+
+Existing scaffold (`risk_engine/monte_carlo.py`, Week 1): `run_monte_carlo()` and `summarize()`.
+
+Plan:
 **Scope decision:** build the questionnaire as 4 yes/no fields mapped to these 4 categories for Week 3 — matching the honest-narrow-scope precedent set in Week 1 (12 checks, not 100+). Do not claim full GV.SC (10 subcategories) or GV.RM coverage from one field each.
 ## Govern function overview (verified against NIST CSF 2.0)
 
