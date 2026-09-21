@@ -44,3 +44,7 @@ While verifying the dashboard reflects current-vs-target gaps accurately, found 
 Separately, the frontend's new `FindingsExplorer` component displays generic findings ("Asset inventory missing automated tagging...") that do not match any of our real checks either — traced this text to `frontend/src/data/pillarData.js`, the same static file responsible for the earlier UniverseHUD bug.
 
 **Net effect:** two independent, disconnected fake-data paths now exist (one backend, one frontend), and neither is wired to our real 12-check scan pipeline. This needs discussion with whoever added the mock data layer today before fixing — flagging here rather than resolving solo, since removing it might break something else they're building for Week 3.
+
+## Bug found during Week 3 testing: env variable rename broke API connectivity
+
+A teammate rewrote `frontend/src/lib/api.js` to read `VITE_API_URL`, but `.env` and `.env.example` still used the old name `VITE_API_BASE_URL` — silently falling back to the hardcoded default port 8000, reintroducing the exact CORS/connection failure from Week 2. Fixed `.env.example` to match the new variable name.
