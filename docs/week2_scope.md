@@ -52,3 +52,7 @@ A teammate rewrote `frontend/src/lib/api.js` to read `VITE_API_URL`, but `.env` 
 ## Bug found during Week 3 testing: ScanHistoryPanel crash after api.js rewrite
 
 `fetchScanHistory()` was rewritten to return the raw API payload (`{entries: [...]}`) instead of the extracted array my original component expected. `ScanHistoryPanel.jsx` called `entries.map()` on the whole object, crashing the entire dashboard to a blank page with `TypeError: entries.map is not a function`. Fixed by extracting `data?.entries ?? []` before setting state.
+
+## Pattern noticed: two bugs, one root cause
+
+Both bugs above stem from the same thing — a teammate's `api.js` rewrite changed response shapes and variable names without updating the consumers (`.env` files, `ScanHistoryPanel.jsx`) that depended on the old contract. Worth raising with the team: a shared change to `api.js` should be flagged in a commit message or PR description when it changes a response shape, since it silently broke two previously-working features today.
