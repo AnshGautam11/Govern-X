@@ -113,3 +113,38 @@ class GovernanceResponseDB(Base):
         nullable=False,
         index=True,
     )
+
+class GovernanceEvidenceDB(Base):
+    """Supporting evidence attached to a governance questionnaire response."""
+
+    __tablename__ = "governance_evidence"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    response_id = Column(
+        Integer,
+        ForeignKey("governance_responses.id"),
+        nullable=False,
+        index=True,
+    )
+
+    evidence_type = Column(
+        String,
+        nullable=False,
+    )
+
+    evidence_reference = Column(
+        String,
+        nullable=False,
+    )
+
+    description = Column(
+        Text,
+        nullable=True,
+    )
+
+    added_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
