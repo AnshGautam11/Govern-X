@@ -5,6 +5,7 @@ SQLAlchemy ORM models — mirrors database/schema.sql's scan_results table.
 from datetime import datetime
 
 from sqlalchemy import (
+    Boolean,
     Column,
     DateTime,
     ForeignKey,
@@ -76,3 +77,74 @@ class MockScenarioDB(Base):
     status = Column(String, nullable=False)
     severity = Column(String, nullable=False)
     detail = Column(Text, nullable=False)
+
+class GovernanceQuestionDB(Base):
+    """Governance questionnaire question for NIST CSF 2.0 Govern function."""
+
+    __tablename__ = "governance_questions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    question_key = Column(String, unique=True, nullable=False, index=True)
+    question_text = Column(Text, nullable=False)
+    csf_category = Column(String, nullable=False)
+    active = Column(Boolean, nullable=False, default=True)
+
+class GovernanceResponseDB(Base):
+    """Stored response to a Govern questionnaire question."""
+
+    __tablename__ = "governance_responses"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    question_id = Column(
+        Integer,
+        ForeignKey("governance_questions.id"),
+        nullable=False,
+        index=True,
+    )
+
+    answer = Column(Boolean, nullable=False)
+
+    notes = Column(Text, nullable=True)
+
+    answered_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+        index=True,
+    )
+
+class GovernanceEvidenceDB(Base):
+    """Supporting evidence attached to a governance questionnaire response."""
+
+    __tablename__ = "governance_evidence"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    response_id = Column(
+        Integer,
+        ForeignKey("governance_responses.id"),
+        nullable=False,
+        index=True,
+    )
+
+    evidence_type = Column(
+        String,
+        nullable=False,
+    )
+
+    evidence_reference = Column(
+        String,
+        nullable=False,
+    )
+
+    description = Column(
+        Text,
+        nullable=True,
+    )
+
+    added_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
