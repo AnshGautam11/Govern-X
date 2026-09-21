@@ -14,9 +14,11 @@ export default function ScanHistoryPanel({ limit = 20 }) {
       setLoading(true);
       setError(null);
       try {
+        
         const data = await fetchScanHistory(limit);
+        const historyEntries = data?.entries ?? [];
         if (!cancelled) {
-          setEntries(data);
+          setEntries(historyEntries);
         }
       } catch (err) {
         if (!cancelled) {
