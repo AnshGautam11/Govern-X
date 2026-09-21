@@ -48,3 +48,7 @@ Separately, the frontend's new `FindingsExplorer` component displays generic fin
 ## Bug found during Week 3 testing: env variable rename broke API connectivity
 
 A teammate rewrote `frontend/src/lib/api.js` to read `VITE_API_URL`, but `.env` and `.env.example` still used the old name `VITE_API_BASE_URL` — silently falling back to the hardcoded default port 8000, reintroducing the exact CORS/connection failure from Week 2. Fixed `.env.example` to match the new variable name.
+
+## Bug found during Week 3 testing: ScanHistoryPanel crash after api.js rewrite
+
+`fetchScanHistory()` was rewritten to return the raw API payload (`{entries: [...]}`) instead of the extracted array my original component expected. `ScanHistoryPanel.jsx` called `entries.map()` on the whole object, crashing the entire dashboard to a blank page with `TypeError: entries.map is not a function`. Fixed by extracting `data?.entries ?? []` before setting state.
