@@ -1646,3 +1646,58 @@ GovernX can persist scan results, maintain NIST CSF 2.0 mappings, retrieve scan 
 **NIST CSF 2.0 Functions:** Govern · Identify · Protect · Detect · Respond · Recover
 
 **Project:** GovernX – Automated NIST CSF 2.0 Compliance Engine
+
+# GovernX Week 3 Day 1 — Governance Questionnaire DB Schema
+
+## Purpose
+
+Week 3 introduces the Govern function through a self-attestation
+questionnaire rather than automated AWS scanning.
+
+## Tables
+
+### governance_questions
+
+Stores the governance questionnaire questions.
+
+Fields:
+- id
+- question_key
+- question_text
+- csf_category
+- active
+
+### governance_responses
+
+Stores the answer submitted for each governance question.
+
+Fields:
+- id
+- question_id
+- answer
+- notes
+- answered_at
+
+### governance_evidence
+
+Stores supporting evidence associated with a governance response.
+
+Fields:
+- id
+- response_id
+- evidence_type
+- evidence_reference
+- description
+- added_at
+
+## Initial questionnaire scope
+
+The Day 1 schema supports:
+
+- risk_owner_assigned → GV.RR
+- security_policy_reviewed → GV.PO
+- incident_response_plan_exists → GV.OV
+- third_party_risk_reviewed → GV.SC
+
+This is a deliberately narrow questionnaire scope and does not claim
+complete coverage of all NIST CSF 2.0 Govern subcategories.
