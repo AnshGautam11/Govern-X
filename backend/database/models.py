@@ -88,3 +88,28 @@ class GovernanceQuestionDB(Base):
     question_text = Column(Text, nullable=False)
     csf_category = Column(String, nullable=False)
     active = Column(Boolean, nullable=False, default=True)
+
+class GovernanceResponseDB(Base):
+    """Stored response to a Govern questionnaire question."""
+
+    __tablename__ = "governance_responses"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    question_id = Column(
+        Integer,
+        ForeignKey("governance_questions.id"),
+        nullable=False,
+        index=True,
+    )
+
+    answer = Column(Boolean, nullable=False)
+
+    notes = Column(Text, nullable=True)
+
+    answered_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+        index=True,
+    )
