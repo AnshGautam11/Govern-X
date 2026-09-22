@@ -1701,3 +1701,19 @@ The Day 1 schema supports:
 
 This is a deliberately narrow questionnaire scope and does not claim
 complete coverage of all NIST CSF 2.0 Govern subcategories.
+
+# GovernX – Week 3
+
+Week 3 focuses on the **Govern function of NIST CSF 2.0**.
+
+### Governance Questionnaire
+- Added governance questionnaire API endpoints.
+- Supports submitting governance responses using `POST /governance/responses`.
+- Supports retrieving saved responses using `GET /governance/responses`.
+- Added governance response validation and database persistence.
+
+### Governance Areas
+- GV.RR – Roles, Responsibilities & Authorities
+- GV.PO – Policy
+- GV.OV – Oversight
+- GV.SC – Cybersecurity Supply Chain Risk Management
