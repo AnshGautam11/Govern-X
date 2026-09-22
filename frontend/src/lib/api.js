@@ -30,6 +30,13 @@ export const fetchHealthStatus = () => apiRequest('/health');
 export const fetchMaturityData = () => apiRequest('/dashboard/maturity');
 export const triggerAssessmentScan = () => apiRequest('/scan/aws', { method: 'POST' });
 export const fetchScanHistory = (limit = 20) => apiRequest(`/scan/history?limit=${limit}`);
+export const fetchGovernanceQuestions = () => apiRequest('/governance/questions');
+export const submitGovernanceAssessment = (answers) => apiRequest('/governance/assessment', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ answers }),
+});
+export const fetchFinancialRisk = () => apiRequest('/financial-risk');
 
 export function normalizeScanResponse(payload) {
   const results = payload?.results || [];
