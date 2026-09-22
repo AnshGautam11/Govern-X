@@ -268,6 +268,37 @@ def run_aws_scan():
         tier_name=TIER_NAME_MAP.get(raw_overall["tier"], "No Data"),
     )
 
+@app.get(
+    "/governance/responses",
+    response_model=GovernanceResponsesResponse,
+)
+def get_governance_responses(
+    db=Depends(get_db),
+):
+    """Return the latest governance questionnaire responses."""
+
+    from database.persistence import get_latest_governance_responses
+
+    rows = get_latest_governance_responses(db=db)
+
+    responses = [
+        GovernanceAnswerResponse(
+            id=response.id,
+            question_id=question.id,
+            question_key=question.question_key,
+            question_text=question.question_text,
+            csf_category=question.csf_category,
+            answer=response.answer,
+            notes=response.notes,
+            answered_at=response.answered_at,
+        )
+        for response, question in rows
+    ]
+
+    return GovernanceResponsesResponse(
+        responses=responses,
+    )
+
 
 @app.get("/scan/history", response_model=ScanHistoryResponse)
 def scan_history(limit: int = 50):
