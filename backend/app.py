@@ -8,8 +8,8 @@ Run locally:
 from collections import defaultdict
 from datetime import datetime, timezone
 from uuid import uuid4
-
-from fastapi import FastAPI, HTTPException
+from database.db import get_db
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from config.settings import get_settings
@@ -18,6 +18,9 @@ from models.schemas import (
     CheckResult,
     CheckStatus,
     DashboardMaturityResponse,
+    GovernanceAnswerResponse,
+    GovernanceResponseRequest,
+    GovernanceResponsesResponse,
     MaturityOverview,
     PillarMaturity,
     ScanCompareResponse,
@@ -183,6 +186,35 @@ app.add_middleware(
 def health_check():
     """Basic liveness check."""
     return {"status": "ok", "service": "GovernX", "env": settings.environment}
+
+
+@app.post(
+    "/governance/responses",
+    response_model=GovernanceResponsesResponse,
+    status_code=201,
+)
+def submit_governance_responses(
+    payload: GovernanceResponseRequest,
+    db=Depends(get_db),
+):
+    """Store governance questionnaire responses."""
+
+    from database.persistence import save_governance_responses
+
+    answers = payload.model_dump()
+
+    try:
+        save_governance_responses(
+            answers=answers,
+            db=db,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+
+    return get_governance_responses(db)
 
 
 @app.post("/scan/aws", response_model=ScanResponse)
