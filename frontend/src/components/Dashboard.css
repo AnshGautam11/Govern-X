@@ -138,6 +138,8 @@
 .command-pulse { width: 9px; height: 9px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 5px rgba(52, 211, 153, 0.1), 0 0 14px #34d399; }
 .command-label { color: #64748b; font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; }
 .command-actions { gap: 1rem; }
+.command-actions .assessment-link { color: #a7f3d0; font-size: 0.7rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.command-actions .assessment-link:hover { color: #f8fafc; }
 .assessment-time { gap: 0.4rem; color: #7dd3fc; font-size: 0.72rem; }
 .assessment-button { gap: 0.45rem; padding: 0.6rem 0.85rem; border: 1px solid rgba(56, 189, 248, 0.45); border-radius: 8px; background: #0ea5e9; color: #03111f; font-size: 0.73rem; font-weight: 800; }
 .assessment-button:hover { background: #38bdf8; }
