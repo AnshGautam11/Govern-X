@@ -213,6 +213,11 @@ def submit_governance_responses(
             status_code=400,
             detail=str(exc),
         ) from exc
+    except Exception as exc:
+       raise HTTPException(
+           status_code=500,
+           detail="Unable to save governance responses.",
+        ) from exc
 
     return get_governance_responses(db)
 

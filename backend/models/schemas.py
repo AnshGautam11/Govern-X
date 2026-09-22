@@ -7,8 +7,7 @@ module should import from here rather than redefining its own dict shape.
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, Field
-
+from pydantic import BaseModel, ConfigDict, Field
 
 class CheckStatus(str, Enum):
     PASS = "pass"
@@ -118,6 +117,8 @@ class DashboardMaturityResponse(BaseModel):
 
 class GovernanceResponseRequest(BaseModel):
     """Payload submitted by the governance questionnaire."""
+
+    model_config = ConfigDict(extra="forbid")
 
     risk_owner_assigned: bool
     security_policy_reviewed: bool
