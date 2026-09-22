@@ -149,21 +149,3 @@ class GovernanceEvidenceDB(Base):
         nullable=False,
     )
 
-class GovernanceAnswerResponse(BaseModel):
-    """One stored governance questionnaire response."""
-
-    id: int
-    question_id: int
-    question_key: str
-    question_text: str
-    csf_category: str
-    answer: bool
-    notes: str | None = None
-    answered_at: datetime
-
-
-class GovernanceResponsesResponse(BaseModel):
-    """Response containing governance questionnaire answers."""
-
-    responses: list[GovernanceAnswerResponse]
-
