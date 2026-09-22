@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Activity, AlertTriangle, ArrowUpRight, CheckCircle2, Clock3, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import UniverseCanvas from './3d/UniverseCanvas';
 import UniverseHUD from './hud/UniverseHUD';
@@ -215,6 +215,8 @@ export function Dashboard() {
               </div>
             </div>
             <div className="command-actions">
+              <Link to="/governance-assessment" className="assessment-link">Governance assessment</Link>
+              <Link to="/financial-risk" className="assessment-link">Financial risk</Link>
               <span className="assessment-time">
                 <Clock3 size={14} /> {loading ? 'Loading maturity data...' : 'Updated live'}
               </span>
