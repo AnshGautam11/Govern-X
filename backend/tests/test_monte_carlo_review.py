@@ -1,6 +1,19 @@
 
 
-def test_disclaimer_still_documented():
+
+
+def test_monte_carlo_percentiles_are_ordered():
+    for sector, params in MOCK_ASSET_DATA.items():
+        losses = run_monte_carlo(
+            asset_value_range=params["asset_value_range"],
+            exposure_factor_range=params["exposure_factor_range"],
+            annual_rate_of_occurrence=params["annual_rate_of_occurrence"],
+            iterations=5_000,
+            seed=42,
+        )
+        result = summarize(losses)
+        assert result["p10"] <= result["expected"] <= result["p90"], sector
+        assert result["p10"] >= 0, sectordef test_disclaimer_still_documented():
     """The sample-data disclaimer must never be silently removed."""
     content = open("risk_engine/monte_carlo.py", encoding="utf-8").read()
     assert "sample" in content.lower() or "assumed" in content.lower()
