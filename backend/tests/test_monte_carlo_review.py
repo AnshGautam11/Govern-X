@@ -1,4 +1,10 @@
-"""
+
+
+def test_disclaimer_still_documented():
+    """The sample-data disclaimer must never be silently removed."""
+    content = open("risk_engine/monte_carlo.py", encoding="utf-8").read()
+    assert "sample" in content.lower() or "assumed" in content.lower()
+    assert "not real" in content.lower()"""
 Week 3, Day 3 code review: verify Monte Carlo risk math is statistically
 sound, and the sample-data disclaimer remains documented.
 """
