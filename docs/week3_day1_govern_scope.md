@@ -1,4 +1,9 @@
-4. **Non-negotiable:** every dashboard/API surface showing financial figures must carry the "sample/assumed data, not real organizational figures" disclaimer already present in `monte_carlo.py`'s docstring — do not let it get lost as this gets wired into UI.3. Combined report (Day 5, Sujal): joins compliance score + risk assessment + governance responses into one view.2. Governance questionnaire: new DB table (Mounika, Day 1) + `GET/POST /governance/responses` endpoints (Mounika, Day 2).1. New endpoint `POST /risk/assess` — accepts a sector key (e.g. "financial"), pulls parameters from `MOCK_ASSET_DATA[sector]`, runs `run_monte_carlo()`, returns `summarize()` output (p10/expected/p90 loss).
+
+## Day 3 code review update
+
+Monte Carlo math verified sound (percentile ordering, non-negative values, plausible bounds — locked in as `tests/test_monte_carlo_review.py`). Sample-data disclaimer confirmed still present in `monte_carlo.py`.
+
+Noticed `tests/test_governance.py` exists with 3 failing tests, all 404 — the governance questionnaire endpoints referenced (`/governance/responses`) haven't been built yet. This is expected, in-progress work (Mounika's Day 1-2 tasks), not a regression caused by anything reviewed today.4. **Non-negotiable:** every dashboard/API surface showing financial figures must carry the "sample/assumed data, not real organizational figures" disclaimer already present in `monte_carlo.py`'s docstring — do not let it get lost as this gets wired into UI.3. Combined report (Day 5, Sujal): joins compliance score + risk assessment + governance responses into one view.2. Governance questionnaire: new DB table (Mounika, Day 1) + `GET/POST /governance/responses` endpoints (Mounika, Day 2).1. New endpoint `POST /risk/assess` — accepts a sector key (e.g. "financial"), pulls parameters from `MOCK_ASSET_DATA[sector]`, runs `run_monte_carlo()`, returns `summarize()` output (p10/expected/p90 loss).
 ## Risk engine wiring plan
 
 Existing scaffold (`risk_engine/monte_carlo.py`, Week 1): `run_monte_carlo()` and `summarize()`.
