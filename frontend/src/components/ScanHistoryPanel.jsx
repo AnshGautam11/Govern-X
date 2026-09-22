@@ -13,16 +13,30 @@ export default function ScanHistoryPanel({ limit = 20 }) {
     async function load() {
       setLoading(true);
       setError(null);
+
       try {
-        
         const data = await fetchScanHistory(limit);
-        const historyEntries = data?.entries ?? [];
+
         if (!cancelled) {
-          setEntries(historyEntries);
+          // API may return an array or an object containing the history.
+          const history = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.entries)
+              ? data.entries
+              : Array.isArray(data?.history)
+                ? data.history
+                : Array.isArray(data?.items)
+                  ? data.items
+                  : [];
+
+          setEntries(history);
         }
       } catch (err) {
+        console.error('Failed to load scan history:', err);
+
         if (!cancelled) {
           setError('Unable to load scan history.');
+          setEntries([]);
         }
       } finally {
         if (!cancelled) {
@@ -32,26 +46,40 @@ export default function ScanHistoryPanel({ limit = 20 }) {
     }
 
     load();
+
     return () => {
       cancelled = true;
     };
   }, [limit]);
 
   if (loading) {
-    return <div className="scan-history-panel scan-history-loading">Loading scan history...</div>;
+    return (
+      <div className="scan-history-panel scan-history-loading">
+        Loading scan history...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="scan-history-panel scan-history-error">{error}</div>;
+    return (
+      <div className="scan-history-panel scan-history-error">
+        {error}
+      </div>
+    );
   }
 
   if (entries.length === 0) {
-    return <div className="scan-history-panel scan-history-empty">No scan history yet.</div>;
+    return (
+      <div className="scan-history-panel scan-history-empty">
+        No scan history yet.
+      </div>
+    );
   }
 
   return (
     <div className="scan-history-panel">
       <h3 className="scan-history-title">Recent Scan History</h3>
+
       <table className="scan-history-table">
         <thead>
           <tr>
@@ -61,13 +89,26 @@ export default function ScanHistoryPanel({ limit = 20 }) {
             <th>When</th>
           </tr>
         </thead>
+
         <tbody>
-          {entries.map((entry) => (
-            <tr key={entry.id} className={`scan-history-row status-${entry.status}`}>
-                            <td>{entry.check_id}</td>
-              <td>{entry.resource_id}</td>
-              <td>{entry.status.toUpperCase()}</td>
-              <td>{new Date(entry.scanned_at).toLocaleString()}</td>
+          {entries.map((entry, index) => (
+            <tr
+              key={entry.id ?? `${entry.check_id ?? 'scan'}-${index}`}
+              className={`scan-history-row status-${entry.status ?? 'unknown'}`}
+            >
+              <td>{entry.check_id ?? '—'}</td>
+
+              <td>{entry.resource_id ?? '—'}</td>
+
+              <td>
+                {(entry.status ?? 'unknown').toUpperCase()}
+              </td>
+
+              <td>
+                {entry.scanned_at
+                  ? new Date(entry.scanned_at).toLocaleString()
+                  : '—'}
+              </td>
             </tr>
           ))}
         </tbody>
