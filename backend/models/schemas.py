@@ -115,3 +115,30 @@ class MaturityOverview(BaseModel):
 class DashboardMaturityResponse(BaseModel):
     overall: MaturityOverview
     pillars: list[PillarMaturity] = []
+
+class GovernanceResponseRequest(BaseModel):
+    """Payload submitted by the governance questionnaire."""
+
+    risk_owner_assigned: bool
+    security_policy_reviewed: bool
+    incident_response_plan_exists: bool
+    third_party_risk_reviewed: bool
+
+
+class GovernanceAnswerResponse(BaseModel):
+    """One stored governance questionnaire response."""
+
+    id: int
+    question_id: int
+    question_key: str
+    question_text: str
+    csf_category: str
+    answer: bool
+    notes: str | None = None
+    answered_at: datetime
+
+
+class GovernanceResponsesResponse(BaseModel):
+    """Response containing the latest governance answers."""
+
+    responses: list[GovernanceAnswerResponse]
