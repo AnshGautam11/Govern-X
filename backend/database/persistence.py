@@ -8,12 +8,171 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from database.db import Base, SessionLocal, engine
-from database.models import MockScenarioDB, ScanResultDB
+from database.models import (
+    GovernanceQuestionDB,
+    GovernanceResponseDB,
+    MockScenarioDB,
+    ScanResultDB,
+)
 from models.schemas import CheckResult
 
 # Ensure the scan_results table exists (safe to call repeatedly).
 Base.metadata.create_all(bind=engine)
 
+GOVERNANCE_QUESTIONS = [
+    {
+        "question_key": "risk_owner_assigned",
+        "question_text": "Is a cybersecurity risk owner assigned at the leadership level?",
+        "csf_category": "GV.RR",
+    },
+    {
+        "question_key": "security_policy_reviewed",
+        "question_text": "Has the organizational security policy been established and reviewed periodically?",
+        "csf_category": "GV.PO",
+    },
+    {
+        "question_key": "incident_response_plan_exists",
+        "question_text": "Does the organization have an incident response plan?",
+        "csf_category": "GV.OV",
+    },
+    {
+        "question_key": "third_party_risk_reviewed",
+        "question_text": "Is third-party and supply-chain cybersecurity risk reviewed?",
+        "csf_category": "GV.SC",
+    },
+]
+
+def ensure_governance_questions(db: Session | None = None) -> None:
+    """Ensure the Week 3 governance questionnaire questions exist."""
+
+    owns_session = db is None
+
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        for question_data in GOVERNANCE_QUESTIONS:
+            existing = (
+                db.query(GovernanceQuestionDB)
+                .filter(
+                    GovernanceQuestionDB.question_key
+                    == question_data["question_key"]
+                )
+                .first()
+            )
+
+            if existing is None:
+                db.add(
+                    GovernanceQuestionDB(
+                        question_key=question_data["question_key"],
+                        question_text=question_data["question_text"],
+                        csf_category=question_data["csf_category"],
+                        active=True,
+                    )
+                )
+
+        db.commit()
+
+    finally:
+        if owns_session:
+            db.close()
+
+def save_governance_responses(
+    answers: dict[str, bool],
+    db: Session | None = None,
+) -> None:
+    """Persist one questionnaire submission."""
+
+    owns_session = db is None
+
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        ensure_governance_questions(db)
+
+        questions = (
+            db.query(GovernanceQuestionDB)
+            .filter(
+                GovernanceQuestionDB.question_key.in_(answers.keys())
+            )
+            .all()
+        )
+
+        question_map = {
+            question.question_key: question
+            for question in questions
+        }
+
+        for question_key, answer in answers.items():
+            question = question_map.get(question_key)
+
+            if question is None:
+                raise ValueError(
+                    f"Unknown governance question: {question_key}"
+                )
+
+            db.add(
+                GovernanceResponseDB(
+                    question_id=question.id,
+                    answer=answer,
+                )
+            )
+
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        raise
+
+    finally:
+        if owns_session:
+            db.close()
+
+def get_latest_governance_responses(
+    db: Session | None = None,
+) -> list[tuple[GovernanceResponseDB, GovernanceQuestionDB]]:
+    """Return the latest answer for each governance question."""
+
+    owns_session = db is None
+
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        ensure_governance_questions(db)
+
+        rows = (
+            db.query(
+                GovernanceResponseDB,
+                GovernanceQuestionDB,
+            )
+            .join(
+                GovernanceQuestionDB,
+                GovernanceResponseDB.question_id
+                == GovernanceQuestionDB.id,
+            )
+            .order_by(
+                GovernanceResponseDB.answered_at.desc(),
+                GovernanceResponseDB.id.desc(),
+            )
+            .all()
+        )
+
+        latest_by_question = {}
+        
+        for response, question in rows:
+            if question.id not in latest_by_question:
+                latest_by_question[question.id] = (
+                    response,
+                    question,
+                )
+
+        return list(latest_by_question.values())
+
+    finally:
+        if owns_session:
+            db.close()
 
 def save_scan_results(
     results: list[CheckResult],
