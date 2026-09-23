@@ -77,3 +77,16 @@ ON governance_responses(answered_at);
 
 CREATE INDEX IF NOT EXISTS idx_governance_evidence_response
 ON governance_evidence(response_id);
+
+
+-- Week 3: Asset inventory (financial risk / Monte Carlo model)
+
+CREATE TABLE IF NOT EXISTS assets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    value REAL NOT NULL CHECK (value >= 0),
+    criticality TEXT NOT NULL CHECK (criticality IN ('low', 'medium', 'high', 'critical')),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_assets_criticality ON assets(criticality);
