@@ -44,3 +44,12 @@ def summarize(losses: np.ndarray) -> dict:
         "expected": float(np.mean(losses)),
         "p90": float(np.percentile(losses, 90)),
     }
+
+
+def distribution_percentages(losses: np.ndarray, bins: int = 12) -> list[float]:
+    """Return normalized histogram heights for a compact dashboard chart."""
+    counts, _ = np.histogram(losses, bins=bins)
+    maximum = counts.max(initial=0)
+    if maximum == 0:
+        return [0.0] * bins
+    return [round(float(count / maximum * 100), 1) for count in counts]

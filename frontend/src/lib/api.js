@@ -36,7 +36,16 @@ export const submitGovernanceAssessment = (answers) => apiRequest('/governance/a
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ answers }),
 });
-export const fetchFinancialRisk = () => apiRequest('/financial-risk');
+export const fetchFinancialRisk = (sector = 'financial') => apiRequest('/risk/assess', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ sector }),
+}).then((payload) => {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new Error('The financial risk API returned an invalid response.');
+  }
+  return payload;
+});
 
 export function normalizeScanResponse(payload) {
   const results = payload?.results || [];

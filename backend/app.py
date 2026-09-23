@@ -27,6 +27,8 @@ from models.schemas import (
     ScanHistoryEntry,
     ScanHistoryResponse,
     ScanResponse,
+    RiskAssessmentRequest,
+    RiskAssessmentResponse,
     Severity,
 )
 
@@ -271,6 +273,42 @@ def run_aws_scan():
         overall_score=overall_score,
         overall_tier=numeric_tier,
         tier_name=TIER_NAME_MAP.get(raw_overall["tier"], "No Data"),
+    )
+
+
+@app.post("/risk/assess", response_model=RiskAssessmentResponse)
+def assess_financial_risk(payload: RiskAssessmentRequest):
+    """Run the documented Monte Carlo assessment for a supported scenario."""
+    from risk_engine.mock_data import MOCK_ASSET_DATA
+    from risk_engine.monte_carlo import (
+        distribution_percentages,
+        run_monte_carlo,
+        summarize,
+    )
+
+    parameters = MOCK_ASSET_DATA.get(payload.sector)
+    if parameters is None:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unsupported risk assessment sector: {payload.sector}",
+        )
+
+    iterations = settings.monte_carlo_iterations
+    losses = run_monte_carlo(iterations=iterations, **parameters)
+    summary = summarize(losses)
+
+    return RiskAssessmentResponse(
+        sector=payload.sector,
+        **summary,
+        iterations=iterations,
+        confidence_level=0.9,
+        distribution=distribution_percentages(losses),
+        generated_at=datetime.now(timezone.utc),
+        data_quality="assumed_sample_data",
+        disclaimer=(
+            "Asset values and occurrence rates are assumed sample inputs, "
+            "not real organizational figures."
+        ),
     )
 
 @app.get(

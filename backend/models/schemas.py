@@ -115,6 +115,27 @@ class DashboardMaturityResponse(BaseModel):
     overall: MaturityOverview
     pillars: list[PillarMaturity] = []
 
+
+class RiskAssessmentRequest(BaseModel):
+    """Input for a Monte Carlo risk assessment scenario."""
+
+    sector: str = "financial"
+
+
+class RiskAssessmentResponse(BaseModel):
+    """Monte Carlo financial risk summary returned by the risk API."""
+
+    sector: str
+    p10: float
+    expected: float
+    p90: float
+    iterations: int
+    confidence_level: float
+    distribution: list[float] = []
+    generated_at: datetime
+    data_quality: str
+    disclaimer: str
+
 class GovernanceResponseRequest(BaseModel):
     """Payload submitted by the governance questionnaire."""
 
