@@ -102,3 +102,11 @@ def test_score_overall_averages_function_scores():
     result = score_overall(findings)
     assert result["score"] == 75.0
     assert result["tier"] == "Tier 3"
+def test_score_function_ignores_errors_with_pass_fail():
+    findings = [
+        _finding("a", "Protect", CheckStatus.PASS),
+        _finding("b", "Protect", CheckStatus.FAIL),
+        _finding("c", "Protect", CheckStatus.ERROR),
+    ]
+    assert score_function(findings, "Protect") == 50.0
+    assert get_tier(50.0) == "Tier 2"
