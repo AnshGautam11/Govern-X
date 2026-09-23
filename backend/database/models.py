@@ -8,6 +8,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -149,3 +150,20 @@ class GovernanceEvidenceDB(Base):
         nullable=False,
     )
 
+
+class AssetDB(Base):
+    """Asset inventory entry — used by the Week 3 financial risk
+    (Monte Carlo) model to map checks/resources to a dollar value and
+    criticality tier."""
+
+    __tablename__ = "assets"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    value = Column(Float, nullable=False)
+    criticality = Column(String, nullable=False, index=True)
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+    )
