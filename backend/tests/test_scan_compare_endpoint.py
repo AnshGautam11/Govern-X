@@ -97,3 +97,20 @@ def test_scan_compare_with_only_one_scan_present():
     rows = get_scan_by_timestamp(timestamps[0], db=db)
     assert len(rows) == 1
     assert rows[0].check_id == "iam_root_mfa"
+
+
+def test_scan_compare_with_zero_scans_present():
+    """If no scan has ever run, /scan/compare should return empty data, not crash."""
+    from database.persistence import get_latest_two_scan_timestamps
+
+    import database.db as db_module
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    test_engine = create_engine("sqlite:///:memory:")
+    db_module.Base.metadata.create_all(bind=test_engine)
+    TestSession = sessionmaker(bind=test_engine)
+    db = TestSession()
+
+    timestamps = get_latest_two_scan_timestamps(db=db)
+    assert timestamps == []
