@@ -79,3 +79,20 @@ def test_scan_history_newest_first():
 
     timestamps = [entry["scanned_at"] for entry in data["entries"]]
     assert timestamps == sorted(timestamps, reverse=True)
+
+
+def test_scan_history_rejects_zero_limit():
+    """limit=0 makes no sense — should be rejected with a 422, not silently return nothing."""
+    response = client.get("/scan/history?limit=0")
+    assert response.status_code == 422
+
+
+def test_scan_history_rejects_negative_limit():
+    response = client.get("/scan/history?limit=-5")
+    assert response.status_code == 422
+
+
+def test_scan_history_rejects_excessive_limit():
+    """A cap of 500 prevents someone from accidentally pulling the entire table."""
+    response = client.get("/scan/history?limit=100000")
+    assert response.status_code == 422

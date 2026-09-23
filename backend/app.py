@@ -9,7 +9,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from uuid import uuid4
 from database.db import get_db
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from config.settings import get_settings
@@ -306,7 +306,15 @@ def get_governance_responses(
 
 
 @app.get("/scan/history", response_model=ScanHistoryResponse)
-def scan_history(limit: int = 50):
+def scan_history(
+    limit: int = Query(
+        default=50,
+        gt=0,
+        le=500,
+        description="Max number of scan results to return (1-500).",
+    )
+):
+
     """
     Return the most recently persisted scan results, newest first.
     """
