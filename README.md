@@ -1717,3 +1717,10 @@ Week 3 focuses on the **Govern function of NIST CSF 2.0**.
 - GV.PO – Policy
 - GV.OV – Oversight
 - GV.SC – Cybersecurity Supply Chain Risk Management
+
+### Week 3 – Governance Completion Scoring
+
+- Added governance questionnaire completion scoring.
+- Governance score is calculated from completed policy responses.
+- Integrated the Govern score into function and overall maturity scoring.
+- Added tests for governance scoring and integration.
