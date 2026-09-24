@@ -30,6 +30,30 @@ TIER_BOUNDARIES = [
     (100, "Tier 4"),
 ]
 
+def score_governance_completion(answers: dict[str, bool]) -> float | None:
+    """
+    Calculate the governance questionnaire completion score.
+
+    True represents a completed governance requirement.
+    False represents an incomplete governance requirement.
+
+    Returns None when no governance answers are supplied.
+    """
+    if not answers:
+        return None
+
+    valid_answers = [
+        answer
+        for answer in answers.values()
+        if isinstance(answer, bool)
+    ]
+
+    if not valid_answers:
+        return None
+
+    completed = sum(1 for answer in valid_answers if answer)
+
+    return round((completed / len(valid_answers)) * 100, 1)
 
 def score_function(findings: list[MappedFinding], function_name: str) -> float | None:
     """
