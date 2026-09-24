@@ -110,14 +110,20 @@ def score_all_functions(
     return scores
 
 
-def score_overall(findings: list[MappedFinding]) -> dict:
+def score_overall(
+    findings: list[MappedFinding],
+    governance_score: float | None = None,
+) -> dict:
     """
     Aggregate maturity score across all 6 CSF functions.
 
     Uses only functions with eligible data — a function with no findings
     yet does not drag down the overall score to zero.
     """
-    per_function = score_all_functions(findings)
+    per_function = score_all_functions(
+    findings,
+    governance_score=governance_score,
+    )
     scored = [v["score"] for v in per_function.values() if v["score"] is not None]
     if not scored:
         return {"score": None, "tier": "No Data"}
