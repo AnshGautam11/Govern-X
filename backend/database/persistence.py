@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from database.db import Base, SessionLocal, engine
 from database.models import (
     AssetDB,
+    FinancialAssetDB,
+    GovernanceProfileDB,
     GovernanceQuestionDB,
     GovernanceResponseDB,
     MockScenarioDB,
@@ -369,6 +371,155 @@ def get_all_assets(db: Session | None = None) -> list[AssetDB]:
 
     try:
         return db.query(AssetDB).order_by(AssetDB.created_at.desc()).all()
+    finally:
+        if owns_session:
+            db.close()
+
+
+def upsert_governance_profile(profile: dict, db: Session | None = None) -> GovernanceProfileDB:
+    owns_session = db is None
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        profile_fields = {
+            key: value for key, value in profile.items() if hasattr(GovernanceProfileDB, key)
+        }
+        if "compliance_requirements" in profile_fields:
+            compliance_value = profile_fields["compliance_requirements"]
+            if isinstance(compliance_value, list):
+                profile_fields["compliance_requirements"] = ", ".join(compliance_value)
+
+        existing = db.query(GovernanceProfileDB).first()
+        if existing is None:
+            record = GovernanceProfileDB(**profile_fields)
+            db.add(record)
+            db.commit()
+            db.refresh(record)
+            return record
+
+        for key, value in profile_fields.items():
+            setattr(existing, key, value)
+        db.commit()
+        db.refresh(existing)
+        return existing
+    finally:
+        if owns_session:
+            db.close()
+
+
+def get_governance_profile(db: Session | None = None) -> dict:
+    owns_session = db is None
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        profile = db.query(GovernanceProfileDB).order_by(GovernanceProfileDB.id.desc()).first()
+        if profile is None:
+            from risk_engine.governance import mock_governance_profile
+            payload = mock_governance_profile()
+            upsert_governance_profile(payload, db=db)
+            return payload
+
+        compliance = profile.compliance_requirements or ""
+        if isinstance(compliance, str):
+            parsed = [item.strip() for item in compliance.split(",") if item.strip()]
+        else:
+            parsed = list(compliance or [])
+
+        return {
+            "organization_name": profile.organization_name,
+            "industry": profile.industry,
+            "organization_size": profile.organization_size,
+            "security_policy_status": profile.security_policy_status,
+            "cybersecurity_policy_review_frequency": profile.cybersecurity_policy_review_frequency,
+            "risk_management_policy": profile.risk_management_policy,
+            "access_control_policy": profile.access_control_policy,
+            "data_protection_policy": profile.data_protection_policy,
+            "incident_response_policy": profile.incident_response_policy,
+            "business_continuity_policy": profile.business_continuity_policy,
+            "vendor_supplier_security_policy": profile.vendor_supplier_security_policy,
+            "third_party_risk_management": profile.third_party_risk_management,
+            "security_awareness_training": profile.security_awareness_training,
+            "asset_ownership": profile.asset_ownership,
+            "risk_appetite": profile.risk_appetite,
+            "compliance_requirements": parsed,
+            "policy_owner": profile.policy_owner,
+            "last_policy_review_date": profile.last_policy_review_date,
+            "policy_coverage": 88.0,
+            "supply_chain_risk": 32.5,
+            "governance_control_coverage": 76.0,
+            "governance_maturity": 81.0,
+            "governance_gaps": [
+                "Third-party contract security clauses require review",
+                "Privileged access reviews are not fully quarterly",
+            ],
+            "critical_governance_controls": [
+                "IAM least privilege",
+                "Vendor security review",
+                "Incident response readiness",
+            ],
+            "policy_review_status": "Current",
+            "vendor_risk": [
+                {
+                    "vendor_name": "Cloud Monitoring Provider",
+                    "vendor_type": "SaaS",
+                    "criticality": "High",
+                    "service_provided": "Telemetry ingestion",
+                    "data_access": True,
+                    "privileged_access": True,
+                    "security_assessment_status": "Review pending",
+                    "contract_security_requirements": "SOC 2 + MFA enforcement",
+                    "last_assessment": "2026-08-20",
+                    "risk_level": "Moderate",
+                    "associated_technical_controls": ["IAM least privilege", "MFA enforcement"],
+                }
+            ],
+            "control_mappings": [
+                {
+                    "policy": "Access Control Policy",
+                    "governance_requirement": "Privileged access must be restricted",
+                    "technical_control": "IAM least privilege",
+                    "aws_finding": "Wildcard administrative policy detected",
+                    "nist": "Govern / Protect",
+                    "risk": "High",
+                }
+            ],
+        }
+    finally:
+        if owns_session:
+            db.close()
+
+
+def save_financial_asset(asset: dict, db: Session | None = None) -> FinancialAssetDB:
+    owns_session = db is None
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        record = db.query(FinancialAssetDB).filter(FinancialAssetDB.asset_id == asset["asset_id"]).first()
+        if record is None:
+            record = FinancialAssetDB(**asset)
+            db.add(record)
+        else:
+            for key, value in asset.items():
+                if hasattr(record, key):
+                    setattr(record, key, value)
+        db.commit()
+        db.refresh(record)
+        return record
+    finally:
+        if owns_session:
+            db.close()
+
+
+def get_financial_assets(db: Session | None = None) -> list[FinancialAssetDB]:
+    owns_session = db is None
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        return db.query(FinancialAssetDB).order_by(FinancialAssetDB.created_at.desc()).all()
     finally:
         if owns_session:
             db.close()
