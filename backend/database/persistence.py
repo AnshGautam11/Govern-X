@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from database.db import Base, SessionLocal, engine
 from database.models import (
+    AssetDB,
     GovernanceQuestionDB,
     GovernanceResponseDB,
     MockScenarioDB,
@@ -334,6 +335,40 @@ def get_scan_by_timestamp(
             .all()
         )
 
+    finally:
+        if owns_session:
+            db.close()
+
+def save_asset(
+    name: str,
+    value: float,
+    criticality: str,
+    db: Session | None = None,
+) -> AssetDB:
+    """Persist a new asset inventory entry (W3-Day2)."""
+    owns_session = db is None
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        asset = AssetDB(name=name, value=value, criticality=criticality)
+        db.add(asset)
+        db.commit()
+        db.refresh(asset)
+        return asset
+    finally:
+        if owns_session:
+            db.close()
+
+
+def get_all_assets(db: Session | None = None) -> list[AssetDB]:
+    """Return every asset in the inventory, newest first (W3-Day2)."""
+    owns_session = db is None
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        return db.query(AssetDB).order_by(AssetDB.created_at.desc()).all()
     finally:
         if owns_session:
             db.close()
