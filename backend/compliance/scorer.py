@@ -84,7 +84,10 @@ def get_tier(score: float | None) -> str:
     return "Tier 4"
 
 
-def score_all_functions(findings: list[MappedFinding]) -> dict[str, dict]:
+def score_all_functions(
+    findings: list[MappedFinding],
+    governance_score: float | None = None,
+) -> dict[str, dict]:
     """
     Score every CSF function present in the findings.
 
@@ -92,10 +95,19 @@ def score_all_functions(findings: list[MappedFinding]) -> dict[str, dict]:
         {"Protect": {"score": 83.3, "tier": "Tier 4"}, "Detect": {"score": None, "tier": "No Data"}, ...}
     """
     functions = sorted({f.mapping.csf_function for f in findings})
-    return {
-        fn: {"score": (s := score_function(findings, fn)), "tier": get_tier(s)}
-        for fn in functions
+
+    scores = {
+       fn: {"score": (s := score_function(findings, fn)), "tier": get_tier(s)}
+       for fn in functions
+    } 
+
+    if governance_score is not None:
+        scores["Govern"] = {
+        "score": governance_score,
+        "tier": get_tier(governance_score),
     }
+
+    return scores
 
 
 def score_overall(findings: list[MappedFinding]) -> dict:
