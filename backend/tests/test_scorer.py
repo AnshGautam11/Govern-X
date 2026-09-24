@@ -2,7 +2,13 @@
 Tests for compliance/scorer.py — Week 2 maturity scoring.
 """
 
-from compliance.scorer import score_function, get_tier, score_all_functions, score_overall
+from compliance.scorer import (
+    score_function,
+    get_tier,
+    score_all_functions,
+    score_overall,
+    score_governance_completion,
+)
 from models.schemas import MappedFinding, CheckResult, CSFMapping, CheckStatus, Severity
 
 
@@ -110,3 +116,39 @@ def test_score_function_ignores_errors_with_pass_fail():
     ]
     assert score_function(findings, "Protect") == 50.0
     assert get_tier(50.0) == "Tier 2"
+
+def test_governance_completion_score():
+    answers = {
+        "risk_owner_assigned": True,
+        "security_policy_reviewed": True,
+        "incident_response_plan_exists": False,
+        "third_party_risk_reviewed": True,
+    }
+
+    assert score_governance_completion(answers) == 75.0
+
+
+def test_governance_completion_score_all_complete():
+    answers = {
+        "risk_owner_assigned": True,
+        "security_policy_reviewed": True,
+        "incident_response_plan_exists": True,
+        "third_party_risk_reviewed": True,
+    }
+
+    assert score_governance_completion(answers) == 100.0
+
+
+def test_governance_completion_score_none_complete():
+    answers = {
+        "risk_owner_assigned": False,
+        "security_policy_reviewed": False,
+        "incident_response_plan_exists": False,
+        "third_party_risk_reviewed": False,
+    }
+
+    assert score_governance_completion(answers) == 0.0
+
+
+def test_governance_completion_score_no_answers():
+    assert score_governance_completion({}) is None
