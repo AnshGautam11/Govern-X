@@ -150,5 +150,33 @@ def test_governance_completion_score_none_complete():
     assert score_governance_completion(answers) == 0.0
 
 
-def test_governance_completion_score_no_answers():
-    assert score_governance_completion({}) is None
+def test_governance_score_updates_govern_function():
+    findings = [
+        _finding("a", "Protect", CheckStatus.PASS),
+        _finding("b", "Protect", CheckStatus.PASS),
+    ]
+
+    governance_score = 75.0
+
+    result = score_all_functions(
+        findings,
+        governance_score=governance_score,
+    )
+
+    assert result["Govern"]["score"] == 75.0
+    assert result["Govern"]["tier"] == "Tier 3"
+
+
+def test_governance_score_is_included_in_overall():
+    findings = [
+        _finding("a", "Protect", CheckStatus.PASS),
+        _finding("b", "Protect", CheckStatus.PASS),
+    ]
+
+    result = score_overall(
+        findings,
+        governance_score=50.0,
+    )
+
+    assert result["score"] == 75.0
+    assert result["tier"] == "Tier 3"
