@@ -15,6 +15,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from config.settings import get_settings
 from compliance.scorer import get_tier, score_all_functions, score_overall
 from models.schemas import (
+    AssetCreateRequest,
+    AssetListResponse,
+    AssetResponse,
     CheckResult,
     CheckStatus,
     DashboardMaturityResponse,
@@ -224,7 +227,65 @@ def submit_governance_responses(
     return get_governance_responses(db)
 
 
+@app.post(
+    "/assets",
+    response_model=AssetResponse,
+    status_code=201,
+)
+def create_asset(
+    payload: AssetCreateRequest,
+    db=Depends(get_db),
+):
+    """Add a new asset to the inventory (W3-Day2, Sujal)."""
+
+    from database.persistence import save_asset
+
+    try:
+        asset = save_asset(
+            name=payload.name,
+            value=payload.value,
+            criticality=payload.criticality,
+            db=db,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to save asset.",
+        ) from exc
+
+    return AssetResponse(
+        id=asset.id,
+        name=asset.name,
+        value=asset.value,
+        criticality=asset.criticality,
+        created_at=asset.created_at,
+    )
+
+
+@app.get("/assets", response_model=AssetListResponse)
+def list_assets(db=Depends(get_db)):
+    """Return the full asset inventory, newest first (W3-Day2, Sujal)."""
+
+    from database.persistence import get_all_assets
+
+    rows = get_all_assets(db=db)
+
+    assets = [
+        AssetResponse(
+            id=row.id,
+            name=row.name,
+            value=row.value,
+            criticality=row.criticality,
+            created_at=row.created_at,
+        )
+        for row in rows
+    ]
+
+    return AssetListResponse(assets=assets)
+
+
 @app.post("/scan/aws", response_model=ScanResponse)
+
 def run_aws_scan():
     """
     Trigger the AWS collector (or fallback to Mock AWS), run all registered checks,
