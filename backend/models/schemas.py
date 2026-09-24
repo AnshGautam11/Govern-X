@@ -191,3 +191,138 @@ class AssetListResponse(BaseModel):
     """Full asset inventory listing."""
 
     assets: list[AssetResponse]
+
+
+class GovernanceProfile(BaseModel):
+    organization_name: str = "Demo Enterprise"
+    industry: str = "Technology"
+    organization_size: str = "500-1000 employees"
+    security_policy_status: str = "Mostly implemented"
+    cybersecurity_policy_review_frequency: str = "Quarterly"
+    risk_management_policy: str = "Documented"
+    access_control_policy: str = "Implemented"
+    data_protection_policy: str = "Implemented"
+    incident_response_policy: str = "Implemented"
+    business_continuity_policy: str = "Implemented"
+    vendor_supplier_security_policy: str = "Required"
+    third_party_risk_management: str = "Formal review"
+    security_awareness_training: str = "Quarterly"
+    asset_ownership: str = "Assigned by business owners"
+    risk_appetite: str = "Low to moderate"
+    compliance_requirements: list[str] = ["NIST CSF 2.0", "SOC 2"]
+    policy_owner: str = "CISO"
+    last_policy_review_date: str = "2026-09-01"
+
+
+class SupplyChainVendor(BaseModel):
+    vendor_name: str
+    vendor_type: str
+    criticality: str
+    service_provided: str
+    data_access: bool
+    privileged_access: bool
+    security_assessment_status: str
+    contract_security_requirements: str
+    last_assessment: str
+    risk_level: str
+    associated_technical_controls: list[str] = []
+
+
+class GovernanceControlMapping(BaseModel):
+    policy: str
+    governance_requirement: str
+    technical_control: str
+    aws_finding: str
+    nist: str
+    risk: str
+
+
+class GovernanceSummary(BaseModel):
+    policy_coverage: float
+    supply_chain_risk: float
+    governance_control_coverage: float
+    governance_maturity: float
+    governance_gaps: list[str] = []
+    critical_governance_controls: list[str] = []
+    policy_review_status: str = "Current"
+    vendor_risk: list[SupplyChainVendor] = []
+    control_mappings: list[GovernanceControlMapping] = []
+
+
+class FinancialAssetCreateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    asset_id: str = Field(..., description="Stable asset identifier.")
+    asset_name: str = Field(..., description="Business or technical asset name.")
+    asset_type: str = "Application"
+    cloud_provider: str = "AWS"
+    business_function: str = "Core platform"
+    data_sensitivity: str = "Sensitive"
+    criticality: Literal["low", "medium", "high", "critical"] = "high"
+    asset_value: float = Field(gt=0, description="Asset value in INR.")
+    revenue_dependency: float = Field(default=0.5, ge=0, le=1)
+    customer_dependency: float = Field(default=0.5, ge=0, le=1)
+    recovery_cost: float = Field(default=0.0, ge=0)
+    regulatory_exposure: float = Field(default=0.0, ge=0, le=1)
+
+
+class FinancialAssetResponse(BaseModel):
+    asset_id: str
+    asset_name: str
+    asset_type: str
+    cloud_provider: str
+    business_function: str
+    data_sensitivity: str
+    criticality: str
+    asset_value: float
+    revenue_dependency: float
+    customer_dependency: float
+    recovery_cost: float
+    regulatory_exposure: float
+
+
+class FinancialRiskCalculationRequest(BaseModel):
+    check_id: str = "iam_policy_wildcard_admin"
+    asset_name: str = "Production API"
+    asset_value: float = 4000000.0
+    exposure_factor: float = 0.4
+    annual_rate_of_occurrence: float = 1.5
+
+
+class FinancialRiskCalculationResponse(BaseModel):
+    check_id: str
+    asset_name: str
+    control: str
+    asset_value: float
+    exposure_factor: float
+    likelihood: float
+    sle: float
+    aro: float
+    ale: float
+    estimated_loss: float
+    risk_level: str
+    nist_function: str
+    currency: str = "INR"
+
+
+class FinancialSummaryResponse(BaseModel):
+    total_asset_value: float
+    estimated_financial_exposure: float
+    potential_loss: float
+    high_risk_assets: int
+    critical_control_failures: int
+    assets: list[FinancialAssetResponse] = []
+    findings: list[dict] = []
+    generated_at: datetime
+
+
+class RiskHistoryEntry(BaseModel):
+    timestamp: datetime
+    label: str
+    total_asset_value: float
+    estimated_financial_exposure: float
+    high_risk_assets: int
+
+
+class RiskHistoryResponse(BaseModel):
+    history: list[RiskHistoryEntry]
