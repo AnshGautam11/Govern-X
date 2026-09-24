@@ -7,6 +7,7 @@ Run locally:
 
 from collections import defaultdict
 from datetime import datetime, timezone
+from typing import Any
 from uuid import uuid4
 from database.db import get_db
 from fastapi import Depends, FastAPI, HTTPException, Query
@@ -22,6 +23,7 @@ from models.schemas import (
     CheckStatus,
     DashboardMaturityResponse,
     GovernanceAnswerResponse,
+    GovernanceProfile,
     GovernanceResponseRequest,
     GovernanceResponsesResponse,
     MaturityOverview,
@@ -33,6 +35,13 @@ from models.schemas import (
     RiskAssessmentRequest,
     RiskAssessmentResponse,
     Severity,
+    FinancialAssetCreateRequest,
+    FinancialAssetResponse,
+    FinancialRiskCalculationRequest,
+    FinancialRiskCalculationResponse,
+    FinancialSummaryResponse,
+    RiskHistoryEntry,
+    RiskHistoryResponse,
 )
 
 settings = get_settings()
@@ -193,6 +202,61 @@ def health_check():
     return {"status": "ok", "service": "GovernX", "env": settings.environment}
 
 
+@app.get("/governance/questions")
+def list_governance_questions():
+    """Return the default governance questionnaire used by the frontend."""
+    from risk_engine.governance import mock_governance_profile
+
+    profile = mock_governance_profile()
+    return [
+        {
+            "id": "GV-01",
+            "category": "Govern",
+            "question": "Is the organization security policy formally defined and reviewed?",
+            "type": "yes_no",
+            "required": True,
+            "weight": 5,
+            "answer": profile.get("security_policy_status") == "Mostly implemented",
+        },
+        {
+            "id": "GV-02",
+            "category": "Govern",
+            "question": "Is a cybersecurity risk owner assigned at the leadership level?",
+            "type": "yes_no",
+            "required": True,
+            "weight": 5,
+            "answer": True,
+        },
+        {
+            "id": "GV-03",
+            "category": "Govern",
+            "question": "Does the organization review third-party supply-chain risk?",
+            "type": "yes_no",
+            "required": True,
+            "weight": 5,
+            "answer": profile.get("third_party_risk_management") == "Formal review",
+        },
+        {
+            "id": "GV-04",
+            "category": "Govern",
+            "question": "Is the incident response plan reviewed and tested?",
+            "type": "yes_no",
+            "required": True,
+            "weight": 5,
+            "answer": True,
+        },
+    ]
+
+
+@app.get("/governance/profile", response_model=GovernanceProfile)
+def get_governance_profile(db=Depends(get_db)):
+    """Return the organization governance profile used for the Govern pillar."""
+    from database.persistence import get_governance_profile
+
+    profile = get_governance_profile(db=db)
+    return GovernanceProfile(**profile)
+
+
 @app.post(
     "/governance/responses",
     response_model=GovernanceResponsesResponse,
@@ -225,6 +289,32 @@ def submit_governance_responses(
         ) from exc
 
     return get_governance_responses(db)
+
+
+@app.post("/governance/assessment")
+def submit_governance_assessment(payload: dict[str, Any], db=Depends(get_db)):
+    """Compatibility endpoint for the frontend governance questionnaire."""
+    answers = payload.get("answers") if isinstance(payload, dict) and isinstance(payload.get("answers"), dict) else payload
+    if not isinstance(answers, dict):
+        raise HTTPException(status_code=400, detail="Expected an 'answers' object.")
+
+    normalized = {}
+    for key, value in answers.items():
+        if isinstance(value, str):
+            normalized[key] = value.lower() in {"yes", "true", "complete", "implemented", "partially"}
+        elif isinstance(value, bool):
+            normalized[key] = value
+        elif value is None:
+            normalized[key] = False
+        else:
+            normalized[key] = bool(value)
+
+    from database.persistence import save_governance_responses
+    try:
+        save_governance_responses(answers=normalized, db=db)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"status": "submitted", "answers": normalized}
 
 
 @app.post(
@@ -371,6 +461,187 @@ def assess_financial_risk(payload: RiskAssessmentRequest):
             "not real organizational figures."
         ),
     )
+
+
+@app.get("/risk/assets")
+def list_risk_assets(db=Depends(get_db)):
+    """Return asset records used in the financial risk model."""
+    from database.persistence import get_financial_assets, save_financial_asset
+    from risk_engine.financial_risk import FINANCIAL_ASSET_LIBRARY
+
+    rows = get_financial_assets(db=db)
+    if not rows:
+        for asset in FINANCIAL_ASSET_LIBRARY:
+            save_financial_asset(asset, db=db)
+        rows = get_financial_assets(db=db)
+
+    return [
+        FinancialAssetResponse(
+            asset_id=row.asset_id,
+            asset_name=row.asset_name,
+            asset_type=row.asset_type,
+            cloud_provider=row.cloud_provider,
+            business_function=row.business_function,
+            data_sensitivity=row.data_sensitivity,
+            criticality=row.criticality,
+            asset_value=row.asset_value,
+            revenue_dependency=row.revenue_dependency,
+            customer_dependency=row.customer_dependency,
+            recovery_cost=row.recovery_cost,
+            regulatory_exposure=row.regulatory_exposure,
+        ).model_dump()
+        for row in rows
+    ]
+
+
+@app.post("/risk/assets", response_model=FinancialAssetResponse, status_code=201)
+def create_risk_asset(payload: FinancialAssetCreateRequest, db=Depends(get_db)):
+    """Persist a financial asset used for financial exposure calculations."""
+    from database.persistence import save_financial_asset
+
+    asset_payload = payload.model_dump()
+    saved = save_financial_asset(asset_payload, db=db)
+    return FinancialAssetResponse(
+        asset_id=saved.asset_id,
+        asset_name=saved.asset_name,
+        asset_type=saved.asset_type,
+        cloud_provider=saved.cloud_provider,
+        business_function=saved.business_function,
+        data_sensitivity=saved.data_sensitivity,
+        criticality=saved.criticality,
+        asset_value=saved.asset_value,
+        revenue_dependency=saved.revenue_dependency,
+        customer_dependency=saved.customer_dependency,
+        recovery_cost=saved.recovery_cost,
+        regulatory_exposure=saved.regulatory_exposure,
+    )
+
+
+@app.get("/risk/financial-summary", response_model=FinancialSummaryResponse)
+def get_financial_summary(db=Depends(get_db)):
+    """Return the aggregated exposure based on the inventoried assets and findings."""
+    from database.persistence import get_financial_assets
+    from risk_engine.financial_risk import summarize_financial_risk
+
+    rows = get_financial_assets(db=db)
+    if not rows:
+        snapshot = summarize_financial_risk()
+    else:
+        total = sum(float(row.asset_value) for row in rows)
+        findings = [
+            {
+                "asset_name": row.asset_name,
+                "check_id": "iam_policy_wildcard_admin",
+                "estimated_loss": round(float(row.asset_value) * 0.35, 2),
+                "risk_level": "high" if row.criticality in {"high", "critical"} else "medium",
+            }
+            for row in rows
+        ]
+        snapshot = {
+            "total_asset_value": total,
+            "estimated_financial_exposure": round(sum(item["estimated_loss"] for item in findings), 2),
+            "potential_loss": round(sum(item["estimated_loss"] for item in findings) * 0.7, 2),
+            "high_risk_assets": sum(1 for item in findings if item["risk_level"] in {"high", "critical"}),
+            "critical_control_failures": len(findings),
+            "assets": [
+                {
+                    "asset_id": row.asset_id,
+                    "asset_name": row.asset_name,
+                    "asset_type": row.asset_type,
+                    "cloud_provider": row.cloud_provider,
+                    "business_function": row.business_function,
+                    "data_sensitivity": row.data_sensitivity,
+                    "criticality": row.criticality,
+                    "asset_value": row.asset_value,
+                    "revenue_dependency": row.revenue_dependency,
+                    "customer_dependency": row.customer_dependency,
+                    "recovery_cost": row.recovery_cost,
+                    "regulatory_exposure": row.regulatory_exposure,
+                }
+                for row in rows
+            ],
+            "findings": findings,
+            "generated_at": datetime.now(timezone.utc),
+        }
+
+    return FinancialSummaryResponse(
+        total_asset_value=snapshot["total_asset_value"],
+        estimated_financial_exposure=snapshot["estimated_financial_exposure"],
+        potential_loss=snapshot["potential_loss"],
+        high_risk_assets=snapshot["high_risk_assets"],
+        critical_control_failures=snapshot["critical_control_failures"],
+        assets=snapshot.get("assets", []),
+        findings=snapshot.get("findings", []),
+        generated_at=snapshot.get("generated_at", datetime.now(timezone.utc)),
+    )
+
+
+@app.get("/risk/findings")
+def list_risk_findings():
+    """Return finding-to-financial-impact mappings for the current inventory."""
+    from risk_engine.financial_risk import summarize_financial_risk
+
+    summary = summarize_financial_risk()
+    return summary["findings"]
+
+
+@app.get("/risk/findings/{finding_id}")
+def get_risk_finding(finding_id: str):
+    """Return the financial impact tied to one known finding."""
+    from risk_engine.financial_risk import summarize_financial_risk
+
+    for finding in summarize_financial_risk()["findings"]:
+        if finding["check_id"] == finding_id:
+            return finding
+    raise HTTPException(status_code=404, detail=f"Finding not found: {finding_id}")
+
+
+@app.post("/risk/calculate", response_model=FinancialRiskCalculationResponse)
+def calculate_risk(payload: FinancialRiskCalculationRequest):
+    """Calculate SLE/ALE for a specific asset and finding using the configured risk model."""
+    from risk_engine.financial_risk import calculate_risk_for_finding
+
+    result = calculate_risk_for_finding(
+        check_id=payload.check_id,
+        asset_value=payload.asset_value,
+        exposure_factor=payload.exposure_factor,
+        annual_rate_of_occurrence=payload.annual_rate_of_occurrence,
+        asset_name=payload.asset_name,
+    )
+    return FinancialRiskCalculationResponse(
+        check_id=result["check_id"],
+        asset_name=result["asset_name"],
+        control=result["control"],
+        asset_value=result["asset_value"],
+        exposure_factor=result["exposure_factor"],
+        likelihood=result["likelihood"],
+        sle=result["sle"],
+        aro=result["aro"],
+        ale=result["ale"],
+        estimated_loss=result["estimated_loss"],
+        risk_level=result["risk_level"],
+        nist_function=result["nist_function"],
+    )
+
+
+@app.get("/risk/history", response_model=RiskHistoryResponse)
+def risk_history():
+    """Return a compact history sleeve for financial risk trending."""
+    from risk_engine.financial_risk import summarize_financial_risk
+
+    snapshot = summarize_financial_risk()
+    return RiskHistoryResponse(
+        history=[
+            RiskHistoryEntry(
+                timestamp=snapshot["generated_at"],
+                label="Current exposure",
+                total_asset_value=snapshot["total_asset_value"],
+                estimated_financial_exposure=snapshot["estimated_financial_exposure"],
+                high_risk_assets=snapshot["high_risk_assets"],
+            )
+        ]
+    )
+
 
 @app.get(
     "/governance/responses",
