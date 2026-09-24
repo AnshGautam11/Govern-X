@@ -20,6 +20,19 @@ returns None for score and "No Data" for tier — this must be handled
 explicitly by callers (e.g. the dashboard) rather than silently shown
 as Tier 1, which would misrepresent "not scanned" as "non-compliant".
 """
+"""
+Compliance & maturity scoring — Week 2/Week 3.
+
+Turns a list of MappedFinding (CheckResult + CSFMapping) into
+per-function scores and a Tier 1-4 maturity rating.
+
+...
+
+Week 3 governance scoring:
+    Governance questionnaire answers are converted into a completion
+    percentage. When supplied to score_all_functions() or score_overall(),
+    this percentage is used as the Govern function score.
+"""
 
 from models.schemas import MappedFinding, CheckStatus
 
