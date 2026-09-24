@@ -7,6 +7,8 @@ module should import from here rather than redefining its own dict shape.
 from datetime import datetime
 from enum import Enum
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
 class CheckStatus(str, Enum):
@@ -159,8 +161,33 @@ class GovernanceAnswerResponse(BaseModel):
     notes: str | None = None
     answered_at: datetime
 
-
 class GovernanceResponsesResponse(BaseModel):
     """Response containing the latest governance answers."""
 
     responses: list[GovernanceAnswerResponse]
+
+
+class AssetCreateRequest(BaseModel):
+    """Payload for adding a new asset to the inventory (W3-Day2)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    value: float = Field(gt=0, description="Estimated dollar value of the asset.")
+    criticality: Literal["low", "medium", "high", "critical"]
+
+
+class AssetResponse(BaseModel):
+    """One asset inventory entry."""
+
+    id: int
+    name: str
+    value: float
+    criticality: str
+    created_at: datetime
+
+
+class AssetListResponse(BaseModel):
+    """Full asset inventory listing."""
+
+    assets: list[AssetResponse]
