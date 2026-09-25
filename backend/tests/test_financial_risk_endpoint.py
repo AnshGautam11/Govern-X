@@ -12,6 +12,7 @@ def test_financial_risk_endpoint_returns_monte_carlo_summary():
     assert response.status_code == 200
     payload = response.json()
     assert payload["sector"] == "financial"
+    assert payload["p10"] <= payload["p50"] <= payload["p90"] <= payload["p95"] <= payload["p99"]
     assert payload["p10"] <= payload["expected"] <= payload["p90"]
     assert payload["iterations"] == 10_000
     assert len(payload["distribution"]) == 12
