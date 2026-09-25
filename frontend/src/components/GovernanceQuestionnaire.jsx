@@ -1,30 +1,62 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle2, ClipboardCheck, Save, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { fetchGovernanceQuestions, submitGovernanceAssessment } from '../lib/api';
-import { mockGovernanceQuestions, mockGovernanceScore } from '../data/mockGovernance';
+import { fetchGovernanceQuestions, fetchGovernanceScore, fetchGovernanceResponses, submitGovernanceAssessment } from '../lib/api';
 import './AssessmentPages.css';
 
 const answerLabel = (value) => value === true ? 'Yes' : value === false ? 'No' : value;
 
+function readGovernanceDraft() {
+  try {
+    const draft = JSON.parse(localStorage.getItem('governance-draft') || '{}');
+    return draft && typeof draft === 'object' && !Array.isArray(draft) ? draft : {};
+  } catch {
+    return {};
+  }
+}
+
 export default function GovernanceQuestionnaire() {
-  const [questions, setQuestions] = useState(mockGovernanceQuestions);
-  const [answers, setAnswers] = useState(() => JSON.parse(localStorage.getItem('governance-draft') || '{}'));
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState(readGovernanceDraft);
   const [current, setCurrent] = useState(0);
-  const [notice, setNotice] = useState('Demo questions loaded.');
+  const [notice, setNotice] = useState('Loading governance questions...');
   const [submitted, setSubmitted] = useState(false);
+  const [score, setScore] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const question = questions[current];
   const answered = questions.filter((item) => answers[item.id] !== undefined && answers[item.id] !== '').length;
   const requiredComplete = questions.filter((item) => item.required).every((item) => answers[item.id] !== undefined && answers[item.id] !== '');
-  const score = submitted ? mockGovernanceScore : Math.round((answered / questions.length) * 100);
 
   useEffect(() => {
-    fetchGovernanceQuestions().then((payload) => {
-      if (Array.isArray(payload) && payload.length) {
-        setQuestions(payload);
-        setNotice('Connected to governance question service.');
-      }
-    }).catch(() => undefined);
+    let active = true;
+    Promise.all([fetchGovernanceQuestions(), fetchGovernanceResponses(), fetchGovernanceScore()])
+      .then(([questionPayload, responsePayload, scorePayload]) => {
+        if (!active) return;
+        const storedAnswers = Object.fromEntries(
+          (responsePayload?.responses || []).map((response) => [response.question_key, response.answer ? 'Yes' : 'No'])
+        );
+        const activeQuestions = Array.isArray(questionPayload) ? questionPayload : [];
+        const activeIds = new Set(activeQuestions.map((item) => item.id));
+        setQuestions(activeQuestions);
+        setAnswers((draft) => ({
+          ...Object.fromEntries(Object.entries(storedAnswers).filter(([key]) => activeIds.has(key))),
+          ...Object.fromEntries(Object.entries(draft).filter(([key]) => activeIds.has(key))),
+        }));
+        setScore(scorePayload);
+        setNotice('Governance data loaded from the backend.');
+        setError('');
+      })
+      .catch((loadError) => {
+        if (active) {
+          setError(loadError.message || 'Unable to load governance data.');
+          setNotice('Governance data is unavailable. Retry to reconnect.');
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
   }, []);
 
   const updateAnswer = (value) => setAnswers((previous) => ({ ...previous, [question.id]: value }));
@@ -46,15 +78,31 @@ export default function GovernanceQuestionnaire() {
       return;
     }
     try {
-      await submitGovernanceAssessment(answers);
-      setNotice('Assessment submitted to the governance service.');
-    } catch {
-      setNotice('Assessment captured locally. Connect the governance API to submit it centrally.');
+      const persistedAnswers = Object.fromEntries(
+        questions
+          .filter((item) => answers[item.id] !== undefined && answers[item.id] !== '')
+          .map((item) => [item.id, answerLabel(answers[item.id]) === 'Yes'])
+      );
+      await submitGovernanceAssessment(persistedAnswers);
+      const [scorePayload, questionPayload] = await Promise.all([fetchGovernanceScore(), fetchGovernanceQuestions()]);
+      setScore(scorePayload);
+      setQuestions(Array.isArray(questionPayload) ? questionPayload : questions);
+      localStorage.removeItem('governance-draft');
+      setNotice('Assessment submitted and saved to the governance service.');
+      setError('');
+    } catch (submitError) {
+      setNotice('Assessment was not saved. Retry after the governance service is available.');
+      setError(submitError.message || 'Unable to submit the governance assessment.');
+      return;
     }
     setSubmitted(true);
   };
 
-  const options = useMemo(() => question.type === 'yes_no' ? ['Yes', 'No', 'Partially'] : question.options || [], [question]);
+  const options = useMemo(() => question?.type === 'yes_no' ? ['Yes', 'No'] : question?.options || [], [question]);
+
+  if (loading) return <main className="assessment-page"><div className="risk-status-panel" role="status">Loading governance questionnaire...</div></main>;
+  if (error && questions.length === 0) return <main className="assessment-page"><div className="risk-status-panel risk-error"><h1>Governance data unavailable</h1><p>{error}</p><button type="button" className="risk-retry" onClick={() => window.location.reload()}>Retry</button></div></main>;
+  if (!question) return <main className="assessment-page"><div className="risk-status-panel"><p>No governance questions are configured.</p></div></main>;
 
   return (
     <main className="assessment-page">
@@ -82,7 +130,8 @@ export default function GovernanceQuestionnaire() {
             <div className="question-actions"><button type="button" className="secondary-action" onClick={() => setCurrent((value) => Math.max(0, value - 1))} disabled={current === 0}><ArrowLeft size={15} /> Previous</button><button type="button" className="secondary-action" onClick={saveDraft}><Save size={15} /> Save</button>{current < questions.length - 1 ? <button type="button" className="primary-action" onClick={goNext}>Save & continue <ArrowRight size={15} /></button> : <button type="button" className="primary-action" onClick={submit} disabled={submitted}><ClipboardCheck size={15} /> Submit assessment</button>}</div>
             {notice && <p className="assessment-notice" role="status">{notice}</p>}
           </div>
-          {submitted && <section className="score-card"><div><span className="assessment-kicker">Governance Completion</span><strong>{score}%</strong><p><CheckCircle2 size={15} /> Assessment complete</p></div><div><span>Questions answered</span><strong>{answered} / {questions.length}</strong></div><div><span>Governance maturity</span><strong>Tier {mockGovernanceScore.tier}</strong><small>{mockGovernanceScore.tierName}</small></div></section>}
+          {error && <p className="assessment-notice" role="alert">{error}</p>}
+          {submitted && score && <section className="score-card"><div><span className="assessment-kicker">Governance Completion</span><strong>{score.completion_percentage}%</strong><p><CheckCircle2 size={15} /> Assessment complete</p></div><div><span>Questions answered</span><strong>{score.answered} / {score.total}</strong></div><div><span>Governance score</span><strong>{score.score}%</strong><small>Calculated from saved responses</small></div></section>}
         </section>
       </div>
     </main>
