@@ -22,6 +22,13 @@ from models.schemas import CheckResult
 # Ensure the scan_results table exists (safe to call repeatedly).
 Base.metadata.create_all(bind=engine)
 
+with engine.begin() as connection:
+    scan_columns = {
+        row["name"] for row in connection.exec_driver_sql("PRAGMA table_info(scan_results)").mappings()
+    } if engine.dialect.name == "sqlite" else set()
+    if engine.dialect.name == "sqlite" and "severity" not in scan_columns:
+        connection.exec_driver_sql("ALTER TABLE scan_results ADD COLUMN severity VARCHAR")
+
 GOVERNANCE_QUESTIONS = [
     {
         "question_key": "risk_owner_assigned",
@@ -206,6 +213,7 @@ def save_scan_results(
                     check_id=result.check_id,
                     resource_id=result.resource_id,
                     status=result.status.value,
+                    severity=result.severity.value,
                     detail=result.detail,
                     scanned_at=batch_time,
                 )
