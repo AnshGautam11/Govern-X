@@ -129,8 +129,11 @@ class RiskAssessmentResponse(BaseModel):
 
     sector: str
     p10: float
+    p50: float
     expected: float
     p90: float
+    p95: float
+    p99: float
     iterations: int
     confidence_level: float
     distribution: list[float] = []
