@@ -338,6 +338,8 @@ def create_asset(
             db=db,
         )
     except Exception as exc:
+        import logging
+        logging.getLogger(__name__).exception("Failed to save asset: %s", payload.name)
         raise HTTPException(
             status_code=500,
             detail="Unable to save asset.",
