@@ -358,9 +358,13 @@ def save_asset(
         db.commit()
         db.refresh(asset)
         return asset
+    except Exception:
+        db.rollback()
+        raise
     finally:
         if owns_session:
             db.close()
+
 
 
 def get_all_assets(db: Session | None = None) -> list[AssetDB]:
