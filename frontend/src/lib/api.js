@@ -28,19 +28,21 @@ async function apiRequest(path, options = {}) {
 
 export const fetchHealthStatus = () => apiRequest('/health');
 export const fetchMaturityData = () => apiRequest('/dashboard/maturity');
+export const fetchDashboardOverview = () => apiRequest('/dashboard/overview');
+export const fetchFindings = () => apiRequest('/findings');
+export const fetchGaps = () => apiRequest('/gaps');
+export const fetchAssets = () => apiRequest('/assets');
 export const triggerAssessmentScan = () => apiRequest('/scan/aws', { method: 'POST' });
 export const fetchScanHistory = (limit = 20) => apiRequest(`/scan/history?limit=${limit}`);
 export const fetchGovernanceQuestions = () => apiRequest('/governance/questions');
+export const fetchGovernanceScore = () => apiRequest('/governance/score');
+export const fetchGovernanceResponses = () => apiRequest('/governance/responses');
 export const submitGovernanceAssessment = (answers) => apiRequest('/governance/assessment', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ answers }),
 });
-export const fetchFinancialRisk = (sector = 'financial') => apiRequest('/risk/assess', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ sector }),
-}).then((payload) => {
+export const fetchFinancialRisk = () => apiRequest('/risk/summary').then((payload) => {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     throw new Error('The financial risk API returned an invalid response.');
   }
