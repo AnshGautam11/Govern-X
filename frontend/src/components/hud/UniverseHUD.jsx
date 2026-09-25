@@ -4,7 +4,7 @@ import ZoneNavigation from './ZoneNavigation';
 import TelemetryDrawer from './TelemetryDrawer';
 import PortalIntroOverlay from './PortalIntroOverlay';
 import UniverseMinimap from './UniverseMinimap';
-import { overallScore, pillarData } from '../../data/pillarData';
+import { pillarData } from '../../data/pillarData';
 import './UniverseHUD.css';
 
 export function UniverseHUD({
@@ -18,9 +18,12 @@ export function UniverseHUD({
   onToggleTour,
   viewMode,
   onToggleViewMode,
+  maturity,
 }) {
   const navigate = useNavigate();
   const isPortalIntro = activeZone?.id === 'portal';
+  const pillars = Array.isArray(maturity?.pillars) ? maturity.pillars : [];
+  const overallPercentage = maturity?.overall?.percentage;
 
   return (
     <div className="universe-hud-root">
@@ -44,12 +47,12 @@ export function UniverseHUD({
               className="hud-pillar-btn"
               onClick={() => navigate(p.route)}
               style={{ '--p-color': p.accentColor }}
-              title={`View ${p.title} (${p.score}%)`}
+              title={`View ${p.title} (${pillars.find((item) => item.function === p.title)?.percentage ?? 'No data'})`}
               aria-label={`View ${p.title} details`}
             >
               <span className="hud-pillar-icon">{p.icon}</span>
               <span className="hud-pillar-name">{p.name}</span>
-              <span className="hud-pillar-score">{p.score}%</span>
+              <span className="hud-pillar-score">{pillars.find((item) => item.function === p.title)?.percentage == null ? 'N/A' : `${Math.round(pillars.find((item) => item.function === p.title).percentage)}%`}</span>
             </button>
           ))}
         </div>
@@ -57,7 +60,7 @@ export function UniverseHUD({
         {/* Right: Score Gauge & View Switcher */}
         <div className="hud-right-actions">
           <div className="hud-score-chip">
-            <div className="hud-score-value">{overallScore.score}%</div>
+            <div className="hud-score-value">{overallPercentage == null ? 'N/A' : `${Math.round(overallPercentage)}%`}</div>
             <div className="hud-score-label">NIST CSF 2.0</div>
           </div>
 
