@@ -18,9 +18,10 @@ function PillarCard({
   trend,
   percentage,
 }) {
-  const score = Number.isFinite(Number(percentage)) ? Number(percentage) : Number(compliance) || 0;
-  const displayTier = typeof tier === 'number' ? tier : Math.min(4, Math.max(1, Math.ceil(score / 25) || 1));
-  const displayTierName = tierName || (displayTier === 1 ? 'Partial' : displayTier === 2 ? 'Risk Informed' : displayTier === 3 ? 'Repeatable' : 'Adaptive');
+  const hasScore = percentage != null || compliance != null;
+  const score = Number.isFinite(Number(percentage ?? compliance)) ? Number(percentage ?? compliance) : null;
+  const displayTier = typeof tier === 'number' ? tier : score == null ? null : Math.min(4, Math.max(1, Math.ceil(score / 25) || 1));
+  const displayTierName = tierName || (displayTier == null ? 'No Data' : displayTier === 1 ? 'Partial' : displayTier === 2 ? 'Risk Informed' : displayTier === 3 ? 'Repeatable' : 'Adaptive');
   const badgeClass = status ? status.toLowerCase().replace(/\s+/g, '-') : `tier-${displayTier}`;
   const trendValue = Number.isFinite(Number(trend)) ? Number(trend) : 0;
   const trendText = `${trendValue >= 0 ? '↑' : '↓'} ${Math.abs(trendValue)}%`;
@@ -29,7 +30,7 @@ function PillarCard({
     <article className="pillar-card" style={{ '--accent-color': accentColor }}>
       <div className="pillar-top">
         <div className="pillar-icon">{icon}</div>
-        <TierBadge tier={displayTier} tierName={displayTierName} compact />
+        {displayTier == null ? <span className="tier-badge">No Data</span> : <TierBadge tier={displayTier} tierName={displayTierName} compact />}
       </div>
 
       <div className="pillar-header-block">
@@ -42,10 +43,10 @@ function PillarCard({
       <div className="compliance-section">
         <div className="compliance-header">
           <span className="compliance-label">Maturity</span>
-          <span className="compliance-percent">{score.toFixed(0)}%</span>
+          <span className="compliance-percent">{hasScore ? `${score.toFixed(0)}%` : 'N/A'}</span>
         </div>
         <div className="progress-bar" aria-label={`${title} maturity ${score}%`}>
-          <div className="progress-fill" style={{ width: `${Math.min(100, Math.max(0, score))}%` }} />
+          <div className="progress-fill" style={{ width: `${score == null ? 0 : Math.min(100, Math.max(0, score))}%` }} />
         </div>
       </div>
 
