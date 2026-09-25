@@ -7,7 +7,7 @@ import PillarCard from './PillarCard';
 import TypingEffect from './TypingEffect';
 import TerminalMessages from './TerminalMessages';
 import { UNIVERSE_ZONES } from '../data/universeData';
-import { fetchHealthStatus, fetchMaturityData, normalizeMaturityResponse, normalizeScanResponse, triggerAssessmentScan } from '../lib/api';
+import { fetchAssets, fetchDashboardOverview, fetchHealthStatus, fetchMaturityData, fetchFindings, fetchGaps, fetchScanHistory, normalizeMaturityResponse, normalizeScanResponse, triggerAssessmentScan } from '../lib/api';
 import './Dashboard.css';
 import ScanHistoryPanel from './ScanHistoryPanel';
 import FindingsExplorer from './FindingsExplorer';
@@ -35,7 +35,7 @@ const toNumericTier = (tier) => {
 };
 
 const DEFAULT_OVERALL = {
-  percentage: 0,
+  percentage: null,
   tier: null,
   tier_name: 'No Data',
   trend: 0,
@@ -43,12 +43,12 @@ const DEFAULT_OVERALL = {
 };
 
 const DEFAULT_PILLAR_VALUES = {
-  Govern: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
-  Identify: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
-  Protect: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
-  Detect: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
-  Respond: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
-  Recover: { percentage: 0, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Govern: { percentage: null, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Identify: { percentage: null, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Protect: { percentage: null, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Detect: { percentage: null, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Respond: { percentage: null, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
+  Recover: { percentage: null, tier: null, tier_name: 'No Data', trend: 0, status: 'No Data' },
 };
 
 export function Dashboard() {
@@ -64,6 +64,11 @@ export function Dashboard() {
   const [error, setError] = useState('');
   const [isLive, setIsLive] = useState(false);
   const [environment, setEnvironment] = useState('UNKNOWN');
+  const [liveFindings, setLiveFindings] = useState([]);
+  const [liveGaps, setLiveGaps] = useState([]);
+  const [lastScanAt, setLastScanAt] = useState(null);
+  const [overview, setOverview] = useState(null);
+  const [assets, setAssets] = useState([]);
 
   const activeZone = useMemo(
     () => UNIVERSE_ZONES.find((z) => z.id === activeZoneId) || UNIVERSE_ZONES[0],
@@ -76,6 +81,19 @@ export function Dashboard() {
     try {
       const payload = await fetchMaturityData();
       setScanState({ status: 'success', data: normalizeMaturityResponse(payload), error: null });
+      const [overviewPayload, findingPayload, gapPayload, historyPayload, assetPayload] = await Promise.all([
+        fetchDashboardOverview(),
+        fetchFindings(),
+        fetchGaps(),
+        fetchScanHistory(1),
+        fetchAssets(),
+      ]);
+      setOverview(overviewPayload);
+      setLiveFindings(Array.isArray(findingPayload?.findings) ? findingPayload.findings : []);
+      setLiveGaps(Array.isArray(gapPayload?.gaps) ? gapPayload.gaps : []);
+      const historyEntries = Array.isArray(historyPayload?.entries) ? historyPayload.entries : [];
+      setLastScanAt(overviewPayload?.last_scan || historyEntries[0]?.scanned_at || null);
+      setAssets(Array.isArray(assetPayload?.assets) ? assetPayload.assets : []);
       setIsLive(true);
     } catch (fetchError) {
       setError(fetchError.message || 'Unable to retrieve live maturity data.');
@@ -121,6 +139,7 @@ export function Dashboard() {
     try {
       const payload = await triggerAssessmentScan();
       setScanState({ status: 'success', data: normalizeScanResponse(payload), error: null });
+      await loadMaturityData();
       setIsLive(true);
     } catch (scanError) {
       setError(scanError.message || 'Backend scan failed.');
@@ -134,7 +153,7 @@ export function Dashboard() {
   const normalized = scanState.data;
   const overall = {
     ...DEFAULT_OVERALL,
-    percentage: normalized?.summary?.complianceScore ?? 0,
+    percentage: normalized?.summary?.complianceScore ?? null,
     tier: normalized?.summary?.tier,
     tier_name: normalized?.summary?.tierName,
     ...(normalized?.raw?.overall?.percentage !== undefined ? normalized.raw.overall : {}),
@@ -147,12 +166,14 @@ export function Dashboard() {
         percentage: normalized?.scores?.[functionName]?.score ?? value.percentage,
         tier: toNumericTier(normalized?.scores?.[functionName]?.tier) ?? value.tier,
       }));
-  const findings = normalized?.findings || [];
+  const findings = scanState.status === 'success' && normalized?.summary?.totalChecks !== null
+    ? normalized.findings
+    : liveFindings;
 
   const overallStatus = overall.status || toTierStatus(overall.tier);
   const attentionPillars = pillars
-    .filter((pillar) => (pillar.percentage ?? 0) < 80)
-    .sort((first, second) => (first.percentage ?? 0) - (second.percentage ?? 0))
+    .filter((pillar) => pillar.percentage != null && pillar.percentage < 80)
+    .sort((first, second) => first.percentage - second.percentage)
     .slice(0, 3);
 
   return (
@@ -167,6 +188,7 @@ export function Dashboard() {
           onSelectZone={handleSelectZone}
           scanStatus={scanState.status}
           scanSummary={normalized?.summary}
+          assets={assets}
         />
 
         <UniverseHUD
@@ -180,6 +202,7 @@ export function Dashboard() {
           onToggleTour={() => setIsTouring((prev) => !prev)}
           viewMode={viewMode}
           onToggleViewMode={() => setViewMode((prev) => (prev === '3d' ? 'matrix' : '3d'))}
+          maturity={normalized?.raw}
         />
       </div>
 
@@ -200,7 +223,7 @@ export function Dashboard() {
                 <span className="status-item">● Govern-X Core: {isLive ? 'Online' : 'Offline'}</span>
                 <span className="status-item">● Environment: {environment}</span>
                 <span className="status-separator">|</span>
-                <span className="status-item">● Last Assessment: {loading ? 'Loading...' : 'Updated live'}</span>
+                <span className="status-item">● Last Assessment: {loading ? 'Loading...' : lastScanAt ? new Date(lastScanAt).toLocaleString() : 'No scans recorded'}</span>
               </div>
             </div>
             <TerminalMessages />
@@ -218,7 +241,7 @@ export function Dashboard() {
               <Link to="/governance-assessment" className="assessment-link">Governance assessment</Link>
               <Link to="/financial-risk" className="assessment-link">Financial risk</Link>
               <span className="assessment-time">
-                <Clock3 size={14} /> {loading ? 'Loading maturity data...' : 'Updated live'}
+                <Clock3 size={14} /> {loading ? 'Loading maturity data...' : lastScanAt ? new Date(lastScanAt).toLocaleString() : 'No scans recorded'}
               </span>
               <button type="button" className="assessment-button" onClick={handleAssessment} disabled={assessmentState === 'scanning'}>
                 <RefreshCw size={15} className={assessmentState === 'scanning' ? 'is-spinning' : ''} />
@@ -256,16 +279,19 @@ export function Dashboard() {
               <div className="score-visual">
                 <div className="score-ring" style={{ '--score': `${overall.percentage ?? 0}` }}>
                   <div className="score-ring-inner">
-                    <strong>{Math.round(overall.percentage ?? 0)}%</strong>
+                    <strong>{overall.percentage == null ? 'N/A' : `${Math.round(overall.percentage)}%`}</strong>
                     <span>{overall.tier_name || 'No Data'}</span>
                   </div>
                 </div>
               </div>
 
               <div className="overview-metrics">
+                <div className="overview-metric"><span className="metric-label">Assets / Critical</span><strong>{overview ? `${overview.total_assets} / ${overview.critical_assets}` : 'N/A'}</strong></div>
+                <div className="overview-metric"><span className="metric-label">Open / Critical Findings</span><strong>{overview ? `${overview.open_findings} / ${overview.critical_findings}` : 'N/A'}</strong></div>
+                <div className="overview-metric"><span className="metric-label">Governance Completion</span><strong>{overview?.governance_completion == null ? 'N/A' : `${overview.governance_completion}%`}</strong></div>
                 <div className="overview-metric primary">
                   <span className="metric-label">Overall Compliance Score</span>
-                  <strong>{Math.round(overall.percentage ?? 0)}%</strong>
+                  <strong>{overall.percentage == null ? 'N/A' : `${Math.round(overall.percentage)}%`}</strong>
                 </div>
                 <div className="overview-metric">
                   <span className="metric-label">Maturity Tier</span>
@@ -290,6 +316,7 @@ export function Dashboard() {
                   <span className="metric-label">API</span>
                   <strong>{isLive ? 'Live' : 'Offline'}</strong>
                 </div>
+                <div className="overview-metric"><span className="metric-label">Financial Exposure</span><strong>{overview?.financial_risk == null ? 'Unavailable' : `$${Number(overview.financial_risk).toLocaleString()}`}</strong><small>{overview?.financial_risk_reason || 'Backend risk estimate'}</small></div>
               </div>
             </div>
           </section>
@@ -316,6 +343,7 @@ export function Dashboard() {
           )}
 
           {findings.length > 0 && <FindingsExplorer findings={findings} />}
+          {liveGaps.length > 0 && <section className="overview-panel" aria-label="Current NIST gaps"><div className="overview-topline"><span className="overview-label">Current NIST gaps</span><span className="overview-status needs-attention">{liveGaps.length} open</span></div><div className="overview-metrics scan-metrics">{liveGaps.slice(0, 5).map((gap) => <div className="overview-metric" key={gap.gap_id}><span className="metric-label">{gap.nist_function} / {gap.nist_subcategory}</span><strong>{gap.check_id.replaceAll('_', ' ')}</strong><small>{gap.detail}</small></div>)}</div></section>}
           {scanState.status === 'success' && findings.length === 0 && normalized?.summary?.totalChecks !== null && (
             <div className="dashboard-loading" role="status">NO SECURITY FINDINGS DETECTED</div>
           )}
@@ -432,9 +460,9 @@ export function Dashboard() {
             {FUNCTIONS.map((pillarConfig) => {
               const pillar = pillars.find((item) => item.function === pillarConfig.title) || {
                 function: pillarConfig.title,
-                percentage: 0,
-                tier: 1,
-                tier_name: 'Partial',
+                percentage: null,
+                tier: null,
+                tier_name: 'No Data',
                 trend: 0,
                 status: 'No Data',
               };
@@ -451,8 +479,8 @@ export function Dashboard() {
                       : `${pillarConfig.title} maturity is calculated from the live backend scoring engine.`
                   }
                   status={pillar.status || toTierStatus(pillar.tier)}
-                  compliance={Math.round(pillar.percentage ?? 0)}
-                  controls={pillar.tier ? `Tier ${pillar.tier}` : 'Live'}
+                  compliance={pillar.percentage == null ? null : Math.round(pillar.percentage)}
+                  controls={pillar.tier ? `Tier ${pillar.tier}` : 'No Data'}
                   accentColor={pillarConfig.accentColor}
                   to={pillarConfig.route}
                   tier={pillar.tier}
