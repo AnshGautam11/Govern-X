@@ -26,6 +26,7 @@ class ScanResultDB(Base):
     check_id = Column(String, nullable=False, index=True)
     resource_id = Column(String, nullable=False)
     status = Column(String, nullable=False)
+    severity = Column(String, nullable=True)
     detail = Column(Text)
     scanned_at = Column(
         DateTime,
