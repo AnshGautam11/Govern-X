@@ -23,6 +23,7 @@ export function UniverseCanvas({
   onSelectZone,
   scanStatus,
   scanSummary,
+  assets = [],
 }) {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -44,7 +45,7 @@ export function UniverseCanvas({
           {/* All 8 Continuous Spatial Zones in the Security Universe */}
           <EntryPortal isWarping={isWarping} onSelectNode={onSelectNode} />
           <GovernanceCity onSelectNode={onSelectNode} />
-          <AssetOrbit onSelectNode={onSelectNode} />
+          <AssetOrbit assets={assets} onSelectNode={onSelectNode} />
           <ThreatDNALab onSelectNode={onSelectNode} />
           <AttackNetwork onSelectNode={onSelectNode} />
           <DefenseWall onSelectNode={onSelectNode} />
