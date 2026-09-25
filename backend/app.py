@@ -79,14 +79,38 @@ def _tier_name_for_score(score: float | None) -> str:
     return TIER_NAME_MAP.get(get_tier(score), "No Data")
 
 
+def _canonical_check_id(check_id: str) -> str:
+    from mappings.csf_mappings import get_mapping
+
+    if get_mapping(check_id) is not None:
+        return check_id
+    candidate = check_id.removeprefix("check_")
+    return candidate if get_mapping(candidate) is not None else check_id
+
+
+def _mapped_findings_for_results(results):
+    from mappings.csf_mappings import get_mapping
+    from models.schemas import MappedFinding
+
+    findings = []
+    for result in results:
+        canonical_id = _canonical_check_id(result.check_id)
+        if canonical_id != result.check_id:
+            result = result.model_copy(update={"check_id": canonical_id})
+        mapping = get_mapping(result.check_id)
+        if mapping is not None:
+            findings.append(MappedFinding(result=result, mapping=mapping))
+    return findings
+
+
 def _build_findings_from_rows(rows):
     findings = []
     for row in rows:
         result = CheckResult(
-            check_id=row.check_id,
+            check_id=_canonical_check_id(row.check_id),
             resource_id=row.resource_id,
             status=CheckStatus(row.status),
-            severity=Severity.LOW,
+            severity=Severity(row.severity) if row.severity else Severity.LOW,
             detail=row.detail,
             timestamp=row.scanned_at,
         )
@@ -98,8 +122,8 @@ def _build_findings_from_rows(rows):
     return findings
 
 
-def _build_maturity_payload(findings, previous_findings=None):
-    scores = score_all_functions(findings)
+def _build_maturity_payload(findings, previous_findings=None, governance_completion=None):
+    scores = score_all_functions(findings, governance_score=governance_completion)
     previous_scores = score_all_functions(previous_findings) if previous_findings else {}
 
     pillars = []
@@ -121,11 +145,15 @@ def _build_maturity_payload(findings, previous_findings=None):
             )
         )
 
-    overall_data = score_overall(findings)
-    overall_percentage = overall_data["score"] if overall_data.get("score") is not None else 0
+    overall_data = score_overall(findings, governance_score=governance_completion)
+    overall_percentage = overall_data["score"]
     overall_tier = _numeric_tier_for_score(overall_percentage)
     previous_overall = score_overall(previous_findings) if previous_findings else {"score": 0, "tier": "Tier 1"}
-    overall_trend = round(float(overall_percentage) - float(previous_overall.get("score") or 0), 1)
+    overall_trend = (
+        round(float(overall_percentage) - float(previous_overall.get("score") or 0), 1)
+        if overall_percentage is not None
+        else 0.0
+    )
 
     return DashboardMaturityResponse(
         overall=MaturityOverview(
@@ -145,7 +173,8 @@ def _get_scan_results_with_fallback():
         from collectors.aws_collector import run_all_checks
         return run_all_checks()
     except Exception as exc:
-        print(f"[DEBUG] AWS collector failed ({exc}). Falling back to mock environment...")
+        import logging
+        logging.getLogger(__name__).warning("AWS collector failed; trying configured mock scanner: %s", exc)
         
         # Fallback 1: Try importing from mock_aws module
         try:
@@ -163,19 +192,19 @@ def _get_scan_results_with_fallback():
         # Fallback 2: Direct Mock Data if mock_aws module structure varies
         return [
             CheckResult(
-                check_id="check_s3_encryption_at_rest",
+                check_id="s3_encryption_at_rest",
                 resource_id="arn:aws:s3:::govern-x-mock-bucket",
                 status=CheckStatus.PASS,
-                severity=Severity.LOW,
-                detail="S3 bucket encryption is active (Mock Data)",
+                severity=Severity.HIGH,
+                detail="S3 bucket encryption is active (local fallback source)",
                 timestamp=datetime.now(timezone.utc),
             ),
             CheckResult(
-                check_id="check_ebs_encryption",
+                check_id="ebs_encryption",
                 resource_id="vol-0123456789abcdef0",
                 status=CheckStatus.PASS,
-                severity=Severity.LOW,
-                detail="EBS volume is encrypted (Mock Data)",
+                severity=Severity.HIGH,
+                detail="EBS volume is encrypted (local fallback source)",
                 timestamp=datetime.now(timezone.utc),
             ),
         ]
@@ -203,49 +232,69 @@ def health_check():
 
 
 @app.get("/governance/questions")
-def list_governance_questions():
-    """Return the default governance questionnaire used by the frontend."""
-    from risk_engine.governance import mock_governance_profile
+def list_governance_questions(db=Depends(get_db)):
+    """Return active persisted questions with their latest saved responses."""
+    from database.models import GovernanceQuestionDB
+    from database.persistence import ensure_governance_questions, get_latest_governance_responses
 
-    profile = mock_governance_profile()
+    ensure_governance_questions(db)
+    latest_responses = {
+        question.question_key: response.answer
+        for response, question in get_latest_governance_responses(db)
+    }
+    questions = (
+        db.query(GovernanceQuestionDB)
+        .filter(GovernanceQuestionDB.active.is_(True))
+        .order_by(GovernanceQuestionDB.id)
+        .all()
+    )
     return [
         {
-            "id": "GV-01",
-            "category": "Govern",
-            "question": "Is the organization security policy formally defined and reviewed?",
+            "id": question.question_key,
+            "category": "Govern" if question.csf_category.upper().startswith("GV.") else question.csf_category.split(".", 1)[0],
+            "question": question.question_text,
             "type": "yes_no",
             "required": True,
-            "weight": 5,
-            "answer": profile.get("security_policy_status") == "Mostly implemented",
-        },
-        {
-            "id": "GV-02",
-            "category": "Govern",
-            "question": "Is a cybersecurity risk owner assigned at the leadership level?",
-            "type": "yes_no",
-            "required": True,
-            "weight": 5,
-            "answer": True,
-        },
-        {
-            "id": "GV-03",
-            "category": "Govern",
-            "question": "Does the organization review third-party supply-chain risk?",
-            "type": "yes_no",
-            "required": True,
-            "weight": 5,
-            "answer": profile.get("third_party_risk_management") == "Formal review",
-        },
-        {
-            "id": "GV-04",
-            "category": "Govern",
-            "question": "Is the incident response plan reviewed and tested?",
-            "type": "yes_no",
-            "required": True,
-            "weight": 5,
-            "answer": True,
-        },
+            "weight": 1,
+            "answer": latest_responses.get(question.question_key),
+        }
+        for question in questions
     ]
+
+
+@app.get("/governance/score")
+def governance_score(db=Depends(get_db)):
+    """Calculate governance completion and affirmative score from persisted answers."""
+    from database.models import GovernanceQuestionDB
+    from database.persistence import ensure_governance_questions, get_latest_governance_responses
+
+    ensure_governance_questions(db)
+    questions = (
+        db.query(GovernanceQuestionDB)
+        .filter(GovernanceQuestionDB.active.is_(True))
+        .all()
+    )
+    responses = get_latest_governance_responses(db)
+    yes_count = sum(1 for response, _ in responses if response.answer)
+    total = len(questions)
+    answered = len(responses)
+    govern_questions = [question for question in questions if question.csf_category.upper().startswith("GV.")]
+    govern_responses = [
+        response for response, question in responses
+        if question.csf_category.upper().startswith("GV.")
+    ]
+    return {
+        "completion_percentage": round(answered / total * 100, 1) if total else 0.0,
+        "score": round(yes_count / total * 100, 1) if total else 0.0,
+        "answered": answered,
+        "total": total,
+        "by_function": {
+            "GOVERN": round(
+                sum(1 for response in govern_responses if response.answer) / len(govern_questions) * 100,
+                1,
+            ) if govern_questions else 0.0
+        },
+    }
 
 
 @app.get("/governance/profile", response_model=GovernanceProfile)
@@ -378,7 +427,7 @@ def list_assets(db=Depends(get_db)):
 
 @app.post("/scan/aws", response_model=ScanResponse)
 
-def run_aws_scan():
+def run_aws_scan(db=Depends(get_db)):
     """
     Trigger the AWS collector (or fallback to Mock AWS), run all registered checks,
     map results to NIST CSF 2.0 subcategories, score maturity per function, and return findings.
@@ -389,14 +438,9 @@ def run_aws_scan():
     from models.schemas import MappedFinding, FunctionScore
 
     results = _get_scan_results_with_fallback()
-    save_scan_results(results)
+    save_scan_results(results, db=db)
 
-    # Build MappedFinding objects for scoring
-    findings = []
-    for result in results:
-        mapping = get_mapping(result.check_id)
-        if mapping is not None:
-            findings.append(MappedFinding(result=result, mapping=mapping))
+    findings = _mapped_findings_for_results(results)
 
     raw_scores = score_all_functions(findings)
     scores = {
@@ -427,6 +471,174 @@ def run_aws_scan():
         overall_tier=numeric_tier,
         tier_name=TIER_NAME_MAP.get(raw_overall["tier"], "No Data"),
     )
+
+
+@app.get("/findings")
+def list_findings(db=Depends(get_db)):
+    """Return findings derived from the latest persisted scan, including unmapped checks."""
+    from database.models import ScanResultDB
+    from mappings.csf_mappings import get_mapping
+
+    latest_at = db.query(ScanResultDB.scanned_at).order_by(ScanResultDB.scanned_at.desc()).first()
+    if latest_at is None:
+        return {"findings": []}
+    rows = (
+        db.query(ScanResultDB)
+        .filter(ScanResultDB.scanned_at == latest_at[0])
+        .order_by(ScanResultDB.id)
+        .all()
+    )
+    findings = []
+    for row in rows:
+        check_id = _canonical_check_id(row.check_id)
+        mapping = get_mapping(check_id)
+        findings.append({
+            "id": row.id,
+            "check_id": check_id,
+            "title": check_id.replace("_", " ").title(),
+            "resource_id": row.resource_id,
+            "status": row.status,
+            "severity": row.severity,
+            "detail": row.detail,
+            "source": "AWS",
+            "mapping": mapping.model_dump() if mapping else None,
+            "mapped": mapping is not None,
+            "detected_at": row.scanned_at,
+            "asset_id": None,
+        })
+    return {"findings": findings}
+
+
+@app.get("/gaps")
+def list_gaps(db=Depends(get_db)):
+    """Return failed controls from the latest persisted scan with available NIST context."""
+    findings_payload = list_findings(db)
+    gaps = []
+    for finding in findings_payload["findings"]:
+        mapping = finding["mapping"]
+        if finding["status"] != CheckStatus.FAIL.value or mapping is None:
+            continue
+        gaps.append({
+            "gap_id": f"{finding['check_id']}:{finding['resource_id']}",
+            "finding_id": finding["id"],
+            "check_id": finding["check_id"],
+            "resource_id": finding["resource_id"],
+            "nist_function": mapping["csf_function"],
+            "nist_subcategory": mapping["csf_subcategory"],
+            "current_state": "FAIL",
+            "target_state": "PASS",
+            "severity": finding["severity"],
+            "detail": finding["detail"],
+            "remediation": mapping["justification"],
+            "financial_impact": None,
+        })
+    return {"gaps": gaps}
+
+
+@app.get("/dashboard/overview")
+def dashboard_overview(db=Depends(get_db)):
+    """Summarize current persisted assets, scan findings, governance, and maturity."""
+    from database.models import AssetDB, GovernanceQuestionDB, ScanResultDB
+    from database.persistence import get_latest_governance_responses
+
+    assets = db.query(AssetDB).all()
+    latest_at = db.query(ScanResultDB.scanned_at).order_by(ScanResultDB.scanned_at.desc()).first()
+    scan_rows = []
+    if latest_at is not None:
+        scan_rows = (
+            db.query(ScanResultDB)
+            .filter(ScanResultDB.scanned_at == latest_at[0])
+            .order_by(ScanResultDB.id)
+            .all()
+        )
+
+    mapped_findings = _build_findings_from_rows(scan_rows)
+    governance_responses = get_latest_governance_responses(db)
+    governance_question_count = (
+        db.query(GovernanceQuestionDB)
+        .filter(GovernanceQuestionDB.active.is_(True))
+        .count()
+    )
+    governance_score_value = (
+        round(sum(1 for response, _ in governance_responses if response.answer) / len(governance_responses) * 100, 1)
+        if governance_responses
+        else None
+    )
+    maturity = score_overall(mapped_findings, governance_score=governance_score_value)
+    findings = [
+        row for row in scan_rows
+        if row.status == CheckStatus.FAIL.value
+    ]
+    critical_findings = [
+        row for row in findings
+        if row.severity == Severity.CRITICAL.value
+    ]
+
+    return {
+        "total_assets": len(assets),
+        "critical_assets": sum(1 for asset in assets if asset.criticality.lower() == "critical"),
+        "open_findings": len(findings),
+        "critical_findings": len(critical_findings),
+        "governance_score": governance_score_value,
+        "governance_completion": round(len(governance_responses) / governance_question_count * 100, 1)
+        if governance_question_count
+        else 0.0,
+        "overall_maturity": maturity["score"],
+        "financial_risk": None,
+        "financial_risk_available": False,
+        "financial_risk_reason": "Current assets do not have scan resource identifiers or configured exposure and occurrence inputs.",
+        "last_scan": latest_at[0] if latest_at is not None else None,
+    }
+
+
+@app.get("/risk/summary")
+def risk_summary(db=Depends(get_db)):
+    """Return a risk summary based on current persisted scans without sample inputs."""
+    from database.models import AssetDB, ScanResultDB
+
+    latest_at = db.query(ScanResultDB.scanned_at).order_by(ScanResultDB.scanned_at.desc()).first()
+    rows = []
+    if latest_at is not None:
+        rows = (
+            db.query(ScanResultDB)
+            .filter(ScanResultDB.scanned_at == latest_at[0])
+            .all()
+        )
+    failed_rows = [row for row in rows if row.status == CheckStatus.FAIL.value]
+    assets = db.query(AssetDB).all()
+
+    if not failed_rows:
+        return {
+            "status": "calculated",
+            "expected_loss": 0.0,
+            "p50": 0.0,
+            "p90": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "iterations": 0,
+            "distribution": [0.0] * 12,
+            "open_findings": 0,
+            "assets_considered": len(assets),
+            "data_quality": "current_scan_no_failed_controls",
+            "reason": "No failed controls in the latest persisted scan; modeled loss is zero.",
+            "generated_at": latest_at[0] if latest_at is not None else None,
+        }
+
+    return {
+        "status": "unavailable",
+        "expected_loss": None,
+        "p50": None,
+        "p90": None,
+        "p95": None,
+        "p99": None,
+        "iterations": 0,
+        "distribution": [],
+        "open_findings": len(failed_rows),
+        "assets_considered": len(assets),
+        "data_quality": "missing_asset_risk_parameters",
+        "reason": "Failed controls are present, but current scan results cannot be linked to assets with configured exposure factors and annual occurrence rates.",
+        "generated_at": latest_at[0],
+    }
 
 
 @app.post("/risk/assess", response_model=RiskAssessmentResponse)
@@ -774,52 +986,21 @@ def scan_compare():
 
 
 @app.get("/dashboard/maturity", response_model=DashboardMaturityResponse)
-def dashboard_maturity():
-    """Return a front-end-friendly maturity summary across the six NIST CSF functions."""
-    from database.persistence import get_scan_history, save_scan_results
+def dashboard_maturity(db=Depends(get_db)):
+    """Calculate maturity from the latest persisted scan without triggering a new scan."""
+    from database.persistence import get_scan_history
 
-    try:
-        results = _get_scan_results_with_fallback()
-        save_scan_results(results)
-        findings = []
-        for result in results:
-            from mappings.csf_mappings import get_mapping
-
-            mapping = get_mapping(result.check_id)
-            if mapping is not None:
-                findings.append(type("MappedFinding", (), {"result": result, "mapping": mapping})())
-
-        history = get_scan_history(limit=100)
-        if history:
-            grouped = defaultdict(list)
-            for row in history:
-                grouped[row.scanned_at].append(row)
-            ordered_times = sorted(grouped.keys(), reverse=True)
-            previous_rows = []
-            if len(ordered_times) > 1:
-                previous_rows = [
-                    row for timestamp in [ordered_times[1]] for row in grouped[timestamp]
-                ]
-            current_payload = _build_maturity_payload(findings, _build_findings_from_rows(previous_rows))
-            return current_payload
-        return _build_maturity_payload(findings)
-    except Exception as exc:
-        history = get_scan_history(limit=100)
-        if not history:
-            raise HTTPException(
-                status_code=503,
-                detail="Unable to retrieve live maturity data. Check that the GovernX API is running.",
-            ) from exc
-
-        grouped = defaultdict(list)
-        for row in history:
-            grouped[row.scanned_at].append(row)
-        ordered_times = sorted(grouped.keys(), reverse=True)
-        latest_rows = [row for timestamp in [ordered_times[0]] for row in grouped[timestamp]]
-        previous_rows = []
-        if len(ordered_times) > 1:
-            previous_rows = [
-                row for timestamp in [ordered_times[1]] for row in grouped[timestamp]
-            ]
-
-        return _build_maturity_payload(_build_findings_from_rows(latest_rows), _build_findings_from_rows(previous_rows))
+    history = get_scan_history(limit=500, db=db)
+    grouped = defaultdict(list)
+    for row in history:
+        grouped[row.scanned_at].append(row)
+    ordered_times = sorted(grouped.keys(), reverse=True)
+    latest_rows = grouped[ordered_times[0]] if ordered_times else []
+    previous_rows = grouped[ordered_times[1]] if len(ordered_times) > 1 else []
+    governance = governance_score(db)
+    completion = governance["score"] if governance["answered"] else None
+    return _build_maturity_payload(
+        _build_findings_from_rows(latest_rows),
+        _build_findings_from_rows(previous_rows),
+        governance_completion=completion,
+    )
