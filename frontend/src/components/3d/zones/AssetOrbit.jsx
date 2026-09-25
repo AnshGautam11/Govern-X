@@ -1,8 +1,26 @@
 import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
-import { ASSET_ORBIT_DATA } from '../../../data/universeData';
 import * as THREE from 'three';
+
+const ASSET_COLORS = ['#38bdf8', '#34d399', '#fbbf24', '#f87171'];
+
+function toOrbitAsset(asset, index) {
+  const type = asset.type || 'Asset';
+  return {
+    ...asset,
+    id: asset.id,
+    name: asset.name,
+    type,
+    category: type,
+    status: asset.status || 'Inventoried',
+    risk: asset.criticality || 'Unclassified',
+    color: ASSET_COLORS[index % ASSET_COLORS.length],
+    orbitRadius: 18 + (index % 4) * 4,
+    orbitSpeed: 0.12 + (index % 5) * 0.025,
+    orbitTilt: 0.08 + (index % 3) * 0.04,
+  };
+}
 
 function OrbitingAsset({ asset, onSelect, isHovered, onHover, onUnhover }) {
   const groupRef = useRef();
@@ -93,7 +111,7 @@ function OrbitingAsset({ asset, onSelect, isHovered, onHover, onUnhover }) {
   );
 }
 
-export function AssetOrbit({ onSelectNode }) {
+export function AssetOrbit({ assets = [], onSelectNode }) {
   const [hoveredAsset, setHoveredAsset] = useState(null);
   const planetRef = useRef();
   const atmosphereRef = useRef();
@@ -144,7 +162,7 @@ export function AssetOrbit({ onSelectNode }) {
       ))}
 
       {/* Orbiting Asset Nodes */}
-      {ASSET_ORBIT_DATA.map((asset) => (
+      {assets.map(toOrbitAsset).map((asset) => (
         <OrbitingAsset
           key={asset.id}
           asset={asset}
@@ -163,8 +181,8 @@ export function AssetOrbit({ onSelectNode }) {
               pos: item.pos,
               score: item.complianceScore,
               accent: item.color,
-              summary: `${item.type} asset located at ${item.ip} operating on ${item.os}.`,
-              details: `Category: ${item.category} | Workload: ${item.workload} | Last Scanned: ${item.lastScanned}`,
+              summary: `${item.type} asset with ${item.criticality} criticality and recorded value ${item.value}.`,
+              details: `Inventory ID: ${item.id} | Criticality: ${item.criticality} | Added: ${item.created_at}`,
               route: '/identify',
               pillarName: 'IDENTIFY',
             })
