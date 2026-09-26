@@ -388,33 +388,55 @@ def get_all_assets(db: Session | None = None) -> list[AssetDB]:
             db.close()
 
 
-def upsert_governance_profile(profile: dict, db: Session | None = None) -> GovernanceProfileDB:
+def upsert_governance_profile(
+    profile: dict,
+    db: Session | None = None,
+) -> GovernanceProfileDB:
+    """Insert or update the single persisted governance profile safely."""
     owns_session = db is None
+
     if owns_session:
         db = SessionLocal()
 
     try:
         profile_fields = {
-            key: value for key, value in profile.items() if hasattr(GovernanceProfileDB, key)
+            key: value
+            for key, value in profile.items()
+            if hasattr(GovernanceProfileDB, key)
         }
+
         if "compliance_requirements" in profile_fields:
             compliance_value = profile_fields["compliance_requirements"]
-            if isinstance(compliance_value, list):
-                profile_fields["compliance_requirements"] = ", ".join(compliance_value)
 
-        existing = db.query(GovernanceProfileDB).first()
+            if isinstance(compliance_value, list):
+                profile_fields["compliance_requirements"] = ", ".join(
+                    compliance_value
+                )
+
+        existing = (
+            db.query(GovernanceProfileDB)
+            .order_by(GovernanceProfileDB.id.desc())
+            .first()
+        )
+
         if existing is None:
             record = GovernanceProfileDB(**profile_fields)
             db.add(record)
-            db.commit()
-            db.refresh(record)
-            return record
+        else:
+            record = existing
 
-        for key, value in profile_fields.items():
-            setattr(existing, key, value)
+            for key, value in profile_fields.items():
+                setattr(record, key, value)
+
         db.commit()
-        db.refresh(existing)
-        return existing
+        db.refresh(record)
+
+        return record
+
+    except Exception:
+        db.rollback()
+        raise
+
     finally:
         if owns_session:
             db.close()
@@ -503,23 +525,43 @@ def get_governance_profile(db: Session | None = None) -> dict:
             db.close()
 
 
-def save_financial_asset(asset: dict, db: Session | None = None) -> FinancialAssetDB:
+def save_financial_asset(
+    asset: dict,
+    db: Session | None = None,
+) -> FinancialAssetDB:
+    """Insert or update a financial asset with rollback on failure."""
     owns_session = db is None
+
     if owns_session:
         db = SessionLocal()
 
     try:
-        record = db.query(FinancialAssetDB).filter(FinancialAssetDB.asset_id == asset["asset_id"]).first()
+        record = (
+            db.query(FinancialAssetDB)
+            .filter(
+                FinancialAssetDB.asset_id == asset["asset_id"]
+            )
+            .first()
+        )
+
         if record is None:
             record = FinancialAssetDB(**asset)
             db.add(record)
+
         else:
             for key, value in asset.items():
                 if hasattr(record, key):
                     setattr(record, key, value)
+
         db.commit()
         db.refresh(record)
+
         return record
+
+    except Exception:
+        db.rollback()
+        raise
+
     finally:
         if owns_session:
             db.close()
