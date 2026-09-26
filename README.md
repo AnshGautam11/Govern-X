@@ -1724,3 +1724,9 @@ Week 3 focuses on the **Govern function of NIST CSF 2.0**.
 - Governance score is calculated from completed policy responses.
 - Integrated the Govern score into function and overall maturity scoring.
 - Added tests for governance scoring and integration.
+
+### Week 3 – Database Fixes
+- Aligned the database schema with the current ORM models.
+- Added financial asset and governance profile DB support.
+- Improved transaction rollback handling.
+- Added database persistence and schema tests.
