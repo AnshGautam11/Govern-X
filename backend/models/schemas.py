@@ -218,6 +218,18 @@ class AssetListResponse(BaseModel):
     assets: list[AssetResponse]
 
 
+class CombinedReportResponse(BaseModel):
+    """W3-Day5 — unified compliance + risk + governance report."""
+
+    maturity: DashboardMaturityResponse
+    governance: GovernanceResponsesResponse
+    risk: RiskAssessmentResponse
+    generated_at: datetime
+
+
+class GovernanceProfile(BaseModel):
+
+
 class GovernanceProfile(BaseModel):
     organization_name: str = "Demo Enterprise"
     industry: str = "Technology"
