@@ -21,6 +21,7 @@ from models.schemas import (
     AssetResponse,
     CheckResult,
     CheckStatus,
+    CombinedReportResponse,
     DashboardMaturityResponse,
     GovernanceAnswerResponse,
     GovernanceProfile,
@@ -1030,4 +1031,33 @@ def dashboard_maturity(db=Depends(get_db)):
         _build_findings_from_rows(latest_rows),
         _build_findings_from_rows(previous_rows),
         governance_completion=completion,
+    )
+
+
+@app.get("/reports/combined", response_model=CombinedReportResponse)
+def combined_report(
+    sector: str = "financial",
+    db=Depends(get_db),
+):
+    """
+    W3-Day5 (Sujal) — combines compliance maturity, financial risk, and
+    governance questionnaire completion into a single report.
+
+    Reuses the existing /dashboard/maturity, /risk/assess, and
+    /governance/responses logic rather than duplicating it, so this
+    endpoint stays in sync automatically as those evolve. Each of those
+    functions takes its own db session explicitly (dashboard_maturity
+    and get_governance_responses both require it), since calling them
+    directly like this bypasses FastAPI's automatic dependency
+    resolution — passing db=db here is what makes that work correctly.
+    """
+    maturity = dashboard_maturity(db=db)
+    governance = get_governance_responses(db=db)
+    risk = assess_financial_risk(RiskAssessmentRequest(sector=sector))
+
+    return CombinedReportResponse(
+        maturity=maturity,
+        governance=governance,
+        risk=risk,
+        generated_at=datetime.now(timezone.utc),
     )
