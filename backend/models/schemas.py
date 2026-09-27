@@ -227,7 +227,6 @@ class CombinedReportResponse(BaseModel):
     generated_at: datetime
 
 
-class GovernanceProfile(BaseModel):
 
 
 class GovernanceProfile(BaseModel):
