@@ -169,6 +169,28 @@ class GovernanceResponsesResponse(BaseModel):
 
     responses: list[GovernanceAnswerResponse]
 
+class GovernanceAuditResponse(BaseModel):
+    """One answer captured in a governance audit submission."""
+
+    question_key: str
+    question_text: str
+    csf_category: str
+    answer: bool
+    notes: str | None = None
+
+
+class GovernanceAuditEntry(BaseModel):
+    """One historical governance questionnaire submission."""
+
+    submission_id: str
+    submitted_at: datetime
+    responses: list[GovernanceAuditResponse]
+
+
+class GovernanceAuditHistoryResponse(BaseModel):
+    """Historical governance questionnaire submissions."""
+
+    history: list[GovernanceAuditEntry]
 
 class AssetCreateRequest(BaseModel):
     """Payload for adding a new asset to the inventory (W3-Day2)."""
