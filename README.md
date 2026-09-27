@@ -1730,3 +1730,12 @@ Week 3 focuses on the **Govern function of NIST CSF 2.0**.
 - Added financial asset and governance profile DB support.
 - Improved transaction rollback handling.
 - Added database persistence and schema tests.
+
+### Governance Response Audit Trail
+
+GovernX preserves historical governance questionnaire submissions through a dedicated audit trail. Each submission receives a unique submission ID and timestamp, while the individual answers remain linked to their governance questions.
+
+API:
+- `POST /governance/responses` — submit questionnaire responses
+- `GET /governance/responses` — retrieve the latest responses
+- `GET /governance/history` — retrieve historical questionnaire submissions
