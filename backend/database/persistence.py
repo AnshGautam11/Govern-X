@@ -4,6 +4,7 @@ so that /scan/history (W2-Day2) can query past scans.
 """
 
 from datetime import datetime
+from uuid import uuid4
 
 from sqlalchemy.orm import Session
 
@@ -14,6 +15,7 @@ from database.models import (
     GovernanceProfileDB,
     GovernanceQuestionDB,
     GovernanceResponseDB,
+    GovernanceResponseAuditDB,
     MockScenarioDB,
     ScanResultDB,
 )

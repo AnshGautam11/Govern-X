@@ -116,6 +116,43 @@ class GovernanceResponseDB(Base):
         index=True,
     )
 
+class GovernanceResponseAuditDB(Base):
+    """Immutable audit record for a governance questionnaire submission."""
+
+    __tablename__ = "governance_response_audit"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    submission_id = Column(
+        String,
+        nullable=False,
+        index=True,
+    )
+
+    question_id = Column(
+        Integer,
+        ForeignKey("governance_questions.id"),
+        nullable=False,
+        index=True,
+    )
+
+    answer = Column(
+        Boolean,
+        nullable=False,
+    )
+
+    notes = Column(
+        Text,
+        nullable=True,
+    )
+
+    submitted_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        nullable=False,
+        index=True,
+    )
+
 class GovernanceEvidenceDB(Base):
     """Supporting evidence attached to a governance questionnaire response."""
 
