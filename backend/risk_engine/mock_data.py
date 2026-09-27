@@ -32,3 +32,109 @@ MOCK_GOVERNANCE_ANSWERS = {
         "third_party_risk_reviewed": True,
     },
 }
+MOCK_COMBINED_REPORT_SCENARIOS = {
+    "strong_governance": {
+        "description": "Mostly compliant organization with low governance gaps.",
+        "sector": "financial",
+        "findings": [
+            {
+                "check_id": "cloudtrail_enabled",
+                "resource_id": "mock-trail",
+                "status": "pass",
+                "severity": "high",
+                "detail": "CloudTrail logging is enabled.",
+            },
+            {
+                "check_id": "vpc_flow_logs_enabled",
+                "resource_id": "mock-vpc",
+                "status": "pass",
+                "severity": "high",
+                "detail": "VPC flow logs are enabled.",
+            },
+        ],
+        "governance_answers": MOCK_GOVERNANCE_ANSWERS["financial"],
+    },
+    "partial_governance": {
+        "description": "Mixed compliance with identifiable governance and infrastructure gaps.",
+        "sector": "financial",
+        "findings": [
+            {
+                "check_id": "cloudtrail_enabled",
+                "resource_id": "mock-trail",
+                "status": "pass",
+                "severity": "high",
+                "detail": "CloudTrail logging is enabled.",
+            },
+            {
+                "check_id": "vpc_flow_logs_enabled",
+                "resource_id": "mock-vpc-1",
+                "status": "fail",
+                "severity": "high",
+                "detail": "VPC flow logs are disabled.",
+            },
+            {
+                "check_id": "vpc_flow_logs_enabled",
+                "resource_id": "mock-vpc-2",
+                "status": "fail",
+                "severity": "high",
+                "detail": "VPC flow logs are disabled.",
+            },
+        ],
+        "governance_answers": MOCK_GOVERNANCE_ANSWERS["financial"],
+    },
+    "weak_governance": {
+        "description": "Low compliance scenario with multiple failed controls.",
+        "sector": "healthcare",
+        "findings": [
+            {
+                "check_id": "cloudtrail_enabled",
+                "resource_id": "mock-trail",
+                "status": "fail",
+                "severity": "high",
+                "detail": "CloudTrail logging is disabled.",
+            },
+            {
+                "check_id": "vpc_flow_logs_enabled",
+                "resource_id": "mock-vpc",
+                "status": "fail",
+                "severity": "high",
+                "detail": "VPC flow logs are disabled.",
+            },
+        ],
+        "governance_answers": MOCK_GOVERNANCE_ANSWERS["healthcare"],
+    },
+}
+def test_combined_report_mock_scenarios_are_complete():
+    from risk_engine.mock_data import MOCK_COMBINED_REPORT_SCENARIOS
+
+    assert set(MOCK_COMBINED_REPORT_SCENARIOS) == {
+        "strong_governance",
+        "partial_governance",
+        "weak_governance",
+    }
+
+    for scenario in MOCK_COMBINED_REPORT_SCENARIOS.values():
+        assert scenario["description"]
+        assert scenario["sector"] in {"financial", "healthcare"}
+        assert scenario["findings"]
+        assert scenario["governance_answers"]
+
+        for finding in scenario["findings"]:
+            assert finding["check_id"]
+            assert finding["resource_id"]
+            assert finding["status"] in {"pass", "fail"}
+            assert finding["severity"]
+
+
+def test_combined_report_mock_scenarios_cover_different_compliance_states():
+    from risk_engine.mock_data import MOCK_COMBINED_REPORT_SCENARIOS
+
+    scenarios = MOCK_COMBINED_REPORT_SCENARIOS.values()
+
+    statuses = {
+        finding["status"]
+        for scenario in scenarios
+        for finding in scenario["findings"]
+    }
+
+    assert statuses == {"pass", "fail"}
