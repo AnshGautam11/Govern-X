@@ -92,13 +92,16 @@ def ensure_governance_questions(db: Session | None = None) -> None:
 def save_governance_responses(
     answers: dict[str, bool],
     db: Session | None = None,
-) -> None:
-    """Persist one questionnaire submission."""
+) -> str:
+    """Persist one questionnaire submission and its audit snapshot."""
 
     owns_session = db is None
 
     if owns_session:
         db = SessionLocal()
+
+    submission_id = uuid4().hex
+    submitted_at = datetime.utcnow()
 
     try:
         ensure_governance_questions(db)
@@ -128,10 +131,22 @@ def save_governance_responses(
                 GovernanceResponseDB(
                     question_id=question.id,
                     answer=answer,
+                    answered_at=submitted_at,
+                )
+            )
+
+            db.add(
+                GovernanceResponseAuditDB(
+                    submission_id=submission_id,
+                    question_id=question.id,
+                    answer=answer,
+                    submitted_at=submitted_at,
                 )
             )
 
         db.commit()
+
+        return submission_id
 
     except Exception:
         db.rollback()
@@ -181,6 +196,61 @@ def get_latest_governance_responses(
                 )
 
         return list(latest_by_question.values())
+
+    finally:
+        if owns_session:
+            db.close()
+
+def get_governance_response_history(
+    limit: int = 50,
+    db: Session | None = None,
+) -> list[dict]:
+    """Return historical governance questionnaire submissions."""
+
+    owns_session = db is None
+
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        rows = (
+            db.query(
+                GovernanceResponseAuditDB,
+                GovernanceQuestionDB,
+            )
+            .join(
+                GovernanceQuestionDB,
+                GovernanceResponseAuditDB.question_id
+                == GovernanceQuestionDB.id,
+            )
+            .order_by(
+                GovernanceResponseAuditDB.submitted_at.desc(),
+                GovernanceResponseAuditDB.id.desc(),
+            )
+            .all()
+        )
+
+        submissions = {}
+
+        for audit, question in rows:
+            if audit.submission_id not in submissions:
+                submissions[audit.submission_id] = {
+                    "submission_id": audit.submission_id,
+                    "submitted_at": audit.submitted_at,
+                    "responses": [],
+                }
+
+            submissions[audit.submission_id]["responses"].append(
+                {
+                    "question_key": question.question_key,
+                    "question_text": question.question_text,
+                    "csf_category": question.csf_category,
+                    "answer": audit.answer,
+                    "notes": audit.notes,
+                }
+            )
+
+        return list(submissions.values())[:limit]
 
     finally:
         if owns_session:
