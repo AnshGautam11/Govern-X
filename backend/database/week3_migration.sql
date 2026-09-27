@@ -47,3 +47,22 @@ CREATE TABLE IF NOT EXISTS governance_profiles (
     last_policy_review_date TEXT NOT NULL DEFAULT '2026-09-01',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Governance response audit trail (W3-Day5)
+-- Stores immutable snapshots of questionnaire submissions.
+
+CREATE TABLE IF NOT EXISTS governance_response_audit (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    submission_id TEXT NOT NULL,
+    question_id INTEGER NOT NULL,
+    answer BOOLEAN NOT NULL,
+    notes TEXT,
+    submitted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (question_id) REFERENCES governance_questions(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_governance_audit_submission
+ON governance_response_audit(submission_id);
+
+CREATE INDEX IF NOT EXISTS idx_governance_audit_submitted_at
+ON governance_response_audit(submitted_at);
