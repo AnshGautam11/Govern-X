@@ -25,6 +25,7 @@ from models.schemas import (
     GovernanceAnswerResponse,
     GovernanceProfile,
     GovernanceResponseRequest,
+    GovernanceAuditHistoryResponse,
     GovernanceResponsesResponse,
     MaturityOverview,
     PillarMaturity,
@@ -886,6 +887,32 @@ def get_governance_responses(
 
     return GovernanceResponsesResponse(
         responses=responses,
+    )
+
+@app.get(
+    "/governance/history",
+    response_model=GovernanceAuditHistoryResponse,
+)
+def get_governance_response_history(
+    limit: int = Query(
+        default=50,
+        gt=0,
+        le=200,
+        description="Maximum number of questionnaire submissions to return.",
+    ),
+    db=Depends(get_db),
+):
+    """Return historical governance questionnaire submissions."""
+
+    from database.persistence import get_governance_response_history
+
+    history = get_governance_response_history(
+        limit=limit,
+        db=db,
+    )
+
+    return GovernanceAuditHistoryResponse(
+        history=history,
     )
 
 
