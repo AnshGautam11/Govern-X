@@ -23,6 +23,7 @@ from models.schemas import (
     CheckStatus,
     CombinedReportResponse,
     DashboardMaturityResponse,
+    ExecutiveReportResponse,
     GovernanceAnswerResponse,
     GovernanceProfile,
     GovernanceResponseRequest,
@@ -1064,4 +1065,51 @@ def combined_report(
         governance=governance,
         risk=risk,
         generated_at=datetime.now(timezone.utc),
+    )
+
+@app.get(
+    "/report/data",
+    response_model=ExecutiveReportResponse,
+)
+def report_data(
+    sector: str = "financial",
+    db=Depends(get_db),
+):
+    """Return the Week 4 executive report data model."""
+
+    from reports.report_service import build_report_data
+
+    return build_report_data(
+        db=db,
+        sector=sector,
+    )
+
+
+@app.get("/report/pdf")
+def report_pdf(
+    sector: str = "financial",
+    db=Depends(get_db),
+):
+    """Generate the Week 4 executive-ready PDF."""
+
+    from fastapi.responses import Response
+    from reports.pdf_report import build_executive_pdf
+    from reports.report_service import build_report_data
+
+    report = build_report_data(
+        db=db,
+        sector=sector,
+    )
+
+    pdf_bytes = build_executive_pdf(report)
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": (
+                'attachment; filename="governx-executive-report.pdf"'
+            ),
+            "X-GovernX-Report-Status": report["status"],
+        },
     )
