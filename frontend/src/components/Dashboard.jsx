@@ -1,13 +1,23 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, AlertTriangle, ArrowUpRight, CheckCircle2, Clock3, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import {
+  Activity,
+  AlertTriangle,
+  ArrowUpRight,
+  CheckCircle2,
+  Clock3,
+  Download,
+  RefreshCw,
+  Wifi,
+  WifiOff
+} from 'lucide-react';
 import UniverseCanvas from './3d/UniverseCanvas';
 import UniverseHUD from './hud/UniverseHUD';
 import PillarCard from './PillarCard';
 import TypingEffect from './TypingEffect';
 import TerminalMessages from './TerminalMessages';
 import { UNIVERSE_ZONES } from '../data/universeData';
-import { fetchAssets, fetchDashboardOverview, fetchHealthStatus, fetchMaturityData, fetchFindings, fetchGaps, fetchScanHistory, normalizeMaturityResponse, normalizeScanResponse, triggerAssessmentScan } from '../lib/api';
+import { fetchAssets, fetchDashboardOverview, fetchHealthStatus, fetchMaturityData, fetchFindings, fetchGaps, fetchScanHistory, getExecutiveReportPdfUrl, normalizeMaturityResponse, normalizeScanResponse, triggerAssessmentScan } from '../lib/api';
 import './Dashboard.css';
 import ScanHistoryPanel from './ScanHistoryPanel';
 import FindingsExplorer from './FindingsExplorer';
@@ -240,6 +250,8 @@ export function Dashboard() {
             <div className="command-actions">
               <Link to="/governance-assessment" className="assessment-link">Governance assessment</Link>
               <Link to="/financial-risk" className="assessment-link">Financial risk</Link>
+              <a className="assessment-button report-download" href={getExecutiveReportPdfUrl('financial')} download="governx-executive-report.pdf" title="Download the executive PDF report" >
+                 <Download size={15} /> Download Report </a>
               <span className="assessment-time">
                 <Clock3 size={14} /> {loading ? 'Loading maturity data...' : lastScanAt ? new Date(lastScanAt).toLocaleString() : 'No scans recorded'}
               </span>
