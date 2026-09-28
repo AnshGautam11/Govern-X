@@ -213,6 +213,9 @@ def _get_scan_results_with_fallback():
         ]
 
 
+import logging
+logger = logging.getLogger("governx")
+
 app = FastAPI(
     title="GovernX API",
     description="Automated NIST CSF 2.0 compliance and risk quantification engine",
