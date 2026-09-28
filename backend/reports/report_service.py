@@ -403,3 +403,144 @@ def prioritize_remediation(
         item["rank"] = index
 
     return ranked
+
+def _sample_roi_for_remediation(
+    remediation: dict[str, Any],
+    sector: str,
+) -> dict[str, Any]:
+
+    parameters = (
+        MOCK_ASSET_DATA.get(sector)
+        or MOCK_ASSET_DATA["financial"]
+    )
+
+    baseline_losses = run_monte_carlo(
+        iterations=5000,
+        seed=42,
+        **parameters,
+    )
+
+    baseline = summarize(
+        baseline_losses
+    )
+
+    severity = remediation["severity"]
+
+    reduction = ASSUMED_RISK_REDUCTION.get(
+        severity,
+        0.10,
+    )
+
+    low, high = parameters[
+        "exposure_factor_range"
+    ]
+
+    remediated_range = (
+        max(
+            0.0,
+            low * (1 - reduction),
+        ),
+        max(
+            0.0,
+            high * (1 - reduction),
+        ),
+    )
+
+    remediated_losses = run_monte_carlo(
+        iterations=5000,
+        seed=42,
+        asset_value_range=parameters[
+            "asset_value_range"
+        ],
+        exposure_factor_range=remediated_range,
+        annual_rate_of_occurrence=parameters[
+            "annual_rate_of_occurrence"
+        ],
+    )
+
+    remediated = summarize(
+        remediated_losses
+    )
+
+    risk_reduced = max(
+        0.0,
+        baseline["expected"]
+        - remediated["expected"],
+    )
+
+    cost = ASSUMED_REMEDIATION_COST.get(
+        severity,
+        4000.0,
+    )
+
+    return {
+        "check_id": remediation["check_id"],
+        "rank": remediation["rank"],
+        "baseline_expected_loss": round(
+            baseline["expected"],
+            2,
+        ),
+        "remediated_expected_loss": round(
+            remediated["expected"],
+            2,
+        ),
+        "risk_reduced": round(
+            risk_reduced,
+            2,
+        ),
+        "assumed_remediation_cost": cost,
+        "roi_ratio": round(
+            risk_reduced / cost,
+            2,
+        )
+        if cost
+        else None,
+        "assumptions": {
+            "severity": severity,
+            "risk_reduction_percent": round(
+                reduction * 100,
+                1,
+            ),
+            "sector": sector,
+            "data_quality": "assumed_sample_data",
+        },
+    }
+
+
+def _build_roi(
+    remediations: list[dict[str, Any]],
+    sector: str,
+) -> dict[str, Any]:
+
+    if not remediations:
+        return {
+            "status": "no_gap_data",
+            "sector": sector,
+            "items": [],
+            "message": (
+                "No failed controls are available "
+                "for remediation ROI modeling."
+            ),
+        }
+
+    return {
+        "status": "sample_only",
+        "sector": sector,
+        "items": [
+            _sample_roi_for_remediation(
+                item,
+                sector,
+            )
+            for item in remediations[:5]
+        ],
+        "formula": (
+            "ROI ratio = modeled risk reduction "
+            "/ assumed remediation cost."
+        ),
+        "message": (
+            "Financial figures use assumed sample "
+            "inputs from the existing Monte Carlo "
+            "model and must not be interpreted as "
+            "audit-grade or real organizational figures."
+        ),
+    }
