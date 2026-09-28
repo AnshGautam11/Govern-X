@@ -145,3 +145,131 @@ def test_report_data_assembles_scan_and_governance():
 
     finally:
         db.close()
+def test_report_data_filters_unknown_check_ids():
+
+    db = SessionLocal()
+
+    try:
+        db.query(ScanResultDB).delete()
+        db.commit()
+
+        timestamp = datetime.utcnow()
+
+        db.add_all(
+            [
+                ScanResultDB(
+                    check_id="cloudtrail_enabled",
+                    resource_id="demo-trail",
+                    status="pass",
+                    severity="high",
+                    detail="CloudTrail enabled.",
+                    scanned_at=timestamp,
+                ),
+                ScanResultDB(
+                    check_id="unknown_test_check",
+                    resource_id="unknown-resource",
+                    status="fail",
+                    severity="critical",
+                    detail="Unknown check.",
+                    scanned_at=timestamp,
+                ),
+            ]
+        )
+
+        db.commit()
+
+        report = build_report_data(db)
+
+        assert report["status"] == "ready"
+        assert report["summary"]["total_checks"] == 2
+        assert len(report["findings"]) == 1
+        assert report["findings"][0]["check_id"] == "cloudtrail_enabled"
+
+    finally:
+        db.close()
+
+
+def test_report_data_builds_pillars_for_all_csf_functions():
+
+    db = SessionLocal()
+
+    try:
+        db.query(ScanResultDB).delete()
+        db.commit()
+
+        timestamp = datetime.utcnow()
+
+        db.add(
+            ScanResultDB(
+                check_id="cloudtrail_enabled",
+                resource_id="demo-trail",
+                status="pass",
+                severity="high",
+                detail="CloudTrail enabled.",
+                scanned_at=timestamp,
+            )
+        )
+
+        db.commit()
+
+        report = build_report_data(db)
+
+        assert len(report["pillars"]) == 6
+
+        functions = [
+            pillar["function"]
+            for pillar in report["pillars"]
+        ]
+
+        assert functions == [
+            "Govern",
+            "Identify",
+            "Protect",
+            "Detect",
+            "Respond",
+            "Recover",
+        ]
+
+    finally:
+        db.close()
+
+
+def test_report_data_builds_failed_gap_with_affected_resource():
+
+    db = SessionLocal()
+
+    try:
+        db.query(ScanResultDB).delete()
+        db.commit()
+
+        timestamp = datetime.utcnow()
+
+        db.add(
+            ScanResultDB(
+                check_id="iam_policy_wildcard_admin",
+                resource_id="demo-role-1",
+                status="fail",
+                severity="critical",
+                detail="Wildcard admin access.",
+                scanned_at=timestamp,
+            )
+        )
+
+        db.commit()
+
+        report = build_report_data(db)
+
+        assert report["status"] == "ready"
+        assert len(report["gaps"]) == 1
+        assert (
+            report["gaps"][0]["check_id"]
+            == "iam_policy_wildcard_admin"
+        )
+        assert (
+            report["gaps"][0]["affected_resources"]
+            == ["demo-role-1"]
+        )
+        assert report["remediation"]
+
+    finally:
+        db.close()
