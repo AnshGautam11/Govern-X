@@ -183,15 +183,16 @@ def _get_scan_results_with_fallback():
             from mock_aws.environment import run_all_checks as mock_run_all
             return mock_run_all()
         except Exception:
-            pass
+            logger.warning("Mock scan source failed, trying next fallback", exc_info=True)
 
         try:
             from mock_aws.scanner import run_all_checks as mock_run_all
             return mock_run_all()
         except Exception:
-            pass
+            logger.warning("Mock scan source failed, trying next fallback", exc_info=True)
 
         # Fallback 2: Direct Mock Data if mock_aws module structure varies
+        logger.warning("Using hardcoded fallback results; this scan is NOT from a real source")
         return [
             CheckResult(
                 check_id="s3_encryption_at_rest",
