@@ -226,7 +226,32 @@ class CombinedReportResponse(BaseModel):
     risk: RiskAssessmentResponse
     generated_at: datetime
 
+class ReportRemediation(BaseModel):
+    rank: int
+    check_id: str
+    title: str
+    severity: str
+    resource_count: int
+    priority_score: int
+    csf_function: str
+    csf_subcategory: str
+    remediation: str
+    affected_resources: list[str] = []
 
+
+class ExecutiveReportResponse(BaseModel):
+    """Week 4 executive report data contract."""
+
+    generated_at: datetime
+    status: Literal["ready", "no_data"]
+    summary: dict
+    pillars: list[dict] = []
+    findings: list[dict] = []
+    gaps: list[dict] = []
+    remediation: list[ReportRemediation] = []
+    governance: dict
+    roi: dict
+    disclaimers: list[str] = []
 
 
 class GovernanceProfile(BaseModel):
