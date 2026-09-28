@@ -11,7 +11,7 @@ from risk_engine.mock_data import MOCK_ASSET_DATA
 
 def test_disclaimer_still_documented():
     """The sample-data disclaimer must never be silently removed."""
-    content = open("risk_engine/monte_carlo.py", encoding="utf-8").read()
+    content = open("backend/risk_engine/monte_carlo.py", encoding="utf-8").read()
     assert "sample" in content.lower() or "assumed" in content.lower()
     assert "not real" in content.lower()
 
