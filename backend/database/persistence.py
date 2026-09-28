@@ -295,6 +295,37 @@ def save_scan_results(
         if owns_session:
             db.close()
 
+def get_latest_scan_results(
+    db: Session | None = None,
+) -> list[ScanResultDB]:
+    """Return all persisted rows belonging to the newest scan batch."""
+
+    owns_session = db is None
+
+    if owns_session:
+        db = SessionLocal()
+
+    try:
+        latest = (
+            db.query(ScanResultDB.scanned_at)
+            .order_by(ScanResultDB.scanned_at.desc())
+            .first()
+        )
+
+        if latest is None:
+            return []
+
+        return (
+            db.query(ScanResultDB)
+            .filter(ScanResultDB.scanned_at == latest[0])
+            .order_by(ScanResultDB.id)
+            .all()
+        )
+
+    finally:
+        if owns_session:
+            db.close()
+
 def get_scan_history(limit: int = 50, db: Session | None = None) -> list[ScanResultDB]:
     """Return the most recent scan_results rows, newest first."""
     owns_session = db is None

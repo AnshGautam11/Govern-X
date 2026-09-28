@@ -108,3 +108,197 @@ def _finding_dict(row: Any) -> dict[str, Any] | None:
         "remediation": mapping.justification,
         "scanned_at": row.scanned_at,
     }
+
+def build_report_data(
+    db: Session,
+    sector: str = "financial",
+) -> dict[str, Any]:
+    """Build the complete executive report payload."""
+
+    rows = get_latest_scan_results(db=db)
+
+    findings = [
+        _finding_dict(row)
+        for row in rows
+    ]
+
+    findings = [
+        finding
+        for finding in findings
+        if finding is not None
+    ]
+
+    ensure_governance_questions(db)
+
+    governance_rows = get_latest_governance_responses(db=db)
+
+    governance_total = (
+        db.query(GovernanceQuestionDB)
+        .filter(GovernanceQuestionDB.active.is_(True))
+        .count()
+    )
+
+    governance_answered = len(governance_rows)
+
+    governance_yes = sum(
+        1
+        for response, _ in governance_rows
+        if response.answer
+    )
+
+    governance_score = (
+        round(
+            governance_yes / governance_total * 100,
+            1,
+        )
+        if governance_total
+        else None
+    )
+
+    failed_findings = [
+        finding
+        for finding in findings
+        if finding["status"] == CheckStatus.FAIL.value
+    ]
+
+    remediation = prioritize_remediation(findings)
+
+    if not rows:
+        summary = {
+            "overall_score": None,
+            "tier": None,
+            "tier_name": "No Data",
+            "total_checks": None,
+            "passed": None,
+            "failed": None,
+            "errors": None,
+        }
+
+        function_scores = {}
+
+    else:
+        mapped_objects = []
+
+        for finding in findings:
+            mapped_objects.append(
+                MappedFinding(
+                    result=CheckResult(
+                        check_id=finding["check_id"],
+                        resource_id=finding["resource_id"],
+                        status=CheckStatus(
+                            finding["status"]
+                        ),
+                        severity=Severity(
+                            finding["severity"]
+                        ),
+                        detail=finding["detail"],
+                        timestamp=finding["scanned_at"],
+                    ),
+                    mapping=get_mapping(
+                        finding["check_id"]
+                    ),
+                )
+            )
+
+        maturity = score_overall(
+            mapped_objects,
+            governance_score=governance_score,
+        )
+
+        overall_score = maturity["score"]
+
+        tier, tier_name = _tier_for_score(
+            overall_score
+        )
+
+        function_scores = score_all_functions(
+            mapped_objects,
+            governance_score=governance_score,
+        )
+
+        summary = {
+            "overall_score": overall_score,
+            "tier": tier,
+            "tier_name": tier_name,
+            "total_checks": len(rows),
+            "passed": sum(
+                row.status == CheckStatus.PASS.value
+                for row in rows
+            ),
+            "failed": sum(
+                row.status == CheckStatus.FAIL.value
+                for row in rows
+            ),
+            "errors": sum(
+                row.status == CheckStatus.ERROR.value
+                for row in rows
+            ),
+        }
+
+    pillars = []
+
+    for function_name in FUNCTION_ORDER:
+        score_data = function_scores.get(
+            function_name
+        )
+
+        score = (
+            score_data.get("score")
+            if score_data
+            else None
+        )
+
+        tier, tier_name = _tier_for_score(score)
+
+        pillars.append(
+            {
+                "function": function_name,
+                "score": score,
+                "tier": tier,
+                "tier_name": tier_name,
+            }
+        )
+
+    return {
+        "generated_at": datetime.now(timezone.utc),
+        "status": "ready" if rows else "no_data",
+        "summary": summary,
+        "pillars": pillars,
+        "findings": findings,
+        "gaps": [
+            {
+                **finding,
+                "affected_resources": [
+                    finding["resource_id"]
+                ],
+            }
+            for finding in failed_findings
+        ],
+        "remediation": remediation,
+        "governance": {
+            "answered": governance_answered,
+            "total": governance_total,
+            "score": governance_score,
+            "completion": (
+                round(
+                    governance_answered
+                    / governance_total
+                    * 100,
+                    1,
+                )
+                if governance_total
+                else None
+            ),
+            "self_attested": True,
+        },
+        "roi": _build_roi(
+            remediation,
+            sector,
+        ),
+        "disclaimers": [
+            "Financial figures are sample/assumed data carried forward from the Week 3 Monte Carlo model.",
+            "Governance answers are self-attested questionnaire responses, not independently audited evidence.",
+            "Board-ready refers to clear executive formatting and does not imply audit-grade accuracy.",
+            "No Data is shown when no scan has been persisted; the report does not invent a percentage or maturity tier.",
+        ],
+    }
