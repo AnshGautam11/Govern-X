@@ -265,6 +265,11 @@ def build_report_data(
         "summary": summary,
         "pillars": pillars,
         "findings": findings,
+        "data_notes": {
+           "financial_data": "Sample/assumed data for demonstration purposes.",
+           "governance_data": "Governance responses are self-attested questionnaire responses.",
+           "scan_data": "Compliance findings are based on the available scan results."
+        },
         "gaps": [
             {
                 **finding,
