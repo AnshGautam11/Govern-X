@@ -5,6 +5,7 @@ from database.models import (
     GovernanceProfileDB,
     GovernanceQuestionDB,
     GovernanceResponseDB,
+    GovernanceResponseAuditDB,
 )
 
 
@@ -39,3 +40,30 @@ def test_governance_profile_model_is_registered():
     assert GovernanceProfileDB.__tablename__ == "governance_profiles"
     assert GovernanceProfileDB.organization_name.property.columns[0].nullable is False
     assert GovernanceProfileDB.industry.property.columns[0].nullable is False
+
+def test_governance_audit_model_is_registered():
+    assert GovernanceResponseAuditDB.__tablename__ == "governance_response_audit"
+    assert GovernanceResponseAuditDB.submission_id.property.columns[0].nullable is False
+    assert GovernanceResponseAuditDB.question_id.property.columns[0].nullable is False
+    assert GovernanceResponseAuditDB.answer.property.columns[0].nullable is False
+
+
+def test_governance_final_indexes_are_registered():
+    question_indexes = {
+        index.name
+        for index in GovernanceQuestionDB.__table__.indexes
+    }
+
+    response_indexes = {
+        index.name
+        for index in GovernanceResponseDB.__table__.indexes
+    }
+
+    audit_indexes = {
+        index.name
+        for index in GovernanceResponseAuditDB.__table__.indexes
+    }
+
+    assert "idx_governance_questions_category_active" in question_indexes
+    assert "idx_governance_responses_question_answered" in response_indexes
+    assert "idx_governance_audit_question_submitted" in audit_indexes
