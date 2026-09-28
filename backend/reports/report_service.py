@@ -117,16 +117,16 @@ def build_report_data(
 
     rows = get_latest_scan_results(db=db)
 
-    findings = [
-        _finding_dict(row)
-        for row in rows
-    ]
-
+    # Keep only mapped findings for the executive report.
+    # Unknown/stale check IDs should not appear as fake compliance gaps.
     findings = [
         finding
-        for finding in findings
-        if finding is not None
-    ]
+        for finding in (
+            _finding_dict(row)
+            for row in rows
+    )
+    if finding is not None
+]
 
     ensure_governance_questions(db)
 
