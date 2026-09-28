@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 
 from app import app
 from models.schemas import CheckResult, CheckStatus, Severity
+from database.persistence import save_scan_results
 
 
 client = TestClient(app)
@@ -34,9 +35,8 @@ def test_dashboard_maturity_returns_structured_overview():
         ),
     ]
 
-    with patch("collectors.aws_collector.run_all_checks", return_value=mock_results), \
-         patch("database.persistence.save_scan_results", return_value=None), \
-         patch("database.persistence.get_scan_history", return_value=[]):
+    save_scan_results(mock_results)
+    with patch("collectors.aws_collector.run_all_checks", return_value=mock_results):
         response = client.get("/dashboard/maturity")
 
     assert response.status_code == 200
@@ -75,9 +75,8 @@ def test_dashboard_maturity_uses_history_trend_when_available():
         ),
     ]
 
-    with patch("collectors.aws_collector.run_all_checks", return_value=mock_results), \
-         patch("database.persistence.save_scan_results", return_value=None), \
-         patch("database.persistence.get_scan_history", return_value=[]):
+    save_scan_results(mock_results)
+    with patch("collectors.aws_collector.run_all_checks", return_value=mock_results):
         response = client.get("/dashboard/maturity")
 
     assert response.status_code == 200
