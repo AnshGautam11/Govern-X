@@ -302,3 +302,104 @@ def build_report_data(
             "No Data is shown when no scan has been persisted; the report does not invent a percentage or maturity tier.",
         ],
     }
+
+def prioritize_remediation(
+    findings: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """
+    Rank failed controls using:
+
+        severity weight × number of failing resources
+    """
+
+    grouped = {}
+
+    for finding in findings:
+
+        if finding["status"] != CheckStatus.FAIL.value:
+            continue
+
+        check_id = finding["check_id"]
+
+        item = grouped.setdefault(
+            check_id,
+            {
+                "check_id": check_id,
+                "title": check_id.replace(
+                    "_",
+                    " ",
+                ).title(),
+                "severity": finding["severity"],
+                "affected_resources": [],
+                "csf_function": finding["csf_function"],
+                "csf_subcategory": finding[
+                    "csf_subcategory"
+                ],
+                "remediation": finding[
+                    "remediation"
+                ],
+            },
+        )
+
+        item["affected_resources"].append(
+            finding["resource_id"]
+        )
+
+        current_weight = SEVERITY_WEIGHT.get(
+            finding["severity"],
+            1,
+        )
+
+        existing_weight = SEVERITY_WEIGHT.get(
+            item["severity"],
+            1,
+        )
+
+        if current_weight > existing_weight:
+            item["severity"] = finding[
+                "severity"
+            ]
+
+    ranked = []
+
+    for item in grouped.values():
+
+        weight = SEVERITY_WEIGHT.get(
+            item["severity"],
+            1,
+        )
+
+        resource_count = len(
+            item["affected_resources"]
+        )
+
+        priority_score = (
+            weight * resource_count
+        )
+
+        ranked.append(
+            {
+                **item,
+                "resource_count": resource_count,
+                "priority_score": priority_score,
+            }
+        )
+
+    ranked.sort(
+        key=lambda item: (
+            -item["priority_score"],
+            -SEVERITY_WEIGHT.get(
+                item["severity"],
+                1,
+            ),
+            item["check_id"],
+        )
+    )
+
+    for index, item in enumerate(
+        ranked,
+        start=1,
+    ):
+        item["rank"] = index
+
+    return ranked
