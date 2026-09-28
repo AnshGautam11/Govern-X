@@ -17,5 +17,5 @@ GV.OC, GV.RM, GV.RR, GV.PO, GV.OV and GV.SC are organizational and policy-based,
 | /scan/history | 200 |
 
 ## Known gaps
-- No combined report route (compliance + risk + governance) exists in the API. Registered routes are /scan/*, /governance/*, /risk/*, /findings, /gaps and /health.
+- Combined report (compliance + risk + governance) is served by GET /reports/combined.
 - /scan/history holds mixed runs from manual and mock scenarios. Start the demo from a fresh scan.
