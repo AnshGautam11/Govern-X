@@ -180,7 +180,7 @@ def _run_collector_against_moto():
         environment.create_s3_bucket("governx-demo-bucket", encrypted=False)
         environment.create_ebs_volume(encrypted=False)
         clients = {"ec2": environment.ec2, "s3": environment.s3, "iam": environment.iam, "cloudtrail": environment.cloudtrail}
-        with patch("collectors.aws_collector.get_client", side_effect=clients.get):
+        with patch("collectors.aws_collector.get_client", side_effect=lambda svc, *a, **k: clients.get(svc) or __import__("boto3").client(svc, region_name="us-east-1")):
             return run_all_checks()
 
 def _get_scan_results_with_fallback():
