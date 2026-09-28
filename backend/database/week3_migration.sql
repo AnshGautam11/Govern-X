@@ -33,11 +33,20 @@ CREATE TABLE IF NOT EXISTS governance_evidence (
 CREATE INDEX IF NOT EXISTS idx_governance_questions_key
 ON governance_questions(question_key);
 
+CREATE INDEX IF NOT EXISTS idx_governance_questions_category_active
+ON governance_questions(csf_category, active);
+
 CREATE INDEX IF NOT EXISTS idx_governance_responses_question
 ON governance_responses(question_id);
 
 CREATE INDEX IF NOT EXISTS idx_governance_responses_answered_at
 ON governance_responses(answered_at);
+
+CREATE INDEX IF NOT EXISTS idx_governance_responses_question_answered
+ON governance_responses(question_id, answered_at);
+
+CREATE INDEX IF NOT EXISTS idx_governance_audit_question_submitted
+ON governance_response_audit(question_id, submitted_at);
 
 CREATE INDEX IF NOT EXISTS idx_governance_evidence_response
 ON governance_evidence(response_id);

@@ -91,6 +91,14 @@ class GovernanceQuestionDB(Base):
     csf_category = Column(String, nullable=False)
     active = Column(Boolean, nullable=False, default=True)
 
+    __table_args__ = (
+        Index(
+            "idx_governance_questions_category_active",
+            "csf_category",
+            "active",
+        ),
+    )
+
 class GovernanceResponseDB(Base):
     """Stored response to a Govern questionnaire question."""
 
@@ -114,6 +122,14 @@ class GovernanceResponseDB(Base):
         default=datetime.utcnow,
         nullable=False,
         index=True,
+    )
+
+    __table_args__ = (
+        Index(
+            "idx_governance_responses_question_answered",
+            "question_id",
+            "answered_at",
+        ),
     )
 
 class GovernanceResponseAuditDB(Base):
@@ -151,6 +167,13 @@ class GovernanceResponseAuditDB(Base):
         default=datetime.utcnow,
         nullable=False,
         index=True,
+    )
+    __table_args__ = (
+        Index(
+            "idx_governance_audit_question_submitted",
+            "question_id",
+            "submitted_at",
+        ),
     )
 
 class GovernanceEvidenceDB(Base):
