@@ -106,3 +106,6 @@ export function normalizeMaturityResponse(payload) {
     raw: payload,
   };
 }
+
+export const getExecutiveReportPdfUrl = (sector = 'financial') =>
+  `${API_BASE_URL}/report/pdf?sector=${encodeURIComponent(sector)}`;

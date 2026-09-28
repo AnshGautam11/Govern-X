@@ -138,3 +138,65 @@ def test_combined_report_mock_scenarios_cover_different_compliance_states():
     }
 
     assert statuses == {"pass", "fail"}
+
+# Week 4 demo dataset.
+# All values are synthetic and intended only for local demonstrations.
+DEMO_REPORT_DATASET = {
+    "name": "executive_report_demo",
+    "description": (
+        "Synthetic multi-function report scenario "
+        "for local demos."
+    ),
+    "findings": [
+        {
+            "check_id": "iam_policy_wildcard_admin",
+            "resource_id": "demo-iam-role",
+            "status": "fail",
+            "severity": "critical",
+            "detail": (
+                "Wildcard administrative access "
+                "is present."
+            ),
+        },
+        {
+            "check_id": "security_group_open_ingress",
+            "resource_id": "demo-sg-web",
+            "status": "fail",
+            "severity": "high",
+            "detail": (
+                "A security group permits "
+                "unrestricted ingress."
+            ),
+        },
+        {
+            "check_id": "cloudtrail_enabled",
+            "resource_id": "demo-trail",
+            "status": "pass",
+            "severity": "high",
+            "detail": (
+                "CloudTrail logging is enabled."
+            ),
+        },
+        {
+            "check_id": "vpc_flow_logs_enabled",
+            "resource_id": "demo-vpc",
+            "status": "fail",
+            "severity": "medium",
+            "detail": (
+                "VPC Flow Logs are disabled."
+            ),
+        },
+        {
+            "check_id": "s3_encryption_at_rest",
+            "resource_id": "demo-bucket",
+            "status": "pass",
+            "severity": "high",
+            "detail": (
+                "S3 encryption at rest is enabled."
+            ),
+        },
+    ],
+    "governance_answers": MOCK_GOVERNANCE_ANSWERS[
+        "financial"
+    ],
+}

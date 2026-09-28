@@ -443,3 +443,13 @@
   .assessment-button { justify-content: center; }
   .trend-panel, .attention-panel { padding: 1.15rem; }
 }
+
+.report-download {
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.report-download:hover {
+  text-decoration: none;
+}

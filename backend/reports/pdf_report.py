@@ -334,6 +334,59 @@ def build_executive_pdf(
         )
     )
 
+    tier_backgrounds = {
+    "Partial": "#FEE2E2",
+    "Risk Informed": "#FEF3C7",
+    "Repeatable": "#DBEAFE",
+    "Adaptive": "#DCFCE7",
+    "No Data": "#F1F5F9",
+    }
+
+    pillar_style = [
+    (
+        "BACKGROUND",
+        (0, 0),
+        (-1, 0),
+        colors.HexColor("#E2E8F0"),
+    ),
+    (
+        "FONTNAME",
+        (0, 0),
+        (-1, 0),
+        "Helvetica-Bold",
+    ),
+    (
+        "GRID",
+        (0, 0),
+        (-1, -1),
+        0.3,
+        colors.HexColor("#CBD5E1"),
+    ),
+]
+
+    for row_index, pillar in enumerate(
+    report["pillars"],
+    start=1,
+    ):
+        
+        pillar_style.append(
+        (
+            "BACKGROUND",
+            (2, row_index),
+            (2, row_index),
+            colors.HexColor(
+                tier_backgrounds.get(
+                    pillar["tier_name"],
+                    "#F1F5F9",
+                )
+            ),
+        )
+    )
+
+        pillar_table.setStyle(
+          TableStyle(pillar_style)
+        )
+    
     story.append(pillar_table)
 
     story.append(
@@ -451,3 +504,4 @@ def build_executive_pdf(
     doc.build(story)
 
     return buffer.getvalue()
+
