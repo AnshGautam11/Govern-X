@@ -170,6 +170,19 @@ def _build_maturity_payload(findings, previous_findings=None, governance_complet
     )
 
 
+def _run_collector_against_moto():
+    """Run the real collectors inside a moto mock account (demo data, not a real AWS account)."""
+    from unittest.mock import patch
+    from mock_aws import MockAWSEnvironment
+    from collectors.aws_collector import run_all_checks
+
+    with MockAWSEnvironment() as environment:
+        environment.create_s3_bucket("governx-demo-bucket", encrypted=False)
+        environment.create_ebs_volume(encrypted=False)
+        clients = {"ec2": environment.ec2, "s3": environment.s3, "iam": environment.iam, "cloudtrail": environment.cloudtrail}
+        with patch("collectors.aws_collector.get_client", side_effect=clients.get):
+            return run_all_checks()
+
 def _get_scan_results_with_fallback():
     """Try real AWS collector first; fallback to mock environment or default check results if AWS fails."""
     try:
@@ -179,6 +192,11 @@ def _get_scan_results_with_fallback():
         import logging
         logging.getLogger(__name__).warning("AWS collector failed; trying configured mock scanner: %s", exc)
         
+        # Fallback 0: run the real collectors against a moto-backed mock AWS account
+        try:
+            return _run_collector_against_moto()
+        except Exception:
+            logger.warning("Moto-backed scan failed, trying next fallback", exc_info=True)
         # Fallback 1: Try importing from mock_aws module
         try:
             from mock_aws.environment import run_all_checks as mock_run_all
