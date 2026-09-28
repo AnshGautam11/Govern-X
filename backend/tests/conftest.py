@@ -25,3 +25,9 @@ def mock_aws_environment():
             }.get
 
             yield environment
+
+
+from database.db import Base, engine  # noqa: E402
+import database.models  # noqa: E402,F401
+
+Base.metadata.create_all(bind=engine)
