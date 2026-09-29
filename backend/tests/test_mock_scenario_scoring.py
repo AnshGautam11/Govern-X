@@ -1,5 +1,4 @@
 from compliance.scorer import score_all_functions, score_overall, gap_analysis
-from compliance.scorer import score_all_functions, score_overall
 from mappings.csf_mappings import get_mapping
 from models.schemas import CheckResult, MappedFinding
 
@@ -113,6 +112,8 @@ def test_all_fail_mock_scenario_scores_low():
 
     assert overall_score["score"] == 0.0
     assert overall_score["tier"] == "Tier 1"
+
+
 def test_partial_compliance_mock_data_supports_gap_analysis():
     """Test realistic partial compliance data and identify the failing gaps."""
     findings = [
@@ -153,3 +154,47 @@ def test_partial_compliance_mock_data_supports_gap_analysis():
     assert gaps[0]["check_id"] == "vpc_flow_logs_enabled"
     assert gaps[0]["failing_resource_count"] == 2
     assert set(gaps[0]["resource_ids"]) == {"mock-vpc-1", "mock-vpc-2"}
+
+
+def test_gap_analysis_prioritizes_most_failing_check():
+    """Test that the largest compliance gap is listed first."""
+    findings = [
+        CheckResult(
+            check_id="cloudtrail_enabled",
+            resource_id="mock-trail",
+            status="fail",
+            severity="high",
+            detail="CloudTrail logging is disabled.",
+        ),
+        CheckResult(
+            check_id="vpc_flow_logs_enabled",
+            resource_id="mock-vpc-1",
+            status="fail",
+            severity="high",
+            detail="VPC flow logs are disabled.",
+        ),
+        CheckResult(
+            check_id="vpc_flow_logs_enabled",
+            resource_id="mock-vpc-2",
+            status="fail",
+            severity="high",
+            detail="VPC flow logs are disabled.",
+        ),
+        CheckResult(
+            check_id="vpc_flow_logs_enabled",
+            resource_id="mock-vpc-3",
+            status="fail",
+            severity="high",
+            detail="VPC flow logs are disabled.",
+        ),
+    ]
+
+    mapped_findings = build_mapped_findings(findings)
+
+    gaps = gap_analysis(mapped_findings, "Detect")
+
+    assert len(gaps) == 2
+    assert gaps[0]["check_id"] == "vpc_flow_logs_enabled"
+    assert gaps[0]["failing_resource_count"] == 3
+    assert gaps[1]["check_id"] == "cloudtrail_enabled"
+    assert gaps[1]["failing_resource_count"] == 1
