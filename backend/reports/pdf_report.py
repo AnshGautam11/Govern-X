@@ -467,7 +467,88 @@ def build_executive_pdf(
         )
 
         story.append(gap_table)
+    remediation_items = report.get("remediation") or []
+    if remediation_items:
+        cell_style = ParagraphStyle(
+            "cell_style",
+            parent=body_style,
+            fontSize=7,
+            leading=9,
+        )
 
+        story.append(Paragraph("Prioritized Remediation", section_style))
+
+        rem_rows = [["#", "Control", "Severity", "NIST", "Rationale"]]
+        for item in remediation_items:
+            rem_rows.append(
+                [
+                    str(item["rank"]),
+                    Paragraph(item["check_id"], cell_style),
+                    item["severity"].upper(),
+                    item["csf_subcategory"],
+                    Paragraph(item["remediation"], cell_style),
+                ]
+            )
+
+        rem_table = Table(
+            rem_rows,
+            colWidths=[9 * mm, 36 * mm, 18 * mm, 20 * mm, 82 * mm],
+            repeatRows=1,
+        )
+        rem_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E2E8F0")),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#CBD5E1")),
+                    ("FONTSIZE", (0, 0), (-1, -1), 7.5),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ]
+            )
+        )
+        story.append(rem_table)
+        story.append(Spacer(1, 4 * mm))
+
+    roi = report.get("roi") or {}
+    roi_items = roi.get("items") or []
+    if roi_items:
+        story.append(Paragraph("Remediation ROI (Sample Data)", section_style))
+
+        roi_rows = [
+            ["Control", "Baseline loss", "Risk reduced", "Remediation cost", "ROI ratio"]
+        ]
+        for item in roi_items:
+            roi_rows.append(
+                [
+                    item["check_id"],
+                    _money(item["baseline_expected_loss"]),
+                    _money(item["risk_reduced"]),
+                    _money(item["assumed_remediation_cost"]),
+                    f"{item['roi_ratio']:.2f}x",
+                ]
+            )
+
+        roi_table = Table(
+            roi_rows,
+            colWidths=[45 * mm, 30 * mm, 30 * mm, 32 * mm, 20 * mm],
+            repeatRows=1,
+        )
+        roi_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E2E8F0")),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#CBD5E1")),
+                    ("FONTSIZE", (0, 0), (-1, -1), 7.5),
+                ]
+            )
+        )
+        story.append(roi_table)
+
+        if roi.get("message"):
+            story.append(Spacer(1, 1.5 * mm))
+            story.append(Paragraph(roi["message"], body_style))
+        story.append(Spacer(1, 4 * mm))
     story.append(
         Paragraph(
             "Governance Evidence Status",
