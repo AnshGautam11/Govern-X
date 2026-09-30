@@ -129,3 +129,40 @@ def test_summary_includes_requested_loss_percentiles():
         <= result["p95"]
         <= result["p99"]
     )
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"asset_value_range": (1,)},
+        {"asset_value_range": (1, 2, 3)},
+        {"asset_value_range": (float("nan"), 2)},
+        {"asset_value_range": (1, float("inf"))},
+        {"exposure_factor_range": (0, float("nan"))},
+        {"exposure_factor_range": (0, float("inf"))},
+        {"annual_rate_of_occurrence": float("nan")},
+        {"annual_rate_of_occurrence": float("inf")},
+        {"iterations": True},
+    ],
+)
+def test_monte_carlo_rejects_non_finite_or_malformed_inputs(kwargs):
+    parameters = {
+        "asset_value_range": (1, 2),
+        "exposure_factor_range": (0, 1),
+        "annual_rate_of_occurrence": 1,
+        "iterations": 10,
+    }
+
+    parameters.update(kwargs)
+
+    with pytest.raises((ValueError, TypeError)):
+        run_monte_carlo(**parameters)
+
+
+@pytest.mark.parametrize("bins", [0, -1, True])
+def test_distribution_percentages_rejects_invalid_bin_counts(bins):
+    with pytest.raises(ValueError):
+        distribution_percentages(
+            np.array([1.0, 2.0, 3.0]),
+            bins=bins,
+        )
