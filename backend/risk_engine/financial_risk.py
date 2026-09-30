@@ -3,6 +3,22 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 
+"""
+Financial risk estimation using a simplified SLE/ALE model.
+
+Risk assumptions:
+- Single Loss Expectancy (SLE) = asset value x exposure factor.
+- Annual Loss Expectancy (ALE) = SLE x annual rate of occurrence (ARO).
+- Exposure factors are scenario assumptions expressed from 0 to 1.
+- Asset values, exposure factors, and ARO values in the demo dataset are
+  assumed/sample values and are not real organizational financial figures.
+- Risk levels are classified from the exposure factor:
+  low < 0.15, medium < 0.35, high < 0.60, otherwise critical.
+- Financial results are estimates for analysis and should not be treated
+  as audited, board-ready, or guaranteed loss predictions.
+"""
+
+
 FINDING_TO_CONTROL = {
     "iam_policy_wildcard_admin": "IAM least privilege",
     "security_group_open_ingress": "Security group hardening",
@@ -68,10 +84,12 @@ FINANCIAL_ASSET_LIBRARY = [
 
 
 def calculate_sle(asset_value: float, exposure_factor: float) -> float:
+    """Estimate single-loss exposure from asset value and exposure factor."""
     return round(float(asset_value) * float(exposure_factor), 2)
 
 
 def calculate_ale(sle: float, aro: float) -> float:
+    """Estimate annual loss exposure from SLE and annual occurrence rate."""
     return round(float(sle) * float(aro), 2)
 
 
@@ -90,12 +108,18 @@ def calculate_risk_for_finding(
     asset_name: str | None = None,
 ) -> dict:
     asset_name = asset_name or FINDING_TO_ASSET.get(check_id, "Production API")
-    asset = get_asset_by_name(asset_name) or {"asset_name": asset_name, "criticality": "high"}
+    asset = get_asset_by_name(asset_name) or {
+        "asset_name": asset_name,
+        "criticality": "high",
+    }
+
     exposure = float(exposure_factor)
     likelihood = float(annual_rate_of_occurrence)
+
     sle = calculate_sle(asset_value, exposure)
     ale = calculate_ale(sle, likelihood)
     estimated_loss = ale
+
     if exposure < 0.15:
         risk_level = "low"
     elif exposure < 0.35:
@@ -116,7 +140,10 @@ def calculate_risk_for_finding(
         "ale": ale,
         "estimated_loss": estimated_loss,
         "risk_level": risk_level,
-        "control": FINDING_TO_CONTROL.get(check_id, "Security control review"),
+        "control": FINDING_TO_CONTROL.get(
+            check_id,
+            "Security control review",
+        ),
         "nist_function": "Protect",
         "asset_criticality": asset.get("criticality", "high"),
         "currency": "INR",
@@ -125,27 +152,49 @@ def calculate_risk_for_finding(
 
 def summarize_financial_risk() -> dict:
     assets = FINANCIAL_ASSET_LIBRARY
-    total_asset_value = sum(float(item["asset_value"]) for item in assets)
+
+    total_asset_value = sum(
+        float(item["asset_value"]) for item in assets
+    )
+
     findings = []
     total_estimated_exposure = 0.0
     high_risk_assets = 0
+
     for asset in assets:
-        for check_id in ["iam_policy_wildcard_admin", "security_group_open_ingress", "s3_encryption_at_rest"]:
+        for check_id in [
+            "iam_policy_wildcard_admin",
+            "security_group_open_ingress",
+            "s3_encryption_at_rest",
+        ]:
             estimate = calculate_risk_for_finding(
                 check_id=check_id,
                 asset_value=float(asset["asset_value"]),
-                exposure_factor=0.35 if asset["criticality"] == "critical" else 0.25,
+                exposure_factor=(
+                    0.35
+                    if asset["criticality"] == "critical"
+                    else 0.25
+                ),
                 annual_rate_of_occurrence=1.5,
                 asset_name=asset["asset_name"],
             )
+
             findings.append(estimate)
             total_estimated_exposure += estimate["estimated_loss"]
+
             if estimate["risk_level"] in {"high", "critical"}:
                 high_risk_assets += 1
+
     return {
         "total_asset_value": total_asset_value,
-        "estimated_financial_exposure": round(total_estimated_exposure, 2),
-        "potential_loss": round(total_estimated_exposure * 0.7, 2),
+        "estimated_financial_exposure": round(
+            total_estimated_exposure,
+            2,
+        ),
+        "potential_loss": round(
+            total_estimated_exposure * 0.7,
+            2,
+        ),
         "high_risk_assets": high_risk_assets,
         "critical_control_failures": len(findings),
         "assets": assets,
