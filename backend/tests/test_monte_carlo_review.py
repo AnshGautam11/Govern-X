@@ -167,6 +167,7 @@ def test_distribution_percentages_rejects_invalid_bin_counts(bins):
             bins=bins,
         )
 
+
 def test_monte_carlo_seed_makes_simulation_reproducible():
     parameters = {
         "asset_value_range": (100_000, 500_000),
@@ -181,3 +182,29 @@ def test_monte_carlo_seed_makes_simulation_reproducible():
 
     assert np.array_equal(first, second)
     assert not np.array_equal(first, different)
+
+
+@pytest.mark.parametrize(
+    "exposure_factor, annual_rate_of_occurrence",
+    [
+        (0.001, 0.1),
+        (0.01, 0.1),
+        (0.01, 1.0),
+    ],
+)
+def test_monte_carlo_low_risk_inputs_produce_finite_non_negative_losses(
+    exposure_factor,
+    annual_rate_of_occurrence,
+):
+    losses = run_monte_carlo(
+        (100_000, 100_000),
+        (exposure_factor, exposure_factor),
+        annual_rate_of_occurrence,
+        iterations=500,
+        seed=42,
+    )
+
+    assert losses.shape == (500,)
+    assert np.all(np.isfinite(losses))
+    assert np.all(losses >= 0)
+    assert summarize(losses)["expected"] >= 0
