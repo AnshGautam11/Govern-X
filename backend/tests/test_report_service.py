@@ -7,6 +7,7 @@ from database.persistence import (
     save_governance_responses,
 )
 from reports.report_service import (
+    _calculate_roi_sensitivity,
     build_report_data,
     prioritize_remediation,
 )
@@ -145,6 +146,8 @@ def test_report_data_assembles_scan_and_governance():
 
     finally:
         db.close()
+
+
 def test_report_data_filters_unknown_check_ids():
 
     db = SessionLocal()
@@ -273,3 +276,73 @@ def test_report_data_builds_failed_gap_with_affected_resource():
 
     finally:
         db.close()
+
+
+def test_roi_sensitivity_returns_expected_scenarios():
+
+    parameters = {
+        "asset_value_range": (
+            1_000_000.0,
+            2_000_000.0,
+        ),
+        "exposure_factor_range": (
+            0.20,
+            0.60,
+        ),
+        "annual_rate_of_occurrence": 0.5,
+    }
+
+    result = _calculate_roi_sensitivity(
+        parameters=parameters,
+        baseline_loss=500_000.0,
+        remediation_cost=25_000.0,
+        risk_reduction_percentages=[
+            0.10,
+            0.25,
+            0.50,
+        ],
+    )
+
+    assert len(result) == 3
+
+    assert [
+        item["risk_reduction_percent"]
+        for item in result
+    ] == [10.0, 25.0, 50.0]
+
+    for item in result:
+        assert (
+            item["modeled_risk_reduction"]
+            >= 0.0
+        )
+        assert item["roi_ratio"] >= 0.0
+
+
+def test_roi_sensitivity_clamps_invalid_reduction_values():
+
+    parameters = {
+        "asset_value_range": (
+            1_000_000.0,
+            2_000_000.0,
+        ),
+        "exposure_factor_range": (
+            0.20,
+            0.60,
+        ),
+        "annual_rate_of_occurrence": 0.5,
+    }
+
+    result = _calculate_roi_sensitivity(
+        parameters=parameters,
+        baseline_loss=500_000.0,
+        remediation_cost=25_000.0,
+        risk_reduction_percentages=[
+            -0.25,
+            1.25,
+        ],
+    )
+
+    assert [
+        item["risk_reduction_percent"]
+        for item in result
+    ] == [0.0, 100.0]
