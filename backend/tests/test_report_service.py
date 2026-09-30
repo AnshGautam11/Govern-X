@@ -583,3 +583,50 @@ def test_sensitivity_assumptions_are_documented():
             "description"
         ].lower()
     )
+def test_roi_output_includes_interpretation():
+    db = SessionLocal()
+
+    try:
+        ensure_governance_questions(db)
+
+        save_governance_responses(
+            {
+                "risk_owner_assigned": True,
+                "security_policy_reviewed": True,
+                "incident_response_plan_exists": True,
+                "third_party_risk_reviewed": True,
+            },
+            db=db,
+        )
+
+        timestamp = datetime.utcnow()
+
+        db.add(
+            ScanResultDB(
+                check_id="iam_policy_wildcard_admin",
+                resource_id="demo-role-1",
+                status="fail",
+                severity="critical",
+                detail="Wildcard admin access.",
+                scanned_at=timestamp,
+            )
+        )
+
+        db.commit()
+
+        report = build_report_data(db)
+
+        roi_item = report["roi"]["items"][0]
+
+        assert (
+            roi_item["roi_interpretation"]
+            == (
+                "Modeled risk reduction per unit of "
+                "assumed remediation cost."
+            )
+        )
+
+        assert roi_item["roi_ratio"] is not None
+
+    finally:
+        db.close()

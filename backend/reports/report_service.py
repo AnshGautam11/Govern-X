@@ -716,6 +716,10 @@ def _sample_roi_for_remediation(
         )
         if cost
         else None,
+        "roi_interpretation": (
+            "Modeled risk reduction per unit of "
+            "assumed remediation cost."
+        ),
         "assumptions": {
             "severity": severity,
             "risk_reduction_percent": round(
