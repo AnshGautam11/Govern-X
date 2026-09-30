@@ -166,3 +166,18 @@ def test_distribution_percentages_rejects_invalid_bin_counts(bins):
             np.array([1.0, 2.0, 3.0]),
             bins=bins,
         )
+
+def test_monte_carlo_seed_makes_simulation_reproducible():
+    parameters = {
+        "asset_value_range": (100_000, 500_000),
+        "exposure_factor_range": (0.1, 0.5),
+        "annual_rate_of_occurrence": 1.5,
+        "iterations": 1_000,
+    }
+
+    first = run_monte_carlo(**parameters, seed=42)
+    second = run_monte_carlo(**parameters, seed=42)
+    different = run_monte_carlo(**parameters, seed=43)
+
+    assert np.array_equal(first, second)
+    assert not np.array_equal(first, different)
