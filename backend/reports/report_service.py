@@ -58,6 +58,72 @@ ASSUMED_RISK_REDUCTION = {
     "medium": 0.20,
     "low": 0.10,
 }
+def _calculate_roi_sensitivity(
+    parameters: dict[str, Any],
+    baseline_loss: float,
+    remediation_cost: float,
+    risk_reduction_percentages: list[float],
+) -> list[dict[str, float]]:
+    """Calculate ROI outcomes for alternative risk-reduction assumptions."""
+
+    results = []
+
+    for reduction in risk_reduction_percentages:
+        normalized_reduction = max(
+            0.0,
+            min(1.0, float(reduction)),
+        )
+
+        low, high = parameters["exposure_factor_range"]
+
+        remediated_range = (
+            max(
+                0.0,
+                low * (1 - normalized_reduction),
+            ),
+            max(
+                0.0,
+                high * (1 - normalized_reduction),
+            ),
+        )
+
+        losses = run_monte_carlo(
+            iterations=5000,
+            seed=42,
+            asset_value_range=parameters["asset_value_range"],
+            exposure_factor_range=remediated_range,
+            annual_rate_of_occurrence=parameters[
+                "annual_rate_of_occurrence"
+            ],
+        )
+
+        remediated = summarize(losses)
+
+        risk_reduced = max(
+            0.0,
+            baseline_loss - remediated["expected"],
+        )
+
+        results.append(
+            {
+                "risk_reduction_percent": round(
+                    normalized_reduction * 100,
+                    1,
+                ),
+                "modeled_risk_reduction": round(
+                    risk_reduced,
+                    2,
+                ),
+                "roi_ratio": round(
+                    risk_reduced / remediation_cost,
+                    2,
+                )
+                if remediation_cost
+                else 0.0,
+            }
+        )
+
+    return results
 
 
 def _canonical_check_id(check_id: str) -> str:
