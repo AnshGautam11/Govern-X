@@ -58,6 +58,8 @@ ASSUMED_RISK_REDUCTION = {
     "medium": 0.20,
     "low": 0.10,
 }
+
+
 def _calculate_roi_sensitivity(
     parameters: dict[str, Any],
     baseline_loss: float,
@@ -126,6 +128,48 @@ def _calculate_roi_sensitivity(
     return results
 
 
+def _calculate_cost_sensitivity(
+    baseline_loss: float,
+    remediated_loss: float,
+    remediation_costs: list[float],
+) -> list[dict[str, float]]:
+    """Calculate ROI outcomes for alternative remediation costs."""
+
+    risk_reduced = max(
+        0.0,
+        baseline_loss - remediated_loss,
+    )
+
+    results = []
+
+    for cost in remediation_costs:
+        normalized_cost = max(
+            0.0,
+            float(cost),
+        )
+
+        results.append(
+            {
+                "assumed_remediation_cost": round(
+                    normalized_cost,
+                    2,
+                ),
+                "modeled_risk_reduction": round(
+                    risk_reduced,
+                    2,
+                ),
+                "roi_ratio": round(
+                    risk_reduced / normalized_cost,
+                    2,
+                )
+                if normalized_cost
+                else 0.0,
+            }
+        )
+
+    return results
+
+
 def _canonical_check_id(check_id: str) -> str:
     if get_mapping(check_id) is not None:
         return check_id
@@ -175,6 +219,7 @@ def _finding_dict(row: Any) -> dict[str, Any] | None:
         "scanned_at": row.scanned_at,
     }
 
+
 def build_report_data(
     db: Session,
     sector: str = "financial",
@@ -190,9 +235,9 @@ def build_report_data(
         for finding in (
             _finding_dict(row)
             for row in rows
-    )
-    if finding is not None
-]
+        )
+        if finding is not None
+    ]
 
     ensure_governance_questions(db)
 
@@ -332,9 +377,9 @@ def build_report_data(
         "pillars": pillars,
         "findings": findings,
         "data_notes": {
-           "financial_data": "Sample/assumed data for demonstration purposes.",
-           "governance_data": "Governance responses are self-attested questionnaire responses.",
-           "scan_data": "Compliance findings are based on the available scan results."
+            "financial_data": "Sample/assumed data for demonstration purposes.",
+            "governance_data": "Governance responses are self-attested questionnaire responses.",
+            "scan_data": "Compliance findings are based on the available scan results.",
         },
         "gaps": [
             {
@@ -373,6 +418,7 @@ def build_report_data(
             "No Data is shown when no scan has been persisted; the report does not invent a percentage or maturity tier.",
         ],
     }
+
 
 def prioritize_remediation(
     findings: list[dict[str, Any]],
@@ -474,6 +520,7 @@ def prioritize_remediation(
         item["rank"] = index
 
     return ranked
+
 
 def _sample_roi_for_remediation(
     remediation: dict[str, Any],

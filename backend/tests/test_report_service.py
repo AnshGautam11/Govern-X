@@ -7,6 +7,7 @@ from database.persistence import (
     save_governance_responses,
 )
 from reports.report_service import (
+    _calculate_cost_sensitivity,
     _calculate_roi_sensitivity,
     build_report_data,
     prioritize_remediation,
@@ -45,9 +46,7 @@ def test_prioritize_remediation_uses_severity_and_resource_count():
         },
     ]
 
-    result = prioritize_remediation(
-        findings
-    )
+    result = prioritize_remediation(findings)
 
     assert result[0]["check_id"] == "high_check"
     assert result[0]["priority_score"] == 6
@@ -61,10 +60,7 @@ def test_report_data_returns_no_data_without_scan():
     db = SessionLocal()
 
     try:
-        db.query(
-            ScanResultDB
-        ).delete()
-
+        db.query(ScanResultDB).delete()
         db.commit()
 
         report = build_report_data(db)
@@ -107,9 +103,7 @@ def test_report_data_assembles_scan_and_governance():
         db.add_all(
             [
                 ScanResultDB(
-                    check_id=(
-                        "iam_policy_wildcard_admin"
-                    ),
+                    check_id="iam_policy_wildcard_admin",
                     resource_id="demo-role-1",
                     status="fail",
                     severity="critical",
@@ -134,11 +128,14 @@ def test_report_data_assembles_scan_and_governance():
         assert report["status"] == "ready"
         assert report["summary"]["total_checks"] == 2
         assert report["summary"]["failed"] == 1
+
         assert (
             report["governance"]["self_attested"]
             is True
         )
+
         assert report["remediation"]
+
         assert (
             report["roi"]["status"]
             == "sample_only"
@@ -186,7 +183,11 @@ def test_report_data_filters_unknown_check_ids():
         assert report["status"] == "ready"
         assert report["summary"]["total_checks"] == 2
         assert len(report["findings"]) == 1
-        assert report["findings"][0]["check_id"] == "cloudtrail_enabled"
+
+        assert (
+            report["findings"][0]["check_id"]
+            == "cloudtrail_enabled"
+        )
 
     finally:
         db.close()
@@ -264,14 +265,17 @@ def test_report_data_builds_failed_gap_with_affected_resource():
 
         assert report["status"] == "ready"
         assert len(report["gaps"]) == 1
+
         assert (
             report["gaps"][0]["check_id"]
             == "iam_policy_wildcard_admin"
         )
+
         assert (
             report["gaps"][0]["affected_resources"]
             == ["demo-role-1"]
         )
+
         assert report["remediation"]
 
     finally:
@@ -308,13 +312,18 @@ def test_roi_sensitivity_returns_expected_scenarios():
     assert [
         item["risk_reduction_percent"]
         for item in result
-    ] == [10.0, 25.0, 50.0]
+    ] == [
+        10.0,
+        25.0,
+        50.0,
+    ]
 
     for item in result:
         assert (
             item["modeled_risk_reduction"]
             >= 0.0
         )
+
         assert item["roi_ratio"] >= 0.0
 
 
@@ -345,4 +354,74 @@ def test_roi_sensitivity_clamps_invalid_reduction_values():
     assert [
         item["risk_reduction_percent"]
         for item in result
-    ] == [0.0, 100.0]
+    ] == [
+        0.0,
+        100.0,
+    ]
+
+
+def test_cost_sensitivity_calculates_roi_for_alternative_costs():
+
+    result = _calculate_cost_sensitivity(
+        baseline_loss=500_000.0,
+        remediated_loss=300_000.0,
+        remediation_costs=[
+            10_000.0,
+            20_000.0,
+            40_000.0,
+        ],
+    )
+
+    assert len(result) == 3
+
+    assert [
+        item["assumed_remediation_cost"]
+        for item in result
+    ] == [
+        10_000.0,
+        20_000.0,
+        40_000.0,
+    ]
+
+    assert [
+        item["modeled_risk_reduction"]
+        for item in result
+    ] == [
+        200_000.0,
+        200_000.0,
+        200_000.0,
+    ]
+
+    assert [
+        item["roi_ratio"]
+        for item in result
+    ] == [
+        20.0,
+        10.0,
+        5.0,
+    ]
+
+
+def test_cost_sensitivity_handles_zero_cost():
+
+    result = _calculate_cost_sensitivity(
+        baseline_loss=500_000.0,
+        remediated_loss=300_000.0,
+        remediation_costs=[
+            0.0,
+        ],
+    )
+
+    assert len(result) == 1
+
+    assert (
+        result[0]["assumed_remediation_cost"]
+        == 0.0
+    )
+
+    assert (
+        result[0]["modeled_risk_reduction"]
+        == 200_000.0
+    )
+
+    assert result[0]["roi_ratio"] == 0.0
