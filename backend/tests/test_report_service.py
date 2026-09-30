@@ -7,6 +7,7 @@ from database.persistence import (
     save_governance_responses,
 )
 from reports.report_service import (
+    SENSITIVITY_ASSUMPTIONS,
     _calculate_combined_sensitivity,
     _calculate_cost_sensitivity,
     _calculate_roi_sensitivity,
@@ -542,4 +543,43 @@ def test_combined_sensitivity_roi_changes_with_cost():
     assert (
         result[0]["roi_ratio"]
         >= result[1]["roi_ratio"]
+    )
+
+
+def test_sensitivity_assumptions_are_documented():
+
+    assert (
+        SENSITIVITY_ASSUMPTIONS[
+            "risk_reduction_percentages"
+        ]
+        == [
+            10.0,
+            25.0,
+            50.0,
+        ]
+    )
+
+    assert (
+        SENSITIVITY_ASSUMPTIONS[
+            "remediation_costs"
+        ]
+        == [
+            10000.0,
+            25000.0,
+            50000.0,
+        ]
+    )
+
+    assert (
+        "synthetic"
+        in SENSITIVITY_ASSUMPTIONS[
+            "description"
+        ].lower()
+    )
+
+    assert (
+        "not audited"
+        in SENSITIVITY_ASSUMPTIONS[
+            "description"
+        ].lower()
     )

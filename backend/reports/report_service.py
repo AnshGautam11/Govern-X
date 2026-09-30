@@ -35,12 +35,36 @@ FUNCTION_ORDER = [
     "Recover",
 ]
 
+
 SEVERITY_WEIGHT = {
     "critical": 4,
     "high": 3,
     "medium": 2,
     "low": 1,
 }
+
+
+# Sensitivity-analysis scenario assumptions.
+# These values are synthetic/demo assumptions for what-if analysis.
+# They are NOT real organizational financial estimates.
+SENSITIVITY_ASSUMPTIONS = {
+    "risk_reduction_percentages": [
+        10.0,
+        25.0,
+        50.0,
+    ],
+    "remediation_costs": [
+        10000.0,
+        25000.0,
+        50000.0,
+    ],
+    "description": (
+        "Sensitivity scenarios use synthetic risk-reduction "
+        "and remediation-cost assumptions for analysis only. "
+        "They are not audited organizational financial estimates."
+    ),
+}
+
 
 # Synthetic/demo remediation cost assumptions.
 # These are NOT real organizational costs.
@@ -50,6 +74,7 @@ ASSUMED_REMEDIATION_COST = {
     "medium": 8000.0,
     "low": 4000.0,
 }
+
 
 # Synthetic/demo risk-reduction assumptions.
 ASSUMED_RISK_REDUCTION = {
@@ -168,6 +193,8 @@ def _calculate_cost_sensitivity(
         )
 
     return results
+
+
 def _calculate_combined_sensitivity(
     parameters: dict[str, Any],
     baseline_loss: float,
