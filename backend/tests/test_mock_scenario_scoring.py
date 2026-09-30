@@ -198,3 +198,34 @@ def test_gap_analysis_prioritizes_most_failing_check():
     assert gaps[0]["failing_resource_count"] == 3
     assert gaps[1]["check_id"] == "cloudtrail_enabled"
     assert gaps[1]["failing_resource_count"] == 1
+
+
+def test_gap_analysis_filters_by_csf_function():
+    """Test that gap analysis only returns gaps for the requested function."""
+    findings = [
+        CheckResult(
+            check_id="vpc_flow_logs_enabled",
+            resource_id="mock-vpc",
+            status="fail",
+            severity="high",
+            detail="VPC flow logs are disabled.",
+        ),
+        CheckResult(
+            check_id="s3_public_access_block",
+            resource_id="mock-bucket",
+            status="fail",
+            severity="high",
+            detail="S3 public access block is not enabled.",
+        ),
+    ]
+
+    mapped_findings = build_mapped_findings(findings)
+
+    detect_gaps = gap_analysis(mapped_findings, "Detect")
+    protect_gaps = gap_analysis(mapped_findings, "Protect")
+
+    assert len(detect_gaps) == 1
+    assert detect_gaps[0]["check_id"] == "vpc_flow_logs_enabled"
+
+    assert len(protect_gaps) == 1
+    assert protect_gaps[0]["check_id"] == "s3_public_access_block"

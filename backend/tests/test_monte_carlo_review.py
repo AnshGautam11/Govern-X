@@ -5,13 +5,19 @@ sound, and the sample-data disclaimer remains documented.
 
 import numpy as np
 import pytest
-from risk_engine.monte_carlo import distribution_percentages, run_monte_carlo, summarize
+
+from risk_engine.monte_carlo import (
+    distribution_percentages,
+    run_monte_carlo,
+    summarize,
+)
 from risk_engine.mock_data import MOCK_ASSET_DATA
 
 
 def test_disclaimer_still_documented():
     """The sample-data disclaimer must never be silently removed."""
-    content = open("backend/risk_engine/monte_carlo.py", encoding="utf-8").read()
+    content = open("risk_engine/monte_carlo.py", encoding="utf-8").read()
+
     assert "sample" in content.lower() or "assumed" in content.lower()
     assert "not real" in content.lower()
 
@@ -25,7 +31,9 @@ def test_monte_carlo_percentiles_are_ordered():
             iterations=5_000,
             seed=42,
         )
+
         result = summarize(losses)
+
         assert result["p10"] <= result["expected"] <= result["p90"], sector
         assert result["p10"] >= 0, sector
 
@@ -39,21 +47,38 @@ def test_monte_carlo_within_plausible_bounds():
             iterations=5_000,
             seed=42,
         )
+
         result = summarize(losses)
+
         max_possible = (
             params["asset_value_range"][1]
             * params["exposure_factor_range"][1]
             * (params["annual_rate_of_occurrence"] + 4)
         )
+
         assert result["p90"] < max_possible, sector
 
 
 def test_monte_carlo_zero_exposure_or_occurrence_has_zero_loss():
-    losses = run_monte_carlo((0, 1_000_000), (0, 0), 4, iterations=50, seed=1)
+    losses = run_monte_carlo(
+        (0, 1_000_000),
+        (0, 0),
+        4,
+        iterations=50,
+        seed=1,
+    )
+
     assert np.all(losses == 0)
     assert summarize(losses)["p99"] == 0
 
-    no_occurrences = run_monte_carlo((100, 100), (0.5, 0.5), 0, iterations=50, seed=1)
+    no_occurrences = run_monte_carlo(
+        (100, 100),
+        (0.5, 0.5),
+        0,
+        iterations=50,
+        seed=1,
+    )
+
     assert np.all(no_occurrences == 0)
 
 
@@ -66,6 +91,7 @@ def test_monte_carlo_empty_summaries_are_zero_and_keep_distribution_shape():
         "p95": 0.0,
         "p99": 0.0,
     }
+
     assert distribution_percentages(np.array([]), bins=5) == [0.0] * 5
 
 
@@ -86,11 +112,20 @@ def test_monte_carlo_rejects_invalid_inputs(kwargs):
         "annual_rate_of_occurrence": 1,
         "iterations": 10,
     }
+
     parameters.update(kwargs)
+
     with pytest.raises(ValueError):
         run_monte_carlo(**parameters)
 
 
 def test_summary_includes_requested_loss_percentiles():
     result = summarize(np.arange(1, 101, dtype=float))
-    assert result["p10"] <= result["p50"] <= result["p90"] <= result["p95"] <= result["p99"]
+
+    assert (
+        result["p10"]
+        <= result["p50"]
+        <= result["p90"]
+        <= result["p95"]
+        <= result["p99"]
+    )
