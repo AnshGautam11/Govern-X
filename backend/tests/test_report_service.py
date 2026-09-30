@@ -7,6 +7,7 @@ from database.persistence import (
     save_governance_responses,
 )
 from reports.report_service import (
+    _calculate_combined_sensitivity,
     _calculate_cost_sensitivity,
     _calculate_roi_sensitivity,
     build_report_data,
@@ -425,3 +426,120 @@ def test_cost_sensitivity_handles_zero_cost():
     )
 
     assert result[0]["roi_ratio"] == 0.0
+
+
+def test_combined_sensitivity_builds_what_if_scenarios():
+
+    parameters = {
+        "asset_value_range": (
+            1_000_000.0,
+            2_000_000.0,
+        ),
+        "exposure_factor_range": (
+            0.20,
+            0.60,
+        ),
+        "annual_rate_of_occurrence": 0.5,
+    }
+
+    result = _calculate_combined_sensitivity(
+        parameters=parameters,
+        baseline_loss=500_000.0,
+        risk_reduction_percentages=[
+            0.10,
+            0.50,
+        ],
+        remediation_costs=[
+            25_000.0,
+            50_000.0,
+        ],
+    )
+
+    assert len(result) == 4
+
+    assert [
+        item["risk_reduction_percent"]
+        for item in result
+    ] == [
+        10.0,
+        10.0,
+        50.0,
+        50.0,
+    ]
+
+    assert [
+        item["assumed_remediation_cost"]
+        for item in result
+    ] == [
+        25_000.0,
+        50_000.0,
+        25_000.0,
+        50_000.0,
+    ]
+
+    for item in result:
+        assert (
+            item["modeled_risk_reduction"]
+            >= 0.0
+        )
+
+        assert item["roi_ratio"] >= 0.0
+
+
+def test_combined_sensitivity_roi_changes_with_cost():
+
+    parameters = {
+        "asset_value_range": (
+            1_000_000.0,
+            2_000_000.0,
+        ),
+        "exposure_factor_range": (
+            0.20,
+            0.60,
+        ),
+        "annual_rate_of_occurrence": 0.5,
+    }
+
+    result = _calculate_combined_sensitivity(
+        parameters=parameters,
+        baseline_loss=500_000.0,
+        risk_reduction_percentages=[
+            0.25,
+        ],
+        remediation_costs=[
+            10_000.0,
+            20_000.0,
+        ],
+    )
+
+    assert len(result) == 2
+
+    assert (
+        result[0]["risk_reduction_percent"]
+        == 25.0
+    )
+
+    assert (
+        result[1]["risk_reduction_percent"]
+        == 25.0
+    )
+
+    assert (
+        result[0]["assumed_remediation_cost"]
+        == 10_000.0
+    )
+
+    assert (
+        result[1]["assumed_remediation_cost"]
+        == 20_000.0
+    )
+
+    assert (
+        result[0]["modeled_risk_reduction"]
+        == result[1]["modeled_risk_reduction"]
+    )
+
+    assert (
+        result[0]["roi_ratio"]
+        >= result[1]["roi_ratio"]
+    )

@@ -168,6 +168,82 @@ def _calculate_cost_sensitivity(
         )
 
     return results
+def _calculate_combined_sensitivity(
+    parameters: dict[str, Any],
+    baseline_loss: float,
+    risk_reduction_percentages: list[float],
+    remediation_costs: list[float],
+) -> list[dict[str, float]]:
+    """Calculate combined risk-reduction and remediation-cost scenarios."""
+
+    results = []
+
+    for reduction in risk_reduction_percentages:
+        normalized_reduction = max(
+            0.0,
+            min(1.0, float(reduction)),
+        )
+
+        low, high = parameters["exposure_factor_range"]
+
+        remediated_range = (
+            max(
+                0.0,
+                low * (1 - normalized_reduction),
+            ),
+            max(
+                0.0,
+                high * (1 - normalized_reduction),
+            ),
+        )
+
+        losses = run_monte_carlo(
+            iterations=5000,
+            seed=42,
+            asset_value_range=parameters["asset_value_range"],
+            exposure_factor_range=remediated_range,
+            annual_rate_of_occurrence=parameters[
+                "annual_rate_of_occurrence"
+            ],
+        )
+
+        remediated = summarize(losses)
+
+        risk_reduced = max(
+            0.0,
+            baseline_loss - remediated["expected"],
+        )
+
+        for cost in remediation_costs:
+            normalized_cost = max(
+                0.0,
+                float(cost),
+            )
+
+            results.append(
+                {
+                    "risk_reduction_percent": round(
+                        normalized_reduction * 100,
+                        1,
+                    ),
+                    "assumed_remediation_cost": round(
+                        normalized_cost,
+                        2,
+                    ),
+                    "modeled_risk_reduction": round(
+                        risk_reduced,
+                        2,
+                    ),
+                    "roi_ratio": round(
+                        risk_reduced / normalized_cost,
+                        2,
+                    )
+                    if normalized_cost
+                    else 0.0,
+                }
+            )
+
+    return results
 
 
 def _canonical_check_id(check_id: str) -> str:
