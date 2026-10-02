@@ -16,6 +16,7 @@ from reportlab.platypus import (
     Frame,
     PageTemplate,
     Paragraph,
+    CondPageBreak,
     KeepTogether,
     Spacer,
     Table,
@@ -513,6 +514,7 @@ def build_executive_pdf(
     roi = report.get("roi") or {}
     roi_items = roi.get("items") or []
     if roi_items:
+        story.append(CondPageBreak(60 * mm))
         story.append(Paragraph("Remediation ROI (Sample Data)", section_style))
 
         roi_rows = [
