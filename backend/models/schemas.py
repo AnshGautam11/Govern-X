@@ -251,6 +251,7 @@ class ExecutiveReportResponse(BaseModel):
     remediation: list[ReportRemediation] = []
     governance: dict
     roi: dict
+    roi_sensitivity: dict | None = None
     disclaimers: list[str] = []
 
 

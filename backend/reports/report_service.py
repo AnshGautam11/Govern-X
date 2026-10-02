@@ -514,6 +514,7 @@ def build_report_data(
             remediation,
             sector,
         ),
+        "roi_sensitivity": _build_roi_sensitivity(sector),
         "disclaimers": [
             "Financial figures are sample/assumed data carried forward from the Week 3 Monte Carlo model.",
             "Governance answers are self-attested questionnaire responses, not independently audited evidence.",
@@ -729,6 +730,52 @@ def _sample_roi_for_remediation(
             "sector": sector,
             "data_quality": "assumed_sample_data",
         },
+    }
+
+
+def _build_roi_sensitivity(
+    sector: str,
+) -> dict[str, Any]:
+    """Run the what-if ROI scenarios on the same sample inputs as the ROI table."""
+
+    parameters = (
+        MOCK_ASSET_DATA.get(sector)
+        or MOCK_ASSET_DATA["financial"]
+    )
+
+    baseline_losses = run_monte_carlo(
+        iterations=5000,
+        seed=42,
+        **parameters,
+    )
+
+    baseline = summarize(
+        baseline_losses
+    )
+
+    # SENSITIVITY_ASSUMPTIONS stores percentages (10, 25, 50), but
+    # _calculate_combined_sensitivity expects fractions (0.10, 0.25, 0.50).
+    reduction_fractions = [
+        value / 100
+        for value in SENSITIVITY_ASSUMPTIONS["risk_reduction_percentages"]
+    ]
+
+    scenarios = _calculate_combined_sensitivity(
+        parameters,
+        baseline["expected"],
+        reduction_fractions,
+        SENSITIVITY_ASSUMPTIONS["remediation_costs"],
+    )
+
+    return {
+        "status": "sample_only",
+        "sector": sector,
+        "baseline_expected_loss": round(
+            baseline["expected"],
+            2,
+        ),
+        "scenarios": scenarios,
+        "description": SENSITIVITY_ASSUMPTIONS["description"],
     }
 
 
