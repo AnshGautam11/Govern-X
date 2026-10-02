@@ -16,6 +16,7 @@ from reportlab.platypus import (
     Frame,
     PageTemplate,
     Paragraph,
+    KeepTogether,
     Spacer,
     Table,
     TableStyle,
@@ -549,6 +550,49 @@ def build_executive_pdf(
             story.append(Spacer(1, 1.5 * mm))
             story.append(Paragraph(roi["message"], body_style))
         story.append(Spacer(1, 4 * mm))
+    sensitivity = report.get("roi_sensitivity") or {}
+    scenarios = sensitivity.get("scenarios") or []
+    if scenarios:
+        sens_rows = [
+            ["Risk reduction", "Remediation cost", "Risk reduced", "ROI ratio"]
+        ]
+        for scenario in scenarios:
+            ratio = scenario.get("roi_ratio")
+            sens_rows.append(
+                [
+                    f"{scenario['risk_reduction_percent']:.0f}%",
+                    _money(scenario["assumed_remediation_cost"]),
+                    _money(scenario["modeled_risk_reduction"]),
+                    f"{ratio:.2f}x" if ratio is not None else "No Data",
+                ]
+            )
+
+        sens_table = Table(
+            sens_rows,
+            colWidths=[35 * mm, 40 * mm, 40 * mm, 30 * mm],
+            repeatRows=1,
+        )
+        sens_table.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E2E8F0")),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#CBD5E1")),
+                    ("FONTSIZE", (0, 0), (-1, -1), 7.5),
+                ]
+            )
+        )
+
+        sens_parts = [
+            Paragraph("ROI Sensitivity (Sample Data)", section_style),
+            sens_table,
+        ]
+        if sensitivity.get("description"):
+            sens_parts.append(Spacer(1, 1.5 * mm))
+            sens_parts.append(Paragraph(sensitivity["description"], body_style))
+        sens_parts.append(Spacer(1, 4 * mm))
+        story.append(KeepTogether(sens_parts))
+
     story.append(
         Paragraph(
             "Governance Evidence Status",
