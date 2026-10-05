@@ -1,0 +1,228 @@
+/* ==========================================================================
+   Govern-X — Dashboard Footer
+   Matches the restrained enterprise treatment of the NIST CSF 2.0 page so
+   the dashboard and the reference page read as one product.
+   ========================================================================== */
+
+.dashboard-footer {
+  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+/* ========================================
+   CTA BANNER
+======================================== */
+
+.dashboard-footer-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2.75rem;
+  padding: 1.75rem 2rem;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(16, 185, 129, 0.06) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 14px;
+}
+
+.dashboard-footer-cta-copy {
+  max-width: 620px;
+}
+
+.dashboard-footer-cta-eyebrow {
+  display: block;
+  margin-bottom: 0.6rem;
+  color: #38bdf8;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.dashboard-footer-cta-title {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: #f8fafc;
+}
+
+.dashboard-footer-cta-text {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.dashboard-footer-cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  padding: 0.85rem 1.5rem;
+  background: #38bdf8;
+  border: 1px solid #38bdf8;
+  border-radius: 8px;
+  color: #04121c;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.dashboard-footer-cta-button:hover {
+  background: #7dd3fc;
+  border-color: #7dd3fc;
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+.dashboard-footer-cta-button:focus-visible {
+  outline: 2px solid #7dd3fc;
+  outline-offset: 3px;
+}
+
+.dashboard-footer-cta-button-arrow {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* ========================================
+   LINK GRID
+======================================== */
+
+.dashboard-footer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr));
+  gap: 2.5rem;
+  padding-bottom: 2.25rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.dashboard-footer-logo {
+  display: block;
+  margin-bottom: 0.7rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: #f8fafc;
+}
+
+.dashboard-footer-brand p {
+  max-width: 320px;
+  color: #64748b;
+  font-size: 0.83rem;
+  line-height: 1.6;
+}
+
+.dashboard-footer-column h3 {
+  margin: 0 0 0.9rem;
+  color: #64748b;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.dashboard-footer-column ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.dashboard-footer-column a {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.dashboard-footer-column a:hover {
+  color: #38bdf8;
+}
+
+/* ========================================
+   BOTTOM BAR
+======================================== */
+
+.dashboard-footer-bottom {
+  padding-top: 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.dashboard-footer-legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.5rem;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.dashboard-footer-motto {
+  color: #94a3b8;
+}
+
+.dashboard-footer-company {
+  margin-left: auto;
+  color: #94a3b8;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dashboard-footer-disclaimer {
+  max-width: 900px;
+  color: #64748b;
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 1024px) {
+  .dashboard-footer-cta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+
+  .dashboard-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-footer {
+    margin-top: 2.5rem;
+    padding-top: 1.75rem;
+  }
+
+  .dashboard-footer-cta {
+    padding: 1.4rem;
+  }
+
+  .dashboard-footer-cta-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .dashboard-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+
+  .dashboard-footer-company {
+    margin-left: 0;
+  }
+}
