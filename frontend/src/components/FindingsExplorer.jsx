@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import './FindingsExplorer.css';
 
 const FUNCTIONS = ['ALL FUNCTIONS', 'Govern', 'Identify', 'Protect', 'Detect', 'Respond', 'Recover'];
