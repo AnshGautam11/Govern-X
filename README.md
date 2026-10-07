@@ -1,94 +1,115 @@
+<div align="center">
+
 # 🛡️ GovernX
 
-## Automated NIST CSF 2.0 Compliance & Cyber Risk Quantification Engine
+### Automated NIST CSF 2.0 Compliance & Cyber Risk Quantification Engine
 
-**Company:** AXLERO Innovating Solutions
+<p>
+  <b>Security → Compliance → Risk → Business Decisions</b>
+</p>
 
-**Team**
+<p>
+  GovernX is a cybersecurity Governance, Risk & Compliance (GRC) platform designed to connect technical security assessments with the <b>NIST Cybersecurity Framework (CSF) 2.0</b>, cybersecurity maturity, and business-oriented risk quantification.
+</p>
 
-* Harshal Ghatbandhe
-* Ansh Gautam
-* Mounika Dunna
-* Sujal Waghmode
-* Amrita
-* Yannam Chittikumari
+<br>
 
-> **GovernX transforms cloud security telemetry into continuous NIST CSF 2.0 compliance insights, cybersecurity maturity scores, and measurable financial risk.**
+<img src="https://img.shields.io/badge/NIST-CSF%202.0-000000?style=for-the-badge" />
+<img src="https://img.shields.io/badge/Python-Backend-000000?style=for-the-badge&logo=python" />
+<img src="https://img.shields.io/badge/React-Frontend-000000?style=for-the-badge&logo=react" />
+<img src="https://img.shields.io/badge/AWS-Cloud%20Security-000000?style=for-the-badge&logo=amazon-aws" />
+<img src="https://img.shields.io/badge/FastAPI-REST%20API-000000?style=for-the-badge&logo=fastapi" />
+<img src="https://img.shields.io/badge/pytest-Testing-000000?style=for-the-badge&logo=pytest" />
+
+<br><br>
+
+### 🏢 Developed During Cybersecurity Internship
+
+<b>AXLERO Innovating Solutions</b>
+
+<br><br>
+
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge\&logo=github)](https://github.com/AnshGautam11/Govern-X)
+
+</div>
 
 ---
 
-# 🚀 Overview
+# 📌 Table of Contents
 
-GovernX is an automated **Governance, Risk, and Compliance (GRC)** platform designed around the **NIST Cybersecurity Framework (CSF) 2.0**.
+* [🎯 Project Overview](#-project-overview)
+* [💡 Why GovernX](#-why-governx)
+* [🚀 Project Vision](#-project-vision)
+* [🏢 Internship Context](#-internship-context)
+* [👥 Team](#-team)
+* [🏛️ NIST CSF 20](#️-nist-csf-20)
+* [🏗️ System Architecture](#️-system-architecture)
+* [🔄 End-to-End Workflow](#-end-to-end-workflow)
+* [☁️ AWS Security Assessment](#️-aws-security-assessment)
+* [🔐 Security Check Framework](#-security-check-framework)
+* [🗺️ NIST Mapping Engine](#️-nist-mapping-engine)
+* [📊 Compliance Engine](#-compliance-engine)
+* [📈 Cybersecurity Maturity](#-cybersecurity-maturity)
+* [💰 Cyber Risk Quantification](#-cyber-risk-quantification)
+* [🎲 Monte Carlo Risk Modeling](#-monte-carlo-risk-modeling)
+* [🏛️ Governance Layer](#️-governance-layer)
+* [📋 Governance Questionnaire](#-governance-questionnaire)
+* [🧾 Scan History & Audit Trail](#-scan-history--audit-trail)
+* [🖥️ Executive Dashboard](#️-executive-dashboard)
+* [🔌 Frontend & Backend](#-frontend--backend-architecture)
+* [🗄️ Persistence](#️-database--persistence)
+* [🧪 Testing](#-testing-strategy)
+* [🔒 Security Architecture](#-security-architecture)
+* [🛠️ Technology Stack](#️-technology-stack)
+* [📁 Project Structure](#-project-structure)
+* [⚙️ Installation](#️-installation--setup)
+* [▶️ Running the Project](#️-running-the-project)
+* [📅 Development Journey](#-development-journey)
+* [🚧 Roadmap](#-future-roadmap)
+* [📊 Current Status](#-current-implementation-status)
+* [🏆 Project Outcome](#-project-outcome)
+* [🤝 Internship Learning](#-internship-learning)
 
-Traditional compliance programs often depend on spreadsheets, manually collected evidence, periodic audits, and disconnected security tools.
+---
 
-GovernX follows a continuous approach:
+# 🎯 Project Overview
+
+**GovernX** is an internship-developed cybersecurity platform focused on automating the relationship between:
+
+<table>
+<tr>
+<td align="center"><b>🔐 Security</b></td>
+<td align="center">→</td>
+<td align="center"><b>📋 Compliance</b></td>
+<td align="center">→</td>
+<td align="center"><b>📈 Risk</b></td>
+<td align="center">→</td>
+<td align="center"><b>💼 Business Impact</b></td>
+</tr>
+</table>
+
+Modern organizations collect security information from cloud environments, identity systems, endpoints, applications, and network infrastructure.
+
+However, a technical finding alone does not always answer the questions that matter to security leadership:
+
+<details>
+<summary><b>🔎 What does a security finding actually mean?</b></summary>
+
+A finding such as:
 
 ```text
-Cloud / Security Telemetry
-          ↓
-Automated Security Checks
-          ↓
-Security Findings
-          ↓
-NIST CSF 2.0 Mapping
-          ↓
-Compliance Assessment
-          ↓
-Maturity Analysis
-          ↓
-Cyber Risk Quantification
-          ↓
-Financial Risk Estimation
-          ↓
-Executive Dashboard
-          ↓
-Remediation & Continuous Reassessment
-```
-
-The core objective is to create a bridge between:
-
-**Technical Security Data → Compliance → Risk → Business Decisions**
-
----
-
-# 🎯 Core Vision
-
-GovernX answers three fundamental questions:
-
-### 1. Where are we vulnerable?
-
-Automated security configuration and control assessment.
-
-### 2. How does the weakness affect our cybersecurity posture?
-
-NIST CSF 2.0 control mapping and maturity analysis.
-
-### 3. Why should the business care?
-
-Financial risk estimation and executive-level business impact.
-
----
-
-# 💡 Why GovernX?
-
-A traditional security tool may report:
-
-```text
-Finding:
 MFA Disabled
-
-Severity:
-Critical
+Severity: Critical
 ```
 
-GovernX expands the finding into a business-oriented risk story:
+tells the security engineer that something is wrong.
+
+GovernX is designed to take this finding further:
 
 ```text
 MFA Disabled
       ↓
-Identity & Access Control Gap
+Security Control Gap
       ↓
 NIST CSF 2.0 Mapping
       ↓
@@ -96,31 +117,229 @@ Compliance Impact
       ↓
 Maturity Impact
       ↓
-Asset Exposure
+Risk Impact
       ↓
-Financial Risk Estimation
+Potential Financial Exposure
       ↓
-Recommended Remediation
+Remediation Priority
 ```
 
-This enables security teams to communicate technical issues using a language that executives and risk owners can understand.
+</details>
 
 ---
 
-# 🏛️ NIST CSF 2.0 Coverage
+# 💡 Why GovernX?
 
-GovernX is structured around the six functions of NIST CSF 2.0.
+Traditional compliance workflows often depend on:
 
-| Function     | GovernX Focus                                                        |
-| ------------ | -------------------------------------------------------------------- |
-| **GOVERN**   | Policies, roles, strategy, risk ownership and organizational context |
-| **IDENTIFY** | Assets, dependencies, risks and business context                     |
-| **PROTECT**  | Access control, encryption, identity and security safeguards         |
-| **DETECT**   | Security events, configuration anomalies and monitoring              |
-| **RESPOND**  | Incident response and security remediation                           |
-| **RECOVER**  | Backup, recovery planning and restoration capabilities               |
+* Manual evidence collection
+* Spreadsheets
+* Periodic assessments
+* Static reports
+* Disconnected security tools
+* Qualitative risk descriptions
 
-The platform converts technical evidence into an organized representation of the organization's cybersecurity posture.
+GovernX follows a more connected and automated approach.
+
+### Traditional Flow
+
+```text
+Security Tool
+     ↓
+Finding
+     ↓
+Manual Analysis
+     ↓
+Spreadsheet
+     ↓
+Compliance Report
+     ↓
+Management
+```
+
+### GovernX Approach
+
+```text
+Cloud / Security Data
+          ↓
+Automated Assessment
+          ↓
+Security Findings
+          ↓
+NIST CSF 2.0 Mapping
+          ↓
+Compliance
+          ↓
+Maturity
+          ↓
+Risk Quantification
+          ↓
+Financial Impact
+          ↓
+Executive Decision
+```
+
+---
+
+# 🚀 Project Vision
+
+The long-term vision of GovernX is to create a platform where cybersecurity teams can understand their organization's security posture from both a **technical** and **business** perspective.
+
+The core concept is:
+
+<div align="center">
+
+### Technical Data
+
+⬇
+
+### Security Intelligence
+
+⬇
+
+### Compliance & Maturity
+
+⬇
+
+### Cyber Risk
+
+⬇
+
+### Financial Impact
+
+⬇
+
+### Business Decision
+
+</div>
+
+---
+
+# 🏢 Internship Context
+
+GovernX was developed as part of our **Cybersecurity Internship at AXLERO Innovating Solutions**.
+
+During the project, our team worked across multiple areas of cybersecurity engineering, including:
+
+* Cloud Security
+* AWS Security Assessment
+* Governance, Risk & Compliance
+* NIST CSF 2.0
+* Compliance Automation
+* Cyber Risk Quantification
+* Security Maturity
+* Python Backend Development
+* REST API Development
+* React Frontend Development
+* Database Persistence
+* Automated Testing
+* Mock Cloud Environments
+* Security Architecture
+* Executive Security Visualization
+
+The project represents our practical implementation and learning journey during the internship.
+
+---
+
+# 👥 Team
+
+<div align="center">
+
+| Team Member             |
+| ----------------------- |
+| **Ansh Gautam**         |
+| **Harshal Ghatbandhe**  |
+| **Mounika Dunna**       |
+| **Sujal Waghmode**      |
+| **Amrita**              |
+| **Yannam Chittikumari** |
+
+<br>
+
+### 🏢 AXLERO Innovating Solutions
+
+</div>
+
+---
+
+# 🏛️ NIST CSF 2.0
+
+GovernX is structured around the six functions introduced in the **NIST Cybersecurity Framework 2.0**.
+
+```text
+                  ┌─────────────────┐
+                  │   GOVERN        │
+                  └────────┬────────┘
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+          ▼                ▼                ▼
+     IDENTIFY          PROTECT          DETECT
+          │                │                │
+          └────────────────┼────────────────┘
+                           │
+                     ┌─────┴─────┐
+                     ▼           ▼
+                  RESPOND     RECOVER
+```
+
+## GOVERN
+
+Focuses on:
+
+* Cybersecurity strategy
+* Organizational context
+* Policies
+* Roles and responsibilities
+* Risk management
+* Oversight
+* Supply-chain cybersecurity
+
+## IDENTIFY
+
+Focuses on:
+
+* Assets
+* Dependencies
+* Business context
+* Cybersecurity risks
+
+## PROTECT
+
+Focuses on:
+
+* Identity
+* Access control
+* Encryption
+* Data protection
+* Security safeguards
+
+## DETECT
+
+Focuses on:
+
+* Security monitoring
+* Detection capabilities
+* Security events
+* Configuration anomalies
+
+## RESPOND
+
+Focuses on:
+
+* Incident response
+* Containment
+* Communication
+* Remediation
+
+## RECOVER
+
+Focuses on:
+
+* Backup
+* Restoration
+* Recovery planning
+* Recovery capabilities
 
 ---
 
@@ -128,14 +347,13 @@ The platform converts technical evidence into an organized representation of the
 
 ```text
                          ┌──────────────────────┐
-                         │   AWS / Cloud Data   │
+                         │    AWS / Cloud Data  │
                          └──────────┬───────────┘
                                     │
                                     ▼
                          ┌──────────────────────┐
                          │ Cloud Integration    │
-                         │ & Polling Engine     │
-                         │       Python         │
+                         │ Python / boto3       │
                          └──────────┬───────────┘
                                     │
                                     ▼
@@ -151,117 +369,109 @@ The platform converts technical evidence into an organized representation of the
                          └──────────┬───────────┘
                                     │
                                     ▼
-                    ┌──────────────────────────────┐
-                    │ NIST CSF 2.0 Mapping Engine  │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ Compliance & Maturity Engine  │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ Cyber Risk Quantification     │
-                    │ SLE / ARO / ALE / VaR         │
-                    │ Monte Carlo Simulation        │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ Backend REST API              │
-                    │ Flask / FastAPI               │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ React Executive Dashboard     │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                 ┌─────────────────────────────────────┐
-                 │ CISO / Security Team / Risk / Board │
-                 └─────────────────────────────────────┘
+                   ┌──────────────────────────────┐
+                   │ NIST CSF 2.0 Mapping Engine │
+                   └──────────────┬───────────────┘
+                                  │
+                                  ▼
+                   ┌──────────────────────────────┐
+                   │ Compliance & Maturity Engine │
+                   └──────────────┬───────────────┘
+                                  │
+                                  ▼
+                   ┌──────────────────────────────┐
+                   │ Cyber Risk Quantification    │
+                   │ SLE / ARO / ALE / VaR        │
+                   └──────────────┬───────────────┘
+                                  │
+                                  ▼
+                   ┌──────────────────────────────┐
+                   │       REST API Layer          │
+                   └──────────────┬───────────────┘
+                                  │
+                                  ▼
+                   ┌──────────────────────────────┐
+                   │       React Frontend          │
+                   └──────────────┬───────────────┘
+                                  │
+                                  ▼
+              ┌────────────────────────────────────────┐
+              │ Security / Risk / CISO / Management    │
+              └────────────────────────────────────────┘
 ```
 
 ---
 
-# 🔄 End-to-End Data Flow
+# 🔄 End-to-End Workflow
 
-GovernX follows a complete backend-to-frontend workflow.
+GovernX follows an assessment pipeline:
 
 ```text
-AWS Resource
-     ↓
-boto3 Collector
-     ↓
-Compliance Check
-     ↓
-Finding Generated
-     ↓
-NIST Mapping
-     ↓
-Compliance Score
-     ↓
-Risk Calculation
-     ↓
-Database Persistence
-     ↓
-REST API
-     ↓
-React Frontend
-     ↓
-Dashboard Visualization
+┌─────────────────────────┐
+│  Cloud / Security Data  │
+└────────────┬────────────┘
+             ↓
+┌─────────────────────────┐
+│ Automated Security Scan │
+└────────────┬────────────┘
+             ↓
+┌─────────────────────────┐
+│ Security Findings       │
+└────────────┬────────────┘
+             ↓
+┌─────────────────────────┐
+│ NIST CSF 2.0 Mapping    │
+└────────────┬────────────┘
+             ↓
+┌─────────────────────────┐
+│ Compliance Assessment   │
+└────────────┬────────────┘
+             ↓
+┌─────────────────────────┐
+│ Maturity Calculation    │
+└────────────┬────────────┘
+             ↓
+┌─────────────────────────┐
+│ Risk Quantification     │
+└────────────┬────────────┘
+             ↓
+┌─────────────────────────┐
+│ Financial Risk          │
+└────────────┬────────────┘
+             ↓
+┌─────────────────────────┐
+│ Executive Dashboard     │
+└─────────────────────────┘
 ```
-
-The frontend is designed to consume **real backend API responses rather than static mock values**.
-
-This allows changes in the monitored environment to propagate through the complete system.
 
 ---
 
-# ☁️ Cloud Integration Engine
+# ☁️ AWS Security Assessment
 
-The cloud integration engine provides automated security configuration assessment.
+The current cloud assessment implementation focuses on AWS.
 
-## Current AWS capabilities
+GovernX includes security checks for areas such as:
 
-GovernX includes checks for:
-
-* S3 encryption at rest
+* S3 encryption
 * EBS encryption
 * IAM configuration
 * Public resource exposure
 * Security groups
 * Open ports
 * Identity configuration
-* Additional AWS security controls
 
-The architecture uses:
-
-```text
-Python
- ├── boto3
- ├── REST APIs
- ├── JSON
- ├── Scheduled Polling
- └── Modular Check Registry
-```
-
-The modular design allows additional cloud and security integrations to be added without redesigning the entire system.
+The architecture uses Python and **boto3** to interact with AWS services.
 
 ---
 
-# 🔐 AWS Security Check Framework
+# 🔐 Security Check Framework
 
-GovernX uses a shared AWS compliance-check registry.
-
-Conceptually:
+GovernX follows a modular security-check architecture.
 
 ```text
 AWS Resource
       ↓
-Registered Check
+Security Check Registry
       ↓
 Security Evaluation
       ↓
@@ -272,18 +482,18 @@ NIST Mapping
 Risk
 ```
 
-Each check should provide:
+A finding can contain information such as:
 
 ```text
 Check ID
-Resource Type
-Security Control
+Resource
 Status
 Severity
 Evidence
 Description
 Remediation
-NIST Mapping
+NIST Function
+NIST Category
 ```
 
 Example:
@@ -295,47 +505,48 @@ Example:
   "status": "FAIL",
   "severity": "HIGH",
   "control": "Encryption at Rest",
-  "nist_function": "PROTECT",
-  "nist_category": "PR.DS-01"
+  "nist_function": "PROTECT"
 }
 ```
 
 ---
 
-# 🔒 Encryption Checks
+# 🔒 S3 Encryption Assessment
 
-## S3 Encryption at Rest
+The `s3_encryption_at_rest` check evaluates whether S3 buckets have encryption configured.
 
-The `s3_encryption_at_rest` check verifies whether S3 buckets have server-side encryption configured.
+The check is designed to:
 
-The check:
+* Discover S3 buckets
+* Inspect encryption configuration
+* Generate resource-level findings
+* Handle AWS API errors
+* Produce PASS/FAIL results
+* Map findings to NIST CSF 2.0
 
-* Identifies S3 buckets
-* Inspects encryption configuration
-* Produces resource-level findings
-* Handles AWS API errors
-* Produces PASS/FAIL results
-* Maps findings to NIST CSF 2.0
-
-### NIST Mapping
+Example:
 
 ```text
-S3 Encryption
-      ↓
+S3 Bucket
+    ↓
+Encryption Check
+    ↓
 Data Security
-      ↓
-PR.DS-01
+    ↓
+NIST Mapping
+    ↓
+PASS / FAIL
 ```
 
 ---
 
-# 💾 EBS Encryption
+# 💾 EBS Encryption Assessment
 
-The `ebs_encryption` check evaluates EBS volumes to determine whether encryption at rest is enabled.
+The `ebs_encryption` check evaluates EBS volumes for encryption at rest.
 
 Capabilities include:
 
-* `describe_volumes` based assessment
+* Volume discovery
 * Pagination support
 * Per-volume findings
 * Encrypted/un-encrypted detection
@@ -343,109 +554,83 @@ Capabilities include:
 * PASS/FAIL reporting
 * NIST CSF 2.0 mapping
 
-### NIST Mapping
-
 ```text
-EBS Encryption
-      ↓
-Data Security
-      ↓
-PR.DS-01
+EBS Volume
+    ↓
+Encryption Check
+    ↓
+Encrypted?
+   / \
+ YES  NO
+  ↓    ↓
+PASS  FAIL
 ```
 
 ---
 
-# 🧪 Mock AWS Verification
+# 🧪 Mock AWS Environment
 
-GovernX supports local testing through a **Moto-backed mock AWS environment**.
+GovernX supports validation using a **Moto-backed mock AWS environment**.
 
-This is important because security checks can be validated without:
-
-* Real AWS credentials
-* Production resources
-* Real cloud infrastructure
-* Unnecessary AWS costs
-
-The verification environment creates compliant and non-compliant resources and confirms that GovernX correctly identifies their security posture.
-
-Example:
+This allows security checks to be tested without depending on production AWS infrastructure.
 
 ```text
-Mock AWS
-   │
-   ├── Encrypted S3 Bucket
-   │       ↓
-   │      PASS
-   │
-   ├── Unencrypted S3 Bucket
-   │       ↓
-   │      FAIL
-   │
-   ├── Encrypted EBS Volume
-   │       ↓
-   │      PASS
-   │
-   └── Unencrypted EBS Volume
-           ↓
-          FAIL
+                  MOCK AWS
+                     │
+          ┌──────────┴──────────┐
+          │                     │
+          ▼                     ▼
+   Compliant Resource     Non-Compliant Resource
+          │                     │
+          ▼                     ▼
+        PASS                   FAIL
 ```
 
-Run:
+Benefits:
 
-```bash
-cd backend
-python verify_day4.py
-```
+* No production resources required
+* No real AWS credentials required for mock tests
+* Repeatable testing
+* Faster development
+* Safer security-check validation
 
 ---
 
-# 🗺️ NIST CSF 2.0 Mapping Engine
+# 🗺️ NIST Mapping Engine
 
-The mapping engine establishes the relationship between technical findings and cybersecurity framework outcomes.
+The NIST mapping layer connects technical findings with cybersecurity framework outcomes.
 
 ```text
 Technical Finding
        ↓
 Security Control
        ↓
-NIST CSF Function
+NIST Function
        ↓
 NIST Category / Subcategory
        ↓
-Compliance Status
+Compliance Impact
        ↓
 Risk Impact
 ```
 
 Example:
 
-| Technical Finding       | Control               | NIST Mapping | Result |
-| ----------------------- | --------------------- | ------------ | ------ |
-| S3 Public Access        | Public Access Block   | Protect      | FAIL   |
-| MFA Disabled            | Strong Authentication | Protect      | FAIL   |
-| S3 Encryption Disabled  | Data Encryption       | PR.DS-01     | FAIL   |
-| EBS Encryption Disabled | Data Encryption       | PR.DS-01     | FAIL   |
-| Backup Missing          | Recovery Control      | Recover      | FAIL   |
+| Technical Finding       | Security Control | NIST Area | Result |
+| ----------------------- | ---------------- | --------- | ------ |
+| S3 Encryption Disabled  | Data Encryption  | PROTECT   | FAIL   |
+| EBS Encryption Disabled | Data Encryption  | PROTECT   | FAIL   |
+| MFA Disabled            | Authentication   | PROTECT   | FAIL   |
+| Public Resource         | Access Control   | PROTECT   | FAIL   |
+| Backup Missing          | Recovery Control | RECOVER   | FAIL   |
 
 ---
 
 # 📊 Compliance Engine
 
-GovernX calculates compliance posture from individual control results.
+GovernX aggregates individual control results into an overall compliance posture.
 
-```text
-Individual Checks
-       ↓
-Control Results
-       ↓
-NIST Categories
-       ↓
-NIST Functions
-       ↓
-Overall Compliance Score
-```
-
-Possible statuses:
+Supported assessment states include:
 
 ```text
 PASS
@@ -454,36 +639,52 @@ WARNING
 NOT_ASSESSED
 ```
 
-This allows the dashboard to distinguish between:
+The conceptual scoring flow is:
 
-* Fully compliant controls
-* Failed controls
-* Partially implemented controls
-* Controls that have not yet been assessed
+```text
+Individual Checks
+       ↓
+Security Controls
+       ↓
+NIST Categories
+       ↓
+NIST Functions
+       ↓
+Overall Compliance
+```
+
+This enables security teams to understand both individual control failures and the larger organizational posture.
 
 ---
 
 # 📈 Cybersecurity Maturity
 
-GovernX evaluates organizational maturity using the NIST CSF Tier model.
+GovernX uses NIST CSF Tier concepts to represent cybersecurity maturity.
 
-### Tier 1 — Partial
+<table>
+<tr>
+<th>Tier</th>
+<th>Description</th>
+</tr>
+<tr>
+<td><b>Tier 1 — Partial</b></td>
+<td>Cybersecurity practices are limited or inconsistent.</td>
+</tr>
+<tr>
+<td><b>Tier 2 — Risk Informed</b></td>
+<td>Security decisions consider organizational risk.</td>
+</tr>
+<tr>
+<td><b>Tier 3 — Repeatable</b></td>
+<td>Formal and repeatable cybersecurity processes are established.</td>
+</tr>
+<tr>
+<td><b>Tier 4 — Adaptive</b></td>
+<td>Cybersecurity continuously adapts using lessons learned and changing conditions.</td>
+</tr>
+</table>
 
-Cybersecurity practices are limited or inconsistent.
-
-### Tier 2 — Risk Informed
-
-Security decisions consider organizational risk but may not be consistently applied.
-
-### Tier 3 — Repeatable
-
-Formal and repeatable cybersecurity processes are established.
-
-### Tier 4 — Adaptive
-
-The organization continuously improves its cybersecurity capabilities using lessons learned and changing threat intelligence.
-
-GovernX derives maturity insights from:
+### Maturity Flow
 
 ```text
 Control Performance
@@ -503,31 +704,31 @@ Maturity Gap
 
 # 💰 Cyber Risk Quantification
 
-One of GovernX's major differentiators is its ability to translate security weaknesses into estimated financial exposure.
+A key objective of GovernX is connecting cybersecurity findings with potential financial impact.
 
-Instead of:
+Instead of communicating only:
 
 ```text
-CRITICAL
+Severity: CRITICAL
 ```
 
-GovernX attempts to communicate:
+the platform aims to provide a business-oriented perspective:
 
 ```text
-Potential Financial Impact
+What could this risk mean financially?
 ```
 
 ---
 
 # 📐 Risk Model
 
-GovernX can incorporate:
+The risk engine can incorporate:
 
 * Asset value
 * Exposure factor
 * Threat probability
-* Control effectiveness
 * Incident frequency
+* Control effectiveness
 * Potential loss
 * Recovery cost
 * Business impact
@@ -544,17 +745,19 @@ Where:
 
 ```text
 SLE = Single Loss Expectancy
+
 ARO = Annual Rate of Occurrence
+
 ALE = Annualized Loss Expectancy
 ```
 
 ---
 
-# 🎲 Monte Carlo Risk Simulation
+# 🎲 Monte Carlo Risk Modeling
 
 Cybersecurity risk contains uncertainty.
 
-GovernX can model this uncertainty using Monte Carlo simulation.
+Monte Carlo simulation can be used to represent this uncertainty through repeated simulations.
 
 ```text
 Input Variables
@@ -570,68 +773,73 @@ Percentiles
 Risk Estimate
 ```
 
-Example:
-
-```text
-Potential Annual Loss
-
-$420K ───────── $1.2M ───────── $3.4M
- Low             Expected         High
-```
-
-This provides a more useful risk representation than a single deterministic number.
+This allows the system to move from a single deterministic number toward a more realistic range of potential outcomes.
 
 ---
 
-# 📉 Risk Reduction Analysis
+# 📉 Risk Reduction
 
-GovernX can compare the organization's risk posture before and after remediation.
+GovernX can demonstrate the concept of comparing risk before and after remediation.
 
 ```text
 Current Risk
      ↓
-Apply Remediation
+Remediation
      ↓
-Recalculate Controls
+Security Controls Improve
      ↓
-Recalculate Risk
+Reassessment
+     ↓
+Risk Recalculation
      ↓
 Risk Reduction
 ```
 
-Example:
+Example scenario:
 
-```text
-Before Remediation:
-$1.2M Estimated Exposure
+<table>
+<tr>
+<th>Metric</th>
+<th>Before</th>
+<th>After</th>
+</tr>
+<tr>
+<td>Compliance</td>
+<td>68%</td>
+<td>89%</td>
+</tr>
+<tr>
+<td>Estimated Exposure</td>
+<td>$1.2M</td>
+<td>$430K</td>
+</tr>
+<tr>
+<td>Maturity</td>
+<td>Tier 2</td>
+<td>Tier 3</td>
+</tr>
+</table>
 
-After MFA Enforcement:
-$430K Estimated Exposure
-
-Potential Risk Reduction:
-$770K
-```
-
-This can help organizations evaluate the business value of security investments.
+> The values above are illustrative scenario values used to demonstrate the risk-quantification concept.
 
 ---
 
 # 🏛️ Governance Layer
 
-GovernX extends beyond technical cloud security.
+GovernX extends beyond technical cloud checks through its governance layer.
 
-The governance layer can represent:
+The governance model can represent:
 
 * Cybersecurity strategy
 * Policies
 * Risk ownership
 * Roles and responsibilities
-* Risk appetite
 * Organizational context
-* Supply-chain cybersecurity
+* Risk appetite
 * Governance oversight
+* Supply-chain cybersecurity
 
-The intended relationship is:
+The conceptual relationship is:
 
 ```text
 Business Strategy
@@ -649,200 +857,246 @@ Measured Risk
 
 ---
 
-# 📊 Executive Dashboard
+# 📋 Governance Questionnaire
 
-The React dashboard provides an executive-level representation of security posture.
+The current governance implementation introduces a self-attestation questionnaire for the **GOVERN** function.
 
-### Key dashboard metrics
+The current scope includes areas such as:
 
 ```text
-┌───────────────────────────────────────────────┐
-│                  GOVERNX                      │
-├───────────────────────────────────────────────┤
-│                                               │
-│ Security Score        Maturity Tier           │
-│      78%                  Tier 3               │
-│                                               │
-├───────────────────────────────────────────────┤
-│                                               │
-│ GOVERN       ████████████████░░  82%          │
-│ IDENTIFY     ███████████████░░░  76%          │
-│ PROTECT      █████████████░░░░░  68%          │
-│ DETECT       ████████████████░░  81%          │
-│ RESPOND      ███████████████░░░  74%          │
-│ RECOVER      ██████████████░░░░  71%          │
-│                                               │
-├───────────────────────────────────────────────┤
-│                                               │
-│ Critical Risk Exposure       $1.2M             │
-│ Open Critical Findings      07                │
-│ Compliance Score             76%              │
-│                                               │
-└───────────────────────────────────────────────┘
+Risk Owner Assigned
+        ↓
+Governance / Roles
+
+Security Policy Reviewed
+        ↓
+Policy / Oversight
+
+Incident Response Plan
+        ↓
+Response Governance
+
+Third-Party Risk Review
+        ↓
+Supply-Chain Governance
 ```
 
-The dashboard should obtain these values from backend APIs so that the UI reflects actual assessment results.
+The scope is intentionally limited and does not claim complete coverage of every NIST CSF 2.0 GOVERN subcategory.
 
 ---
 
-# 🔌 Frontend–Backend Integration
+# 🧾 Scan History & Audit Trail
+
+GovernX includes persistence and historical assessment capabilities.
+
+Instead of displaying only the latest scan:
+
+```text
+Previous Scan
+     ↓
+Current Scan
+     ↓
+Compare
+     ↓
+Compliance Change
+     ↓
+Risk Change
+     ↓
+Security Improvement
+```
+
+Governance submissions can also be retained for historical visibility.
+
+Example API routes include:
+
+```text
+POST /governance/responses
+
+GET /governance/responses
+
+GET /governance/history
+```
+
+---
+
+# 🖥️ Executive Dashboard
+
+The React frontend is designed to transform backend assessment data into an executive-oriented security view.
+
+Example dashboard metrics:
+
+```text
+┌─────────────────────────────────────────────┐
+│                  GOVERNX                    │
+├─────────────────────────────────────────────┤
+│                                             │
+│ Security Score         Maturity Tier        │
+│     78%                   Tier 3             │
+│                                             │
+├─────────────────────────────────────────────┤
+│                                             │
+│ GOVERN       ████████████████░░   82%       │
+│ IDENTIFY     ███████████████░░░   76%       │
+│ PROTECT      █████████████░░░░░   68%       │
+│ DETECT       ████████████████░░   81%       │
+│ RESPOND      ███████████████░░░   74%       │
+│ RECOVER      ██████████████░░░░   71%       │
+│                                             │
+├─────────────────────────────────────────────┤
+│                                             │
+│ Critical Risk Exposure       $1.2M          │
+│ Open Critical Findings      07              │
+│ Compliance Score             76%            │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+The frontend is intended to consume backend APIs rather than independently becoming the source of assessment truth.
+
+---
+
+# 🔌 Frontend & Backend Architecture
 
 GovernX follows an API-driven architecture.
 
 ```text
-React Frontend
-      │
-      │ HTTP / REST
-      ▼
-Flask / FastAPI Backend
-      │
-      ▼
-Compliance Services
-      │
-      ├── AWS Collector
-      ├── Security Checks
-      ├── NIST Mapping
-      ├── Maturity Engine
-      └── Risk Engine
-      │
-      ▼
-Database
+┌────────────────────────────┐
+│       React Frontend       │
+│                            │
+│ Dashboard / Charts / UI    │
+└──────────────┬─────────────┘
+               │
+               │ HTTP / REST
+               ▼
+┌────────────────────────────┐
+│       Backend API          │
+│                            │
+│ FastAPI / Python           │
+└──────────────┬─────────────┘
+               │
+       ┌───────┼────────┐
+       │       │        │
+       ▼       ▼        ▼
+     AWS    NIST       Risk
+   Checks  Mapping     Engine
+       │       │        │
+       └───────┼────────┘
+               ▼
+        ┌──────────────┐
+        │  Database    │
+        └──────────────┘
 ```
 
-The frontend should not independently calculate or hard-code core compliance results.
+### Architecture Principle
 
-Instead:
+<div align="center">
 
-```text
-Backend = Source of Truth
-Frontend = Visualization Layer
-```
+**Backend = Source of Truth**
 
-This ensures that dashboard values represent actual backend assessment results.
+⬇
+
+**Frontend = Visualization Layer**
+
+</div>
 
 ---
 
-# 🔄 Dynamic Assessment Example
+# 🗄️ Database & Persistence
 
-Suppose a mock AWS environment initially contains:
+GovernX includes persistence for assessment-related information.
 
-```text
-EBS Encryption = ENABLED
-```
-
-GovernX returns:
+The conceptual data relationship is:
 
 ```text
-PASS
+Organization
+     │
+     ├── Assets
+     │
+     ├── Findings
+     │      │
+     │      └── NIST Mapping
+     │
+     ├── Risk Assessments
+     │
+     ├── Governance Responses
+     │
+     └── Scan History
 ```
 
-Now change the resource:
-
-```text
-EBS Encryption = DISABLED
-```
-
-The expected flow is:
-
-```text
-Configuration Change
-        ↓
-AWS Collector
-        ↓
-EBS Encryption Check
-        ↓
-FAIL
-        ↓
-Finding Updated
-        ↓
-NIST Mapping Updated
-        ↓
-Compliance Score Recalculated
-        ↓
-Risk Recalculated
-        ↓
-API Response Updated
-        ↓
-React Dashboard Updated
-```
-
-This demonstrates that GovernX is a **working compliance engine rather than a static dashboard or UI mockup**.
+Persistence enables the application to retain assessment information rather than treating every scan as an isolated event.
 
 ---
 
 # 🧪 Testing Strategy
 
-GovernX uses automated testing to validate backend behavior.
+Testing is an important part of the project architecture.
 
-Testing should cover:
+## Unit Testing
 
-### Unit Tests
+Areas include:
 
-```text
-Individual security checks
-Risk calculations
-Mapping logic
-Scoring logic
-```
+* Security checks
+* Risk calculations
+* NIST mapping
+* Compliance scoring
+* Governance scoring
 
-### Integration Tests
+## Integration Testing
 
 ```text
 AWS Collector
       ↓
-Security Checks
+Security Check
       ↓
 NIST Mapping
       ↓
 API
 ```
 
-### Mock Cloud Tests
+## Mock Cloud Testing
 
 ```text
 Moto AWS Environment
       ↓
 Create Test Resources
       ↓
-Run Security Checks
+Run Security Check
       ↓
-Verify PASS / FAIL
+Verify Result
 ```
 
-### API Tests
+## API Testing
 
-Validate:
+Testing can cover:
 
 * HTTP status codes
-* Response schemas
-* Invalid input handling
-* Error responses
+* Response structures
+* Invalid input
+* Error handling
 * Database interactions
 * Assessment endpoints
 
-Run backend tests using:
+### Run Tests
 
 ```bash
 pytest -v
 ```
 
-A successful test run provides confidence that the backend implementation remains functional as new modules are added.
-
 ---
 
-# 🛡️ Security Architecture
+# 🔒 Security Architecture
 
 GovernX follows security-by-design principles.
 
 ### Least Privilege
 
-AWS integrations should use only the permissions required for security assessment.
+AWS integrations should use only the permissions required for assessment.
 
 ### Secret Management
 
 Credentials should never be hard-coded.
 
-Use:
+Recommended approaches:
 
 ```text
 Environment Variables
@@ -863,7 +1117,7 @@ Recommended controls include:
 
 ### Audit Logging
 
-Important events should be logged:
+Important actions should capture:
 
 ```text
 User
@@ -875,284 +1129,58 @@ Result
 
 ---
 
-# 🗄️ Data Persistence
-
-GovernX should maintain persistent records for:
-
-```text
-Organizations
-Assets
-Security Findings
-Controls
-NIST Mappings
-Assessment Results
-Risk Calculations
-Remediation Status
-Audit Events
-```
-
-Example relationship:
-
-```text
-Organization
-     │
-     ├── Assets
-     │
-     ├── Findings
-     │      ↓
-     │   Controls
-     │      ↓
-     │   NIST Mapping
-     │
-     ├── Risk Assessments
-     │
-     └── Remediation Records
-```
-
-This makes the platform suitable for historical trend analysis rather than only showing the current state.
-
----
-
-# 📋 Reporting Engine
-
-GovernX can generate automated reports containing:
-
-### Executive Summary
-
-High-level cybersecurity posture.
-
-### NIST CSF 2.0 Assessment
-
-Function and category-level results.
-
-### Maturity Assessment
-
-Current and target maturity.
-
-### Critical Findings
-
-High-priority security gaps.
-
-### Financial Risk
-
-ALE, estimated loss distribution and Value-at-Risk.
-
-### Remediation Priorities
-
-Actions ranked according to business impact.
-
-### Risk Reduction
-
-Estimated improvement after remediation.
-
----
-
-# 📅 Development Roadmap
-
-## Week 1 — Cloud Integration & Dashboard Foundation
-
-### Backend
-
-* AWS integration
-* boto3 collectors
-* S3 security checks
-* EBS security checks
-* Encryption validation
-* IAM analysis
-* Public exposure detection
-* Security group analysis
-* Finding persistence
-
-### Frontend
-
-* React dashboard
-* NIST function cards
-* Security score
-* Finding overview
-* API service layer
-
----
-
-# Week 2 — NIST Mapping & Maturity
-
-### Backend
-
-* NIST CSF 2.0 mapping database
-* Technical-control relationships
-* Control scoring
-* Function-level scoring
-* Maturity calculation
-* Current vs target profile
-
-### Frontend
-
-* NIST function visualization
-* Compliance gaps
-* Control status
-* Maturity visualization
-* Target profile comparison
-
----
-
-# Mid-Project Validation
-
-GovernX must demonstrate dynamic behavior.
-
-Example:
-
-```text
-MFA ENABLED
-     ↓
-PASS
-     ↓
-Good Compliance Score
-```
-
-Change:
-
-```text
-MFA DISABLED
-     ↓
-FAIL
-     ↓
-Compliance Gap
-     ↓
-Risk Increase
-     ↓
-Dashboard Update
-```
-
----
-
-# Week 3 — Governance & Financial Risk
-
-### Governance
-
-* Governance controls
-* Risk ownership
-* Policies
-* Supply-chain relationships
-* Organizational context
-
-### Risk Engine
-
-* Asset valuation
-* Exposure factor
-* Threat probability
-* SLE
-* ARO
-* ALE
-* Monte Carlo simulation
-* Risk distribution
-* VaR estimation
-* Risk reduction
-
----
-
-# Week 4 — Reporting & Finalization
-
-### Reporting
-
-* Executive report
-* NIST posture report
-* Maturity report
-* Risk report
-* Remediation report
-* Business impact analysis
-
-### Finalization
-
-* Frontend/backend integration
-* API validation
-* Database validation
-* Automated testing
-* Error handling
-* Security hardening
-* UI polishing
-* Documentation
-* Final demonstration
-
----
-
 # 🛠️ Technology Stack
 
-## Backend
+<div align="center">
 
-```text
-Python
-Flask / FastAPI
-boto3
-REST APIs
-SQLite / PostgreSQL
-Pandas
-NumPy
-Scikit-learn
-Monte Carlo Simulation
-```
+| Layer                  | Technologies                       |
+| ---------------------- | ---------------------------------- |
+| **Frontend**           | React, JavaScript, HTML5, CSS3     |
+| **Backend**            | Python, FastAPI / Flask            |
+| **Cloud**              | AWS                                |
+| **AWS SDK**            | boto3                              |
+| **Database**           | SQLite / PostgreSQL                |
+| **Testing**            | pytest, Moto                       |
+| **Security Framework** | NIST CSF 2.0                       |
+| **Risk Modeling**      | Statistical / Monte Carlo Modeling |
+| **API**                | REST                               |
+| **Version Control**    | Git & GitHub                       |
 
-## Frontend
-
-```text
-React.js
-JavaScript / TypeScript
-HTML5
-CSS3
-Chart.js / Recharts
-```
-
-## Cloud & Security
-
-```text
-AWS
-IAM
-S3
-EBS
-Security Groups
-Cloud APIs
-NIST CSF 2.0
-```
-
-## Testing
-
-```text
-pytest
-Moto
-API Integration Tests
-Unit Tests
-```
-
-## Reporting
-
-```text
-Python PDF Generation
-Automated Compliance Reports
-Executive Risk Reports
-```
+</div>
 
 ---
 
 # 📁 Project Structure
 
 ```text
-GovernX/
+Govern-X/
 │
 ├── backend/
 │   ├── app.py
+│   │
 │   ├── config/
+│   │
 │   ├── integrations/
 │   │   ├── aws/
 │   │   └── azure/
 │   │
 │   ├── collectors/
+│   │
 │   ├── checks/
+│   │
 │   ├── mappings/
+│   │
 │   ├── compliance/
+│   │
 │   ├── risk_engine/
+│   │
 │   ├── models/
+│   │
 │   ├── api/
+│   │
 │   ├── reports/
-│   ├── tests/
-│   └── verify_day4.py
+│   │
+│   └── tests/
 │
 ├── frontend/
 │   ├── src/
@@ -1184,315 +1212,21 @@ GovernX/
 
 ---
 
-# 📊 Key Metrics
+# ⚙️ Installation & Setup
 
-| Metric                 | Description                                               |
-| ---------------------- | --------------------------------------------------------- |
-| Security Posture Score | Overall security control performance                      |
-| NIST Function Score    | Score for each CSF function                               |
-| Compliance Score       | Percentage of compliant assessed controls                 |
-| Maturity Tier          | Current organizational maturity                           |
-| Compliance Gap         | Difference between current and target state               |
-| Critical Findings      | High-priority security issues                             |
-| Control Coverage       | Percentage of controls assessed                           |
-| ALE                    | Expected annualized loss                                  |
-| VaR                    | Estimated financial exposure at selected confidence level |
-| Risk Reduction         | Expected reduction after remediation                      |
+## 1️⃣ Clone Repository
 
----
+```bash
+git clone https://github.com/AnshGautam11/Govern-X.git
 
-# 🔥 Example End-to-End Scenario
-
-## Initial State
-
-```text
-Financial AWS Environment
-
-S3 Encryption       PASS
-EBS Encryption      FAIL
-MFA                  FAIL
-Security Groups     PASS
-Backup              FAIL
-```
-
-GovernX processes these findings:
-
-```text
-AWS Telemetry
-      ↓
-Security Checks
-      ↓
-5 Control Results
-      ↓
-NIST CSF Mapping
-      ↓
-Compliance Score
-      ↓
-Maturity Analysis
-      ↓
-Financial Risk
-```
-
-Dashboard:
-
-```text
-Compliance Score:        68%
-
-Maturity:                Tier 2
-
-Critical Findings:       3
-
-Estimated Risk:          $1.2M
-
-Highest Risk Area:
-Identity & Data Protection
-```
-
-GovernX then generates:
-
-```text
-Priority 1
-Enforce MFA
-
-Priority 2
-Enable EBS encryption
-
-Priority 3
-Implement recovery controls
-```
-
-After remediation:
-
-```text
-Compliance Score:
-68% → 89%
-
-Risk:
-$1.2M → $430K
-
-Maturity:
-Tier 2 → Tier 3
-```
-
-The platform therefore demonstrates measurable security improvement.
-
----
-
-# 🔄 Traditional Compliance vs GovernX
-
-| Traditional Compliance        | GovernX                       |
-| ----------------------------- | ----------------------------- |
-| Periodic audits               | Continuous assessment         |
-| Manual spreadsheets           | Automated evidence            |
-| Static reports                | Dynamic dashboard             |
-| Technical findings            | Business risk                 |
-| Qualitative severity          | Quantified financial exposure |
-| Manual framework mapping      | Automated NIST mapping        |
-| Limited historical visibility | Persistent assessment history |
-| Audit-focused                 | Risk-focused                  |
-| Security-centric              | Business + security-centric   |
-
----
-
-# 🎯 Expected Final Demonstration
-
-The final GovernX demonstration should show the complete lifecycle:
-
-```text
-1. Launch Backend
-        ↓
-2. Launch Frontend
-        ↓
-3. Connect to Mock AWS
-        ↓
-4. Run Security Assessment
-        ↓
-5. Detect Configuration
-        ↓
-6. Generate Findings
-        ↓
-7. Map Findings to NIST CSF 2.0
-        ↓
-8. Calculate Compliance Score
-        ↓
-9. Calculate Maturity
-        ↓
-10. Quantify Financial Risk
-        ↓
-11. Display Results in React
-        ↓
-12. Change Cloud Configuration
-        ↓
-13. Re-run Assessment
-        ↓
-14. Observe Updated Risk & Compliance
-        ↓
-15. Generate Executive Report
-```
-
-This proves that GovernX is an integrated cybersecurity platform rather than a collection of independent modules.
-
----
-
-# 🏆 What Makes GovernX Different?
-
-GovernX is not intended to be another vulnerability scanner.
-
-Its primary focus is the relationship between:
-
-```text
-Cybersecurity
-      +
-Governance
-      +
-Compliance
-      +
-Risk
-      +
-Business Impact
-```
-
-A conventional tool may say:
-
-```text
-MFA Disabled
-Severity: Critical
-```
-
-GovernX aims to provide:
-
-```text
-MFA Disabled
-      ↓
-Identity Control Gap
-      ↓
-NIST CSF 2.0 Mapping
-      ↓
-Compliance Impact
-      ↓
-Maturity Impact
-      ↓
-Asset Exposure
-      ↓
-Financial Risk
-      ↓
-Remediation Recommendation
-      ↓
-Risk Reduction
-      ↓
-Executive Decision
+cd Govern-X
 ```
 
 ---
 
-# 🚀 Future Enhancements
+# 🐍 Backend Setup
 
-Potential future versions include:
-
-* Azure integration
-* GCP integration
-* Microsoft Entra ID
-* Active Directory
-* SIEM integrations
-* CrowdStrike integration
-* SentinelOne integration
-* Automated remediation
-* Policy-as-Code
-* Terraform integration
-* AI-assisted risk explanations
-* AI-generated executive summaries
-* ISO 27001 mapping
-* SOC 2 mapping
-* CIS Controls mapping
-* GDPR mapping
-* Multi-tenant enterprise architecture
-* Role-based access control
-* Security trend analytics
-* Historical risk forecasting
-
----
-
-# 🔐 Security Principles
-
-GovernX follows the following design principles:
-
-```text
-Least Privilege
-       +
-Secure Secrets
-       +
-Input Validation
-       +
-Authentication
-       +
-Authorization
-       +
-Audit Logging
-       +
-Secure APIs
-       +
-Encrypted Data
-       +
-Separation of Duties
-```
-
-GovernX should remain **read-only wherever possible** when assessing monitored cloud environments.
-
----
-
-# 📌 Current Implementation Status
-
-### Week 1 Cloud Polling
-
-The initial AWS cloud-polling implementation has been finalized and locally verified.
-
-### Completed
-
-* AWS boto3 integration
-* Shared AWS check registry
-* S3 encryption-at-rest check
-* EBS encryption check
-* Per-resource findings
-* PASS/FAIL assessment
-* AWS error handling
-* Pagination support for EBS volume discovery
-* NIST CSF 2.0 mapping
-* Moto-backed mock AWS validation
-* Automated test coverage
-
-### Verified Checks
-
-```text
-s3_encryption_at_rest
-        ↓
-PR.DS-01
-
-ebs_encryption
-        ↓
-PR.DS-01
-```
-
-### Verification
-
-The checks were tested against compliant and non-compliant mock AWS resources.
-
-```text
-Compliant Resource
-       ↓
-PASS
-
-Non-Compliant Resource
-       ↓
-FAIL
-```
-
-No real AWS credentials are required for local verification.
-
----
-
-# 🧪 Backend Development Setup
-
-From the backend directory:
+Move into the backend directory:
 
 ```bash
 cd backend
@@ -1504,10 +1238,16 @@ Create a virtual environment:
 python -m venv venv
 ```
 
-Activate on Windows:
+### Windows
+
+```powershell
+venv\Scripts\activate
+```
+
+### Linux / macOS
 
 ```bash
-venv\Scripts\activate
+source venv/bin/activate
 ```
 
 Install dependencies:
@@ -1516,25 +1256,29 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Run automated tests:
+---
+
+# 🧪 Run Backend Tests
 
 ```bash
 pytest -v
 ```
 
-Run AWS encryption verification:
+---
+
+# ☁️ Mock AWS Verification
+
+If the repository version includes the mock verification script:
 
 ```bash
 python verify_day4.py
 ```
 
+This validates AWS security-check behavior against mock resources.
+
 ---
 
-# 🌐 Running the Application
-
-### Backend
-
-Start the API server using the project's configured application entry point.
+# ▶️ Running the Backend
 
 For an ASGI application:
 
@@ -1542,200 +1286,367 @@ For an ASGI application:
 uvicorn app:app --reload
 ```
 
-For Flask:
+For a Flask application:
 
 ```bash
 python app.py
 ```
 
-### Frontend
+---
 
-From the frontend directory:
+# ⚛️ Frontend Setup
+
+Open another terminal and move into the frontend directory:
+
+```bash
+cd frontend
+```
+
+Install dependencies:
 
 ```bash
 npm install
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
-The frontend communicates with the backend through REST APIs.
+---
+
+# 🔗 Application Flow
+
+Once the frontend and backend are running:
+
+```text
+React Frontend
+       │
+       ▼
+REST API
+       │
+       ▼
+Backend
+       │
+ ┌─────┼───────────┐
+ ▼     ▼           ▼
+AWS   NIST        Risk
+     Mapping      Engine
+ │     │           │
+ └─────┼───────────┘
+       ▼
+   Database
+```
 
 ---
 
-# 🎯 Final Project Outcome
+# 📅 Development Journey
 
-GovernX demonstrates a complete transformation:
+GovernX was developed incrementally during the internship.
+
+## 🔹 Phase 1 — Cloud Security Foundation
+
+Initial implementation focused on:
+
+* AWS integration
+* boto3 collectors
+* Security-check architecture
+* S3 encryption
+* EBS encryption
+* IAM analysis
+* Public exposure
+* Security groups
+* Finding persistence
+* Dashboard foundation
+
+---
+
+## 🔹 Phase 2 — NIST CSF 2.0 & Maturity
+
+Focus areas:
+
+* NIST mapping database
+* Technical-control relationships
+* Control scoring
+* Function-level scoring
+* Maturity calculation
+* Current vs target profile
+* Database persistence
+* Scan history
+* Assessment comparison
+
+---
+
+## 🔹 Phase 3 — Governance
+
+Focus areas:
+
+* GOVERN function
+* Governance questionnaire
+* Governance APIs
+* Response validation
+* Governance scoring
+* Database persistence
+* Governance history
+* Supply-chain risk context
+
+---
+
+# 🚧 Future Roadmap
+
+The following items represent potential future development and are **not necessarily part of the current implementation**.
+
+## ☁️ Multi-Cloud
+
+* Azure integration
+* GCP integration
+* Microsoft Entra ID
+* Active Directory
+
+## 🛡️ Security Integrations
+
+* SIEM integrations
+* Endpoint security integrations
+* Security monitoring platforms
+
+## 🤖 AI & Automation
+
+* AI-assisted risk explanations
+* AI-generated executive summaries
+* Automated remediation
+* Policy-as-Code
+* Intelligent control recommendations
+
+## 🏗️ Enterprise Architecture
+
+* Multi-tenant architecture
+* Role-Based Access Control
+* Organization-level isolation
+* Enterprise authentication
+
+## 📋 Compliance Frameworks
+
+Potential future support:
+
+* ISO 27001
+* SOC 2
+* CIS Controls
+* GDPR
+
+## 📈 Advanced Analytics
+
+* Security trend analysis
+* Historical risk forecasting
+* Advanced risk visualization
+* Predictive security analytics
+
+---
+
+# 📊 Current Implementation Status
+
+> **GovernX is an active internship project under development.**
+
+### ✅ Implemented / Verified Areas
+
+| Area                        | Status |
+| --------------------------- | :----: |
+| AWS boto3 Integration       |    ✅   |
+| AWS Security Check Registry |    ✅   |
+| S3 Encryption Check         |    ✅   |
+| EBS Encryption Check        |    ✅   |
+| Per-Resource Findings       |    ✅   |
+| PASS / FAIL Assessment      |    ✅   |
+| AWS Error Handling          |    ✅   |
+| Pagination Support          |    ✅   |
+| NIST CSF 2.0 Mapping        |    ✅   |
+| Moto Mock AWS Validation    |    ✅   |
+| Automated Testing           |    ✅   |
+| NIST Mapping Persistence    |    ✅   |
+| Scan History                |    ✅   |
+| Governance Questionnaire    |    ✅   |
+| Governance APIs             |    ✅   |
+| Governance Validation       |    ✅   |
+| Governance Scoring          |    ✅   |
+| Governance Persistence      |    ✅   |
+| Governance Audit History    |    ✅   |
+
+### 🚧 In Development / Future Scope
+
+| Area                             | Status |
+| -------------------------------- | :----: |
+| Azure Integration                |   🚧   |
+| GCP Integration                  |   🚧   |
+| Advanced AI Risk Analysis        |   🚧   |
+| Automated Remediation            |   🚧   |
+| Multi-Tenant Architecture        |   🚧   |
+| Additional Compliance Frameworks |   🚧   |
+| Advanced Predictive Analytics    |   🚧   |
+
+---
+
+# 🏆 Project Outcome
+
+GovernX brings multiple cybersecurity disciplines together into a single platform:
 
 ```text
-                    GOVERNX
-
-Technical Telemetry
-        ↓
-Security Assessment
-        ↓
-NIST CSF 2.0
-        ↓
-Compliance
-        ↓
-Maturity
-        ↓
-Risk Quantification
-        ↓
-Financial Impact
-        ↓
-Remediation
-        ↓
-Executive Decision
+                 GOVERNX
+                    │
+       ┌────────────┼────────────┐
+       │            │            │
+       ▼            ▼            ▼
+   SECURITY     COMPLIANCE     GOVERNANCE
+       │            │            │
+       └────────────┼────────────┘
+                    │
+                    ▼
+             MATURITY ANALYSIS
+                    │
+                    ▼
+             RISK QUANTIFICATION
+                    │
+                    ▼
+              FINANCIAL IMPACT
+                    │
+                    ▼
+              REMEDIATION
+                    │
+                    ▼
+             BUSINESS DECISION
 ```
 
-The platform demonstrates practical implementation of:
+The overall transformation is:
 
-* Cybersecurity Governance
-* NIST CSF 2.0
-* Cloud Security
-* AWS Security Assessment
-* GRC
-* Compliance Automation
-* Risk Management
-* Financial Risk Modeling
-* Monte Carlo Simulation
-* Python Automation
-* REST APIs
-* React
-* Database Persistence
-* Automated Testing
-* Executive Security Reporting
+<div align="center">
+
+### Technical Telemetry
+
+⬇
+
+### Security Assessment
+
+⬇
+
+### NIST CSF 2.0
+
+⬇
+
+### Compliance
+
+⬇
+
+### Cybersecurity Maturity
+
+⬇
+
+### Risk Quantification
+
+⬇
+
+### Financial Impact
+
+⬇
+
+### Remediation
+
+⬇
+
+### Executive Decision
+
+</div>
+
+---
+
+# 🤝 Internship Learning
+
+Working on GovernX during our cybersecurity internship provided practical exposure to how cybersecurity concepts can be transformed into an actual software platform.
+
+The project involved learning and applying:
+
+* ☁️ Cloud Security
+* 🔐 AWS Security Controls
+* 🏛️ NIST CSF 2.0
+* 📋 Governance, Risk & Compliance
+* 📊 Compliance Automation
+* 📈 Cybersecurity Maturity
+* 💰 Risk Quantification
+* 🐍 Python Backend Development
+* ⚡ REST APIs
+* ⚛️ React Frontend Development
+* 🗄️ Database Design
+* 🧪 Automated Testing
+* 🧰 Mock Cloud Environments
+* 🔒 Security Architecture
+* 👥 Collaborative Software Development
+
+Most importantly, the project helped us understand that cybersecurity is not only about identifying vulnerabilities.
+
+It is also about understanding:
+
+```text
+What is at risk?
+      ↓
+Why does it matter?
+      ↓
+How does it affect the organization?
+      ↓
+What should be fixed first?
+      ↓
+How much risk can the organization reduce?
+```
 
 ---
 
 # ⭐ GovernX
 
-> **Automate Compliance. Quantify Risk. Empower Decisions.**
+<div align="center">
 
-```text
-┌─────────────────────────────────────────────┐
-│                  G O V E R N X              │
-│                                             │
-│       SECURITY → COMPLIANCE → RISK          │
-│                                             │
-│       TECHNICAL DATA → BUSINESS             │
-│             INTELLIGENCE                    │
-└─────────────────────────────────────────────┘
-```
+## Automate Compliance. Quantify Risk. Empower Decisions.
 
-### Built for the future of Cybersecurity Governance.
+<br>
 
-**Technical Data → Security Intelligence → Business Decisions**
+### SECURITY
 
-## Week 2 – NIST CSF 2.0 & Maturity Scoring
+### ↓
 
-Week 2 focused on building the database and compliance foundation for GovernX.
+### COMPLIANCE
 
-### Key Work Completed
+### ↓
 
-* Converted NIST CSF mappings into SQLAlchemy database models.
-* Added database migration and persistence support.
-* Added indexes for efficient scan-history queries.
-* Fixed database persistence and scan-history issues.
-* Added database queries for comparing current and previous scans.
-* Verified database functionality and backend tests.
+### RISK
 
-### Week 2 Outcome
+### ↓
 
-GovernX can persist scan results, maintain NIST CSF 2.0 mappings, retrieve scan history, and support comparison of compliance results across scans.
+### BUSINESS IMPACT
 
-**NIST CSF 2.0 Functions:** Govern · Identify · Protect · Detect · Respond · Recover
+<br>
 
-**Project:** GovernX – Automated NIST CSF 2.0 Compliance Engine
+**Developed collaboratively during our Cybersecurity Internship**
 
-# GovernX Week 3 Day 1 — Governance Questionnaire DB Schema
+### 🏢 AXLERO Innovating Solutions
 
-## Purpose
+<br>
 
-Week 3 introduces the Govern function through a self-attestation
-questionnaire rather than automated AWS scanning.
+**Ansh Gautam · Harshal Ghatbandhe · Mounika Dunna · Sujal Waghmode · Amrita · Yannam Chittikumari**
 
-## Tables
+<br>
 
-### governance_questions
+<a href="https://github.com/AnshGautam11/Govern-X">
+  <img src="https://img.shields.io/badge/View%20Repository-GitHub-181717?style=for-the-badge&logo=github" />
+</a>
 
-Stores the governance questionnaire questions.
+</div>
 
-Fields:
-- id
-- question_key
-- question_text
-- csf_category
-- active
+---
 
-### governance_responses
+<div align="center">
 
-Stores the answer submitted for each governance question.
+### 🛡️ GovernX
 
-Fields:
-- id
-- question_id
-- answer
-- notes
-- answered_at
+<b>Security • Compliance • Governance • Risk</b>
 
-### governance_evidence
+<br><br>
 
-Stores supporting evidence associated with a governance response.
+<i>From technical findings to business decisions.</i>
 
-Fields:
-- id
-- response_id
-- evidence_type
-- evidence_reference
-- description
-- added_at
-
-## Initial questionnaire scope
-
-The Day 1 schema supports:
-
-- risk_owner_assigned → GV.RR
-- security_policy_reviewed → GV.PO
-- incident_response_plan_exists → GV.OV
-- third_party_risk_reviewed → GV.SC
-
-This is a deliberately narrow questionnaire scope and does not claim
-complete coverage of all NIST CSF 2.0 Govern subcategories.
-
-# GovernX – Week 3
-
-Week 3 focuses on the **Govern function of NIST CSF 2.0**.
-
-### Governance Questionnaire
-- Added governance questionnaire API endpoints.
-- Supports submitting governance responses using `POST /governance/responses`.
-- Supports retrieving saved responses using `GET /governance/responses`.
-- Added governance response validation and database persistence.
-
-### Governance Areas
-- GV.RR – Roles, Responsibilities & Authorities
-- GV.PO – Policy
-- GV.OV – Oversight
-- GV.SC – Cybersecurity Supply Chain Risk Management
-
-### Week 3 – Governance Completion Scoring
-
-- Added governance questionnaire completion scoring.
-- Governance score is calculated from completed policy responses.
-- Integrated the Govern score into function and overall maturity scoring.
-- Added tests for governance scoring and integration.
-
-### Week 3 – Database Fixes
-- Aligned the database schema with the current ORM models.
-- Added financial asset and governance profile DB support.
-- Improved transaction rollback handling.
-- Added database persistence and schema tests.
-
-### Governance Response Audit Trail
-
-GovernX preserves historical governance questionnaire submissions through a dedicated audit trail. Each submission receives a unique submission ID and timestamp, while the individual answers remain linked to their governance questions.
-
-API:
-- `POST /governance/responses` — submit questionnaire responses
-- `GET /governance/responses` — retrieve the latest responses
-- `GET /governance/history` — retrieve historical questionnaire submissions
+</div>
