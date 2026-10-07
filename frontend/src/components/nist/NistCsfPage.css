@@ -1,0 +1,1965 @@
+/* ==========================================================================
+   Govern-X — NIST CSF 2.0 Page
+   Enterprise GRC documentation theme: near-black ground, white typography,
+   restrained accent, square geometry. Deliberately cooler and less luminous
+   than the 3D Universe screen so this reads as reference material.
+   ========================================================================== */
+
+.nist-page {
+  --nist-bg: #05070c;
+  --nist-surface: #0a0d14;
+  --nist-surface-2: #0e1219;
+  --nist-line: rgba(255, 255, 255, 0.08);
+  --nist-line-strong: rgba(255, 255, 255, 0.16);
+  --nist-text: #f2f4f7;
+  --nist-text-dim: #9aa4b2;
+  --nist-text-faint: #6b7482;
+  --nist-accent: #4d9fff;
+  --nist-accent-soft: rgba(77, 159, 255, 0.12);
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--nist-bg);
+  color: var(--nist-text);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+.nist-page *,
+.nist-page *::before,
+.nist-page *::after {
+  box-sizing: border-box;
+}
+
+.nist-page h1,
+.nist-page h2,
+.nist-page h3,
+.nist-page h4 {
+  color: var(--nist-text);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.nist-page p {
+  margin: 0;
+}
+
+.nist-container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 1.75rem;
+}
+
+/* ========================================
+   SCROLL REVEAL
+======================================== */
+
+.nist-reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.nist-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nist-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .nist-page *,
+  .nist-page *::before,
+  .nist-page *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ========================================
+   TOP BAR
+======================================== */
+
+.nist-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(5, 7, 12, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--nist-line);
+}
+
+.nist-topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  height: 60px;
+}
+
+.nist-topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--nist-text);
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.nist-topbar-mark {
+  color: var(--nist-accent);
+  font-size: 0.95rem;
+}
+
+.nist-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nist-topbar-nav button {
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--nist-text-dim);
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.nist-topbar-nav button:hover {
+  color: var(--nist-text);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--nist-line);
+}
+
+.nist-topbar-exit {
+  padding: 0.45rem 0.9rem;
+  background: transparent;
+  border: 1px solid var(--nist-line-strong);
+  color: var(--nist-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 4px;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.nist-topbar-exit:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--nist-accent);
+}
+
+/* ========================================
+   HERO
+======================================== */
+
+.nist-hero {
+  position: relative;
+  padding: 6rem 0 5rem;
+  border-bottom: 1px solid var(--nist-line);
+  overflow: hidden;
+}
+
+.nist-hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--nist-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--nist-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: 0.35;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 75%);
+  pointer-events: none;
+}
+
+/* Lightweight radar echo of the six Functions — a nod to the 3D Universe. */
+.nist-hero-radar {
+  position: absolute;
+  top: 50%;
+  right: -140px;
+  width: 560px;
+  height: 560px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  border: 1px solid var(--nist-line);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.nist-hero-radar::before,
+.nist-hero-radar::after {
+  content: '';
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  border: 1px solid var(--nist-line);
+}
+
+.nist-hero-radar::after {
+  inset: 33%;
+}
+
+.radar-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(77, 159, 255, 0.16) 0deg, transparent 70deg);
+  animation: nist-radar 7s linear infinite;
+}
+
+@keyframes nist-radar {
+  to { transform: rotate(360deg); }
+}
+
+.radar-node {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: var(--node-color, var(--nist-accent));
+  box-shadow: 0 0 10px var(--node-color, var(--nist-accent));
+  transform:
+    rotate(calc(var(--node-index) * 60deg))
+    translateX(180px);
+}
+
+.nist-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+}
+
+.nist-eyebrow {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  color: var(--nist-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.nist-hero-title {
+  font-size: clamp(2.6rem, 6vw, 4.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
+}
+
+.nist-hero-subtitle {
+  max-width: 640px;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  color: var(--nist-text);
+  line-height: 1.45;
+  margin-bottom: 1rem;
+}
+
+.nist-hero-lede {
+  max-width: 620px;
+  color: var(--nist-text-dim);
+  font-size: 0.98rem;
+  margin-bottom: 2.25rem;
+}
+
+.nist-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 3rem;
+}
+
+.nist-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.35rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.nist-btn-primary {
+  background: var(--nist-accent);
+  border-color: var(--nist-accent);
+  color: #041018;
+}
+
+.nist-btn-primary:hover {
+  background: #6bb0ff;
+  border-color: #6bb0ff;
+  transform: translateY(-1px);
+}
+
+.nist-btn-ghost {
+  background: transparent;
+  border-color: var(--nist-line-strong);
+  color: var(--nist-text);
+}
+
+.nist-btn-ghost:hover {
+  border-color: var(--nist-accent);
+  background: var(--nist-accent-soft);
+  transform: translateY(-1px);
+}
+
+.nist-hero-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0 0 1.75rem;
+  background: var(--nist-line);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.nist-hero-facts > div {
+  padding: 1rem 1.1rem;
+  background: var(--nist-surface);
+}
+
+.nist-hero-facts dt {
+  color: var(--nist-text-faint);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.nist-hero-facts dd {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--nist-text);
+}
+
+.nist-hero-note {
+  color: var(--nist-text-faint);
+  font-size: 0.85rem;
+}
+
+.nist-hero-note a {
+  color: var(--nist-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.nist-hero-note a:hover {
+  border-bottom-color: var(--nist-accent);
+}
+
+/* ========================================
+   SECTION SHELL
+======================================== */
+
+.nist-main {
+  display: block;
+}
+
+.nist-section {
+  padding: 5.5rem 0;
+  border-bottom: 1px solid var(--nist-line);
+  scroll-margin-top: 72px;
+}
+
+.nist-section-head {
+  max-width: 760px;
+  margin-bottom: 3rem;
+}
+
+.nist-section-title {
+  font-size: clamp(1.75rem, 3.4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.nist-section-lede {
+  color: var(--nist-text-dim);
+  font-size: 1rem;
+}
+
+.nist-subheading {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.5rem;
+}
+
+/* ========================================
+   WHAT IS CSF
+======================================== */
+
+.whatis-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  gap: 3rem;
+  align-items: start;
+}
+
+.whatis-intro {
+  color: var(--nist-text);
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.whatis-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.whatis-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-left: 2px solid var(--fn-color, var(--nist-accent));
+  border-radius: 4px;
+  color: var(--nist-text-dim);
+  font-size: 0.9rem;
+}
+
+.whatis-list strong {
+  color: var(--nist-text);
+  font-weight: 700;
+}
+
+.whatis-list-code {
+  flex: 0 0 auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--fn-color, var(--nist-accent));
+}
+
+.flow-rail {
+  list-style: none;
+  margin: 0;
+  padding: 1.25rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.flow-rail li {
+  position: relative;
+  padding: 0.7rem 0.9rem;
+  background: var(--nist-surface-2);
+  border: 1px solid var(--nist-line);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.flow-rail li:not(:last-child)::after {
+  content: '↓';
+  position: absolute;
+  bottom: -0.95rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--nist-text-faint);
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.flow-rail li.is-final {
+  background: var(--nist-accent-soft);
+  border-color: rgba(77, 159, 255, 0.4);
+  color: var(--nist-text);
+}
+
+/* ========================================
+   WHY NIST — CARD GRID
+======================================== */
+
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.why-card {
+  height: 100%;
+  padding: 1.6rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.why-card:hover,
+.why-card:focus-visible {
+  border-color: var(--nist-accent);
+  background: var(--nist-surface-2);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.why-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.why-card p {
+  color: var(--nist-text-dim);
+  font-size: 0.9rem;
+}
+
+/* ========================================
+   WHAT CHANGED
+======================================== */
+
+.changes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 3.5rem;
+}
+
+.changes-card {
+  height: 100%;
+  padding: 1.75rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+}
+
+.changes-index {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--nist-accent);
+  margin-bottom: 0.85rem;
+}
+
+.changes-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.changes-emphasis {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  padding: 0.2rem 0.55rem;
+  background: var(--nist-accent-soft);
+  border: 1px solid rgba(77, 159, 255, 0.3);
+  border-radius: 3px;
+  color: var(--nist-accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.changes-card p {
+  color: var(--nist-text-dim);
+  font-size: 0.9rem;
+}
+
+.evolution {
+  padding: 1.75rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+}
+
+.evolution-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+.evolution-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--nist-line);
+  border-radius: 4px;
+}
+
+.evolution-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px;
+}
+
+.evolution-table th,
+.evolution-table td {
+  padding: 0.8rem 1rem;
+  text-align: left;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--nist-line);
+  vertical-align: top;
+}
+
+.evolution-table thead th {
+  background: var(--nist-surface-2);
+  color: var(--nist-text);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.evolution-table tbody th {
+  color: var(--nist-text);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.evolution-table td {
+  color: var(--nist-text-dim);
+}
+
+.evolution-table tbody tr:last-child th,
+.evolution-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.evolution-table td:last-child {
+  color: var(--nist-text);
+  background: rgba(77, 159, 255, 0.05);
+}
+
+.evolution-note {
+  margin-top: 1.25rem;
+  color: var(--nist-text-faint);
+  font-size: 0.85rem;
+}
+
+/* ========================================
+   SIX FUNCTIONS
+======================================== */
+
+.functions-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 3rem;
+  align-items: start;
+}
+
+.functions-orbit {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.function-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  padding: 1.1rem 1.2rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.function-node:hover {
+  border-color: var(--fn-color, var(--nist-accent));
+  transform: translateY(-2px);
+}
+
+.function-node.is-active {
+  background: var(--nist-surface-2);
+  border-color: var(--fn-color, var(--nist-accent));
+  box-shadow: inset 2px 0 0 var(--fn-color, var(--nist-accent));
+}
+
+.function-node-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--fn-color, var(--nist-accent));
+}
+
+.function-node-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--nist-text);
+}
+
+.functions-flow-note {
+  margin-top: 1.25rem;
+  padding: 0.9rem 1rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 4px;
+  color: var(--nist-text-faint);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.functions-flow-note strong {
+  color: var(--nist-text-dim);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.function-detail-card {
+  padding: 1.75rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-top: 2px solid var(--fn-color, var(--nist-accent));
+  border-radius: 6px;
+}
+
+.function-detail-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--fn-color, var(--nist-accent));
+}
+
+.function-detail-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0.4rem 0 0.75rem;
+}
+
+.function-detail-summary {
+  color: var(--nist-text);
+  font-size: 0.98rem;
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+}
+
+.function-detail-purpose {
+  color: var(--nist-text-dim);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.function-detail-block {
+  margin-bottom: 1.4rem;
+}
+
+.function-detail-block h4 {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nist-text-faint);
+  margin-bottom: 0.6rem;
+}
+
+.function-detail-block p,
+.function-detail-block li {
+  color: var(--nist-text-dim);
+  font-size: 0.88rem;
+}
+
+.function-detail-block ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.function-detail-block li {
+  position: relative;
+  padding-left: 1.1rem;
+}
+
+.function-detail-block li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--fn-color, var(--nist-accent));
+}
+
+.function-detail-block.is-governx {
+  padding: 1rem 1.1rem;
+  background: var(--nist-accent-soft);
+  border: 1px solid rgba(77, 159, 255, 0.25);
+  border-radius: 4px;
+}
+
+.function-detail-block.is-governx h4 {
+  color: var(--nist-accent);
+}
+
+.function-detail-block.is-governx p {
+  color: var(--nist-text);
+}
+
+.function-detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+  color: var(--fn-color, var(--nist-accent));
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.function-detail-link:hover {
+  border-bottom-color: currentColor;
+}
+
+/* ========================================
+   HIERARCHY
+======================================== */
+
+.hierarchy-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.5fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: start;
+}
+
+.hierarchy-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.hierarchy-step {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 4px;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.hierarchy-step:hover {
+  border-color: var(--nist-line-strong);
+  background: var(--nist-surface-2);
+}
+
+.hierarchy-step.is-active {
+  border-color: var(--nist-accent);
+  background: var(--nist-surface-2);
+}
+
+.hierarchy-step-index {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  color: var(--nist-text-faint);
+}
+
+.hierarchy-step.is-active .hierarchy-step-index {
+  color: var(--nist-accent);
+}
+
+.hierarchy-step-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--nist-text);
+}
+
+.hierarchy-detail-card {
+  padding: 1.75rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+  margin-bottom: 1.25rem;
+}
+
+.hierarchy-detail-level {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nist-accent);
+}
+
+.hierarchy-detail-card h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0.4rem 0 0.75rem;
+}
+
+.hierarchy-detail-card p {
+  color: var(--nist-text-dim);
+  font-size: 0.92rem;
+}
+
+.hierarchy-example {
+  padding: 1.5rem;
+  background: var(--nist-surface-2);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+}
+
+.hierarchy-example-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nist-text-faint);
+  margin-bottom: 1rem;
+}
+
+.hierarchy-example-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.hierarchy-example-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  padding: 0.75rem 0.9rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 4px;
+}
+
+.hierarchy-example-code {
+  flex: 0 0 88px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--nist-accent);
+}
+
+.hierarchy-example-text {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.hierarchy-example-level {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nist-text-faint);
+}
+
+.hierarchy-example-title {
+  color: var(--nist-text-dim);
+  font-size: 0.87rem;
+}
+
+.hierarchy-example-note {
+  margin-top: 1rem;
+  color: var(--nist-text-faint);
+  font-size: 0.78rem;
+}
+
+/* ========================================
+   PROFILES
+======================================== */
+
+.profiles-track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.profiles-stage-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.profiles-stage {
+  flex: 1;
+  padding: 1.5rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+}
+
+.profiles-stage-index {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  color: var(--nist-accent);
+  margin-bottom: 0.7rem;
+}
+
+.profiles-stage-label {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.profiles-stage-question {
+  color: var(--nist-text);
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-style: italic;
+  margin-bottom: 0.7rem;
+}
+
+.profiles-stage-body {
+  color: var(--nist-text-dim);
+  font-size: 0.85rem;
+}
+
+.profiles-connector {
+  display: block;
+  text-align: center;
+  color: var(--nist-text-faint);
+  font-size: 0.8rem;
+  line-height: 1;
+  margin-top: 0.5rem;
+}
+
+.profiles-note {
+  margin-top: 2rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--nist-accent-soft);
+  border: 1px solid rgba(77, 159, 255, 0.25);
+  border-radius: 4px;
+  color: var(--nist-text);
+  font-size: 0.9rem;
+}
+
+/* ========================================
+   TIERS
+======================================== */
+
+.tiers-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 3rem;
+  align-items: start;
+}
+
+.tiers-ladder {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tier-step {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1.1rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 4px;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.tier-step:hover {
+  border-color: var(--tier-color);
+}
+
+.tier-step.is-active {
+  background: var(--nist-surface-2);
+  border-color: var(--tier-color);
+}
+
+.tier-step-bar {
+  position: relative;
+  flex: 0 0 54px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.tier-step-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--tier-fill);
+  background: var(--tier-color);
+  border-radius: 2px;
+}
+
+.tier-step-tier {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--nist-text-faint);
+  white-space: nowrap;
+}
+
+.tier-step.is-active .tier-step-tier {
+  color: var(--tier-color);
+}
+
+.tier-step-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--nist-text);
+}
+
+.tiers-meter {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--nist-line);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.tiers-meter-fill {
+  height: 100%;
+  background: var(--tier-color);
+  transition: width 0.45s ease, background 0.3s ease;
+}
+
+.tiers-meter-label {
+  margin-top: 0.6rem;
+  color: var(--nist-text-faint);
+  font-size: 0.78rem;
+}
+
+.tiers-detail-card {
+  padding: 1.75rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-top: 2px solid var(--tier-color);
+  border-radius: 6px;
+  margin-bottom: 1.25rem;
+}
+
+.tiers-detail-tier {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--tier-color);
+}
+
+.tiers-detail-card h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.4rem 0 0.85rem;
+}
+
+.tiers-detail-card p {
+  color: var(--nist-text-dim);
+  font-size: 0.92rem;
+}
+
+.tiers-caveat {
+  padding: 1.1rem 1.25rem;
+  background: var(--nist-surface-2);
+  border: 1px solid var(--nist-line);
+  border-left: 2px solid var(--nist-accent);
+  border-radius: 4px;
+  color: var(--nist-text-dim);
+  font-size: 0.85rem;
+}
+
+/* ========================================
+   PROCESS
+======================================== */
+
+.process-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1rem;
+  counter-reset: none;
+}
+
+.process-step {
+  position: relative;
+  padding: 1.5rem 1.4rem 1.4rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+}
+
+.process-step::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 1.4rem;
+  right: 1.4rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--nist-accent), transparent);
+  opacity: 0.6;
+}
+
+.process-step-index {
+  display: block;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--nist-accent);
+  margin-bottom: 0.7rem;
+}
+
+.process-step-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.process-step-body {
+  color: var(--nist-text-dim);
+  font-size: 0.85rem;
+}
+
+/* ========================================
+   GOVERN-X ROLE
+======================================== */
+
+.governx-flow {
+  padding: 1.75rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+  margin-bottom: 3rem;
+}
+
+.governx-flow-track {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.governx-flow-node {
+  padding: 0.7rem 1.1rem;
+  background: var(--nist-surface-2);
+  border: 1px solid var(--nist-line);
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.governx-flow-node + .governx-flow-node::before {
+  content: '→';
+  display: inline-block;
+  margin-right: 0.6rem;
+  color: var(--nist-text-faint);
+}
+
+.governx-flow-node.is-input {
+  color: var(--nist-text-dim);
+}
+
+.governx-flow-node.is-core {
+  background: var(--nist-accent-soft);
+  border-color: var(--nist-accent);
+  color: var(--nist-accent);
+  letter-spacing: 0.08em;
+}
+
+.governx-flow-node.is-stage {
+  color: var(--nist-text);
+}
+
+.governx-flow-node.is-outcome {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.4);
+  color: #6ee7b7;
+}
+
+.governx-capability-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.governx-capability {
+  height: 100%;
+  padding: 1.5rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-top: 2px solid var(--nist-accent);
+  border-radius: 6px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.governx-capability:hover {
+  transform: translateY(-2px);
+  border-top-color: #6bb0ff;
+}
+
+.governx-capability h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.55rem;
+}
+
+.governx-capability p {
+  color: var(--nist-text-dim);
+  font-size: 0.87rem;
+}
+
+/* ========================================
+   WORKFLOW DIAGRAM
+======================================== */
+
+.workflow-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 2.5rem 1.5rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+}
+
+.workflow-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.workflow-node {
+  padding: 0.8rem 1.4rem;
+  background: var(--nist-surface-2);
+  border: 1px solid var(--nist-line);
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+.workflow-node.is-source {
+  color: var(--nist-text-dim);
+}
+
+.workflow-node.is-core {
+  background: var(--nist-accent-soft);
+  border-color: var(--nist-accent);
+  color: var(--nist-accent);
+  padding: 1rem 2.5rem;
+  font-size: 0.9rem;
+}
+
+.workflow-node.is-engine {
+  color: var(--nist-text);
+}
+
+.workflow-node.is-outcome {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.4);
+  color: #6ee7b7;
+}
+
+.workflow-branches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 760px;
+}
+
+.workflow-arrow {
+  color: var(--nist-text-faint);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+/* ========================================
+   WORKED EXAMPLE
+======================================== */
+
+.example-finding {
+  padding: 1.5rem 1.75rem;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  border-radius: 6px;
+  margin-bottom: 2.5rem;
+}
+
+.example-finding-label {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #f87171;
+  margin-bottom: 0.65rem;
+}
+
+.example-finding blockquote {
+  margin: 0;
+  color: var(--nist-text);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.example-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.55fr) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.example-track-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.example-stage {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 4px;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.example-stage:hover {
+  border-color: var(--nist-line-strong);
+}
+
+.example-stage.is-active {
+  background: var(--nist-surface-2);
+  border-color: var(--nist-accent);
+}
+
+.example-stage-index {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.68rem;
+  color: var(--nist-text-faint);
+}
+
+.example-stage.is-active .example-stage-index {
+  color: var(--nist-accent);
+}
+
+.example-stage-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--nist-text);
+}
+
+.example-detail-card {
+  padding: 1.75rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+  margin-bottom: 1.25rem;
+}
+
+.example-detail-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.example-detail-card p {
+  color: var(--nist-text-dim);
+  font-size: 0.92rem;
+}
+
+.example-var {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: var(--nist-surface-2);
+  border: 1px solid var(--nist-line);
+  border-left: 2px solid var(--nist-accent);
+  border-radius: 4px;
+}
+
+.example-var-label {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nist-text-faint);
+  margin-bottom: 0.5rem;
+}
+
+.example-var-value {
+  display: block;
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--nist-text);
+  line-height: 1.1;
+  margin-bottom: 0.75rem;
+}
+
+.example-var-disclaimer {
+  display: block;
+  color: var(--nist-text-faint);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.example-cta {
+  display: inline-flex;
+}
+
+/* ========================================
+   COMPARISON
+======================================== */
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.comparison-column {
+  padding: 1.75rem;
+  background: var(--nist-surface);
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+}
+
+.comparison-column h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--nist-line);
+}
+
+.comparison-column ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.comparison-column li {
+  position: relative;
+  padding-left: 1.5rem;
+  color: var(--nist-text-dim);
+  font-size: 0.9rem;
+}
+
+.comparison-column li::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 700;
+}
+
+.comparison-traditional li::before {
+  content: '×';
+  color: #f87171;
+}
+
+.comparison-governx {
+  border-color: rgba(77, 159, 255, 0.35);
+  background: linear-gradient(180deg, rgba(77, 159, 255, 0.06), transparent);
+}
+
+.comparison-governx li::before {
+  content: '✓';
+  color: var(--nist-accent);
+}
+
+.comparison-governx li {
+  color: var(--nist-text);
+}
+
+/* ========================================
+   FAQ
+======================================== */
+
+.faq-list {
+  max-width: 880px;
+  border: 1px solid var(--nist-line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.faq-item {
+  background: var(--nist-surface);
+  border-bottom: 1px solid var(--nist-line);
+}
+
+.faq-item:last-child {
+  border-bottom: none;
+}
+
+.faq-question-heading {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.15rem 1.35rem;
+  background: transparent;
+  border: none;
+  color: var(--nist-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.faq-question:hover {
+  background: var(--nist-surface-2);
+  color: var(--nist-accent);
+}
+
+.faq-toggle {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--nist-line-strong);
+  border-radius: 3px;
+  color: var(--nist-text-dim);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.faq-item.is-open .faq-toggle {
+  border-color: var(--nist-accent);
+  color: var(--nist-accent);
+}
+
+.faq-answer {
+  padding: 0 1.35rem 1.35rem;
+  background: var(--nist-surface-2);
+}
+
+.faq-answer p {
+  color: var(--nist-text-dim);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+/* ========================================
+   CTA
+======================================== */
+
+.nist-cta {
+  padding: 5.5rem 0;
+  background: var(--nist-surface);
+  border-bottom: 1px solid var(--nist-line);
+}
+
+.nist-cta-inner {
+  max-width: 820px;
+  text-align: center;
+}
+
+.nist-cta-title {
+  font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.nist-cta-text {
+  color: var(--nist-text-dim);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
+
+.nist-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+/* ========================================
+   FOOTER
+======================================== */
+
+.nist-footer {
+  padding: 4rem 0 2.5rem;
+  background: var(--nist-bg);
+}
+
+.nist-footer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
+  gap: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--nist-line);
+}
+
+.nist-footer-logo {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  margin-bottom: 0.75rem;
+}
+
+.nist-footer-brand p {
+  color: var(--nist-text-faint);
+  font-size: 0.85rem;
+  max-width: 320px;
+}
+
+.nist-footer-column h3 {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--nist-text-faint);
+  margin-bottom: 1rem;
+}
+
+.nist-footer-column ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.nist-footer-column a,
+.nist-footer-link {
+  display: inline-block;
+  color: var(--nist-text-dim);
+  font-size: 0.87rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  transition: color 0.18s ease;
+}
+
+.nist-footer-column a:hover,
+.nist-footer-link:hover {
+  color: var(--nist-accent);
+}
+
+.nist-footer-bottom {
+  padding-top: 1.75rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.nist-footer-legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  color: var(--nist-text-faint);
+  font-size: 0.8rem;
+}
+
+.nist-footer-motto {
+  color: var(--nist-text-dim);
+}
+
+.nist-footer-company {
+  margin-left: auto;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--nist-text-dim);
+}
+
+.nist-footer-disclaimer {
+  color: var(--nist-text-faint);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  max-width: 900px;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 1024px) {
+  .whatis-layout,
+  .functions-layout,
+  .hierarchy-layout,
+  .tiers-layout,
+  .example-layout {
+    grid-template-columns: 1fr;
+    gap: 2.25rem;
+  }
+
+  .profiles-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nist-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 860px) {
+  .nist-topbar-nav {
+    display: none;
+  }
+
+  .nist-hero {
+    padding: 4rem 0 3.5rem;
+  }
+
+  .nist-hero-radar {
+    opacity: 0.2;
+    right: -220px;
+  }
+
+  .nist-hero-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-branches {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .nist-container {
+    padding: 0 1.15rem;
+  }
+
+  .nist-section {
+    padding: 3.5rem 0;
+  }
+
+  .nist-section-head {
+    margin-bottom: 2rem;
+  }
+
+  .nist-hero-actions,
+  .nist-cta-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nist-btn {
+    justify-content: center;
+  }
+
+  /* Six Functions become a vertical card list instead of a 2-column grid. */
+  .functions-orbit {
+    grid-template-columns: 1fr;
+  }
+
+  .profiles-track {
+    grid-template-columns: 1fr;
+  }
+
+  .profiles-connector {
+    transform: rotate(0deg);
+  }
+
+  .governx-flow-track {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .governx-flow-node + .governx-flow-node::before {
+    content: '↓';
+    display: block;
+    text-align: center;
+    margin: 0 0 0.5rem;
+  }
+
+  .hierarchy-example-list li {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .hierarchy-example-code {
+    flex: none;
+  }
+
+  .nist-footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nist-footer-company {
+    margin-left: 0;
+  }
+
+  .workflow-diagram {
+    padding: 1.75rem 1rem;
+  }
+
+  .function-detail-card,
+  .hierarchy-detail-card,
+  .tiers-detail-card,
+  .example-detail-card,
+  .governx-flow,
+  .comparison-column {
+    padding: 1.25rem;
+  }
+}
