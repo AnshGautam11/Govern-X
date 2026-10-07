@@ -9,7 +9,7 @@
 </p>
 
 <p>
-  GovernX is a cybersecurity Governance, Risk & Compliance (GRC) platform designed to connect technical security assessments with the <b>NIST Cybersecurity Framework (CSF) 2.0</b>, cybersecurity maturity, and business-oriented risk quantification.
+  GovernX is a cybersecurity <b>Governance, Risk & Compliance (GRC)</b> platform designed to connect technical security assessments with the <b>NIST Cybersecurity Framework (CSF) 2.0</b>, cybersecurity maturity, governance, and business-oriented risk quantification.
 </p>
 
 <br>
@@ -25,11 +25,13 @@
 
 ### 🏢 Developed During Cybersecurity Internship
 
-<b>AXLERO Innovating Solutions</b>
+<b>Axlero Innovative Solutions</b>
 
 <br><br>
 
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge\&logo=github)](https://github.com/AnshGautam11/Govern-X)
+<a href="https://github.com/AnshGautam11/Govern-X">
+  <img src="https://img.shields.io/badge/View%20Repository-GitHub-181717?style=for-the-badge&logo=github" />
+</a>
 
 </div>
 
@@ -42,7 +44,7 @@
 * [🚀 Project Vision](#-project-vision)
 * [🏢 Internship Context](#-internship-context)
 * [👥 Team](#-team)
-* [🏛️ NIST CSF 20](#️-nist-csf-20)
+* [🏛️ NIST CSF 2.0](#️-nist-csf-20)
 * [🏗️ System Architecture](#️-system-architecture)
 * [🔄 End-to-End Workflow](#-end-to-end-workflow)
 * [☁️ AWS Security Assessment](#️-aws-security-assessment)
@@ -56,17 +58,17 @@
 * [📋 Governance Questionnaire](#-governance-questionnaire)
 * [🧾 Scan History & Audit Trail](#-scan-history--audit-trail)
 * [🖥️ Executive Dashboard](#️-executive-dashboard)
-* [🔌 Frontend & Backend](#-frontend--backend-architecture)
-* [🗄️ Persistence](#️-database--persistence)
-* [🧪 Testing](#-testing-strategy)
+* [🔌 Frontend & Backend Architecture](#-frontend--backend-architecture)
+* [🗄️ Database & Persistence](#️-database--persistence)
+* [🧪 Testing Strategy](#-testing-strategy)
 * [🔒 Security Architecture](#-security-architecture)
 * [🛠️ Technology Stack](#️-technology-stack)
 * [📁 Project Structure](#-project-structure)
-* [⚙️ Installation](#️-installation--setup)
+* [⚙️ Installation & Setup](#️-installation--setup)
 * [▶️ Running the Project](#️-running-the-project)
 * [📅 Development Journey](#-development-journey)
-* [🚧 Roadmap](#-future-roadmap)
-* [📊 Current Status](#-current-implementation-status)
+* [🚧 Future Roadmap](#-future-roadmap)
+* [📊 Current Implementation Status](#-current-implementation-status)
 * [🏆 Project Outcome](#-project-outcome)
 * [🤝 Internship Learning](#-internship-learning)
 
@@ -74,7 +76,9 @@
 
 # 🎯 Project Overview
 
-**GovernX** is an internship-developed cybersecurity platform focused on automating the relationship between:
+**GovernX** is a cybersecurity platform developed during our internship at **Axlero Innovative Solutions**, focused on automating the relationship between technical security assessments, compliance, cybersecurity maturity, governance, and business risk.
+
+The platform is designed around the **NIST Cybersecurity Framework (CSF) 2.0**.
 
 <table>
 <tr>
@@ -88,23 +92,16 @@
 </tr>
 </table>
 
-Modern organizations collect security information from cloud environments, identity systems, endpoints, applications, and network infrastructure.
+GovernX is intended to transform technical security findings into meaningful security and business insights.
 
-However, a technical finding alone does not always answer the questions that matter to security leadership:
-
-<details>
-<summary><b>🔎 What does a security finding actually mean?</b></summary>
-
-A finding such as:
+For example:
 
 ```text
 MFA Disabled
 Severity: Critical
 ```
 
-tells the security engineer that something is wrong.
-
-GovernX is designed to take this finding further:
+Instead of stopping at the finding, the platform is designed to connect it with:
 
 ```text
 MFA Disabled
@@ -124,13 +121,11 @@ Potential Financial Exposure
 Remediation Priority
 ```
 
-</details>
-
 ---
 
 # 💡 Why GovernX?
 
-Traditional compliance workflows often depend on:
+Traditional compliance workflows often rely heavily on:
 
 * Manual evidence collection
 * Spreadsheets
@@ -139,25 +134,7 @@ Traditional compliance workflows often depend on:
 * Disconnected security tools
 * Qualitative risk descriptions
 
-GovernX follows a more connected and automated approach.
-
-### Traditional Flow
-
-```text
-Security Tool
-     ↓
-Finding
-     ↓
-Manual Analysis
-     ↓
-Spreadsheet
-     ↓
-Compliance Report
-     ↓
-Management
-```
-
-### GovernX Approach
+GovernX follows a more connected approach:
 
 ```text
 Cloud / Security Data
@@ -183,9 +160,9 @@ Executive Decision
 
 # 🚀 Project Vision
 
-The long-term vision of GovernX is to create a platform where cybersecurity teams can understand their organization's security posture from both a **technical** and **business** perspective.
+The long-term vision of GovernX is to connect cybersecurity operations with organizational risk management.
 
-The core concept is:
+The core transformation is:
 
 <div align="center">
 
@@ -217,27 +194,27 @@ The core concept is:
 
 # 🏢 Internship Context
 
-GovernX was developed as part of our **Cybersecurity Internship at AXLERO Innovating Solutions**.
+GovernX was developed as part of our **Cybersecurity Internship at Axlero Innovative Solutions**.
 
-During the project, our team worked across multiple areas of cybersecurity engineering, including:
+The project provided practical exposure to multiple areas of cybersecurity engineering and software development.
 
-* Cloud Security
-* AWS Security Assessment
-* Governance, Risk & Compliance
-* NIST CSF 2.0
-* Compliance Automation
-* Cyber Risk Quantification
-* Security Maturity
-* Python Backend Development
-* REST API Development
-* React Frontend Development
-* Database Persistence
-* Automated Testing
-* Mock Cloud Environments
-* Security Architecture
-* Executive Security Visualization
+### Areas Covered
 
-The project represents our practical implementation and learning journey during the internship.
+* ☁️ Cloud Security
+* 🔐 AWS Security Assessment
+* 🏛️ Governance, Risk & Compliance
+* 📋 NIST CSF 2.0
+* 📊 Compliance Automation
+* 📈 Cybersecurity Maturity
+* 💰 Cyber Risk Quantification
+* 🐍 Python Backend Development
+* ⚡ REST API Development
+* ⚛️ React Frontend Development
+* 🗄️ Database Persistence
+* 🧪 Automated Testing
+* 🧰 Mock Cloud Environments
+* 🔒 Security Architecture
+* 👥 Collaborative Software Development
 
 ---
 
@@ -256,7 +233,7 @@ The project represents our practical implementation and learning journey during 
 
 <br>
 
-### 🏢 AXLERO Innovating Solutions
+### 🏢 Axlero Innovative Solutions
 
 </div>
 
@@ -264,17 +241,17 @@ The project represents our practical implementation and learning journey during 
 
 # 🏛️ NIST CSF 2.0
 
-GovernX is structured around the six functions introduced in the **NIST Cybersecurity Framework 2.0**.
+GovernX is structured around the six functions of the **NIST Cybersecurity Framework 2.0**.
 
 ```text
                   ┌─────────────────┐
-                  │   GOVERN        │
+                  │     GOVERN      │
                   └────────┬────────┘
                            │
           ┌────────────────┼────────────────┐
           │                │                │
           ▼                ▼                ▼
-     IDENTIFY          PROTECT          DETECT
+      IDENTIFY          PROTECT          DETECT
           │                │                │
           └────────────────┼────────────────┘
                            │
@@ -386,12 +363,12 @@ Focuses on:
                                   │
                                   ▼
                    ┌──────────────────────────────┐
-                   │       REST API Layer          │
+                   │       REST API Layer         │
                    └──────────────┬───────────────┘
                                   │
                                   ▼
                    ┌──────────────────────────────┐
-                   │       React Frontend          │
+                   │       React Frontend         │
                    └──────────────┬───────────────┘
                                   │
                                   ▼
@@ -403,8 +380,6 @@ Focuses on:
 ---
 
 # 🔄 End-to-End Workflow
-
-GovernX follows an assessment pipeline:
 
 ```text
 ┌─────────────────────────┐
@@ -460,7 +435,7 @@ GovernX includes security checks for areas such as:
 * Open ports
 * Identity configuration
 
-The architecture uses Python and **boto3** to interact with AWS services.
+The cloud integration architecture uses Python and **boto3** for AWS service interaction.
 
 ---
 
@@ -482,7 +457,7 @@ NIST Mapping
 Risk
 ```
 
-A finding can contain information such as:
+A security finding can contain:
 
 ```text
 Check ID
@@ -523,8 +498,6 @@ The check is designed to:
 * Handle AWS API errors
 * Produce PASS/FAIL results
 * Map findings to NIST CSF 2.0
-
-Example:
 
 ```text
 S3 Bucket
@@ -586,10 +559,10 @@ This allows security checks to be tested without depending on production AWS inf
         PASS                   FAIL
 ```
 
-Benefits:
+### Benefits
 
 * No production resources required
-* No real AWS credentials required for mock tests
+* No real AWS infrastructure required for mock tests
 * Repeatable testing
 * Faster development
 * Safer security-check validation
@@ -639,7 +612,7 @@ WARNING
 NOT_ASSESSED
 ```
 
-The conceptual scoring flow is:
+Conceptual scoring flow:
 
 ```text
 Individual Checks
@@ -653,7 +626,7 @@ NIST Functions
 Overall Compliance
 ```
 
-This enables security teams to understand both individual control failures and the larger organizational posture.
+This enables security teams to understand individual control failures as well as the larger organizational posture.
 
 ---
 
@@ -757,7 +730,7 @@ ALE = Annualized Loss Expectancy
 
 Cybersecurity risk contains uncertainty.
 
-Monte Carlo simulation can be used to represent this uncertainty through repeated simulations.
+Monte Carlo simulation can represent uncertainty through repeated simulations.
 
 ```text
 Input Variables
@@ -773,7 +746,7 @@ Percentiles
 Risk Estimate
 ```
 
-This allows the system to move from a single deterministic number toward a more realistic range of potential outcomes.
+This allows risk to be represented as a range of potential outcomes instead of relying exclusively on a single deterministic number.
 
 ---
 
@@ -797,28 +770,11 @@ Risk Reduction
 
 Example scenario:
 
-<table>
-<tr>
-<th>Metric</th>
-<th>Before</th>
-<th>After</th>
-</tr>
-<tr>
-<td>Compliance</td>
-<td>68%</td>
-<td>89%</td>
-</tr>
-<tr>
-<td>Estimated Exposure</td>
-<td>$1.2M</td>
-<td>$430K</td>
-</tr>
-<tr>
-<td>Maturity</td>
-<td>Tier 2</td>
-<td>Tier 3</td>
-</tr>
-</table>
+| Metric             | Before |  After |
+| ------------------ | -----: | -----: |
+| Compliance         |    68% |    89% |
+| Estimated Exposure |  $1.2M |  $430K |
+| Maturity           | Tier 2 | Tier 3 |
 
 > The values above are illustrative scenario values used to demonstrate the risk-quantification concept.
 
@@ -839,7 +795,7 @@ The governance model can represent:
 * Governance oversight
 * Supply-chain cybersecurity
 
-The conceptual relationship is:
+Conceptual relationship:
 
 ```text
 Business Strategy
@@ -881,7 +837,7 @@ Third-Party Risk Review
 Supply-Chain Governance
 ```
 
-The scope is intentionally limited and does not claim complete coverage of every NIST CSF 2.0 GOVERN subcategory.
+The current scope is intentionally limited and does not claim complete coverage of every NIST CSF 2.0 GOVERN subcategory.
 
 ---
 
@@ -923,7 +879,7 @@ GET /governance/history
 
 The React frontend is designed to transform backend assessment data into an executive-oriented security view.
 
-Example dashboard metrics:
+Example dashboard:
 
 ```text
 ┌─────────────────────────────────────────────┐
@@ -971,7 +927,7 @@ GovernX follows an API-driven architecture.
 ┌────────────────────────────┐
 │       Backend API          │
 │                            │
-│ FastAPI / Python           │
+│ Python / FastAPI           │
 └──────────────┬─────────────┘
                │
        ┌───────┼────────┐
@@ -991,11 +947,11 @@ GovernX follows an API-driven architecture.
 
 <div align="center">
 
-**Backend = Source of Truth**
+<b>Backend = Source of Truth</b>
 
 ⬇
 
-**Frontend = Visualization Layer**
+<b>Frontend = Visualization Layer</b>
 
 </div>
 
@@ -1005,7 +961,7 @@ GovernX follows an API-driven architecture.
 
 GovernX includes persistence for assessment-related information.
 
-The conceptual data relationship is:
+Conceptual data relationship:
 
 ```text
 Organization
@@ -1031,7 +987,7 @@ Persistence enables the application to retain assessment information rather than
 
 Testing is an important part of the project architecture.
 
-## Unit Testing
+### Unit Testing
 
 Areas include:
 
@@ -1041,7 +997,7 @@ Areas include:
 * Compliance scoring
 * Governance scoring
 
-## Integration Testing
+### Integration Testing
 
 ```text
 AWS Collector
@@ -1053,7 +1009,7 @@ NIST Mapping
 API
 ```
 
-## Mock Cloud Testing
+### Mock Cloud Testing
 
 ```text
 Moto AWS Environment
@@ -1065,7 +1021,7 @@ Run Security Check
 Verify Result
 ```
 
-## API Testing
+### API Testing
 
 Testing can cover:
 
@@ -1159,27 +1115,18 @@ Govern-X/
 │   ├── app.py
 │   │
 │   ├── config/
-│   │
 │   ├── integrations/
 │   │   ├── aws/
 │   │   └── azure/
 │   │
 │   ├── collectors/
-│   │
 │   ├── checks/
-│   │
 │   ├── mappings/
-│   │
 │   ├── compliance/
-│   │
 │   ├── risk_engine/
-│   │
 │   ├── models/
-│   │
 │   ├── api/
-│   │
 │   ├── reports/
-│   │
 │   └── tests/
 │
 ├── frontend/
@@ -1225,8 +1172,6 @@ cd Govern-X
 ---
 
 # 🐍 Backend Setup
-
-Move into the backend directory:
 
 ```bash
 cd backend
@@ -1296,7 +1241,7 @@ python app.py
 
 # ⚛️ Frontend Setup
 
-Open another terminal and move into the frontend directory:
+Open another terminal:
 
 ```bash
 cd frontend
@@ -1509,13 +1454,13 @@ GovernX brings multiple cybersecurity disciplines together into a single platfor
               FINANCIAL IMPACT
                     │
                     ▼
-              REMEDIATION
+               REMEDIATION
                     │
                     ▼
-             BUSINESS DECISION
+              BUSINESS DECISION
 ```
 
-The overall transformation is:
+The overall transformation:
 
 <div align="center">
 
@@ -1559,7 +1504,7 @@ The overall transformation is:
 
 # 🤝 Internship Learning
 
-Working on GovernX during our cybersecurity internship provided practical exposure to how cybersecurity concepts can be transformed into an actual software platform.
+Working on GovernX during our cybersecurity internship at **Axlero Innovative Solutions** provided practical exposure to how cybersecurity concepts can be transformed into an actual software platform.
 
 The project involved learning and applying:
 
@@ -1579,7 +1524,7 @@ The project involved learning and applying:
 * 🔒 Security Architecture
 * 👥 Collaborative Software Development
 
-Most importantly, the project helped us understand that cybersecurity is not only about identifying vulnerabilities.
+The project helped us understand that cybersecurity is not only about identifying vulnerabilities.
 
 It is also about understanding:
 
@@ -1592,7 +1537,7 @@ How does it affect the organization?
       ↓
 What should be fixed first?
       ↓
-How much risk can the organization reduce?
+How much risk can be reduced?
 ```
 
 ---
@@ -1621,29 +1566,19 @@ How much risk can the organization reduce?
 
 <br>
 
-**Developed collaboratively during our Cybersecurity Internship**
+<b>Developed collaboratively during our Cybersecurity Internship</b>
 
-### 🏢 AXLERO Innovating Solutions
-
-<br>
-
-**Ansh Gautam · Harshal Ghatbandhe · Mounika Dunna · Sujal Waghmode · Amrita · Yannam Chittikumari**
+### 🏢 Axlero Innovative Solutions
 
 <br>
+
+<b>Ansh Gautam · Harshal Ghatbandhe · Mounika Dunna · Sujal Waghmode · Amrita · Yannam Chittikumari</b>
+
+<br><br>
 
 <a href="https://github.com/AnshGautam11/Govern-X">
   <img src="https://img.shields.io/badge/View%20Repository-GitHub-181717?style=for-the-badge&logo=github" />
 </a>
-
-</div>
-
----
-
-<div align="center">
-
-### 🛡️ GovernX
-
-<b>Security • Compliance • Governance • Risk</b>
 
 <br><br>
 
